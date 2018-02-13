@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+SusitnaEG/data-raw/*.xlsx
+SusitnaEG/data-raw/*.xlsm
+SusitnaEG/NAMESPACE
+SusitnaEG/.gitignore
+SusitnaEG/.Rbuildignore
+SusitnaEG/man/
