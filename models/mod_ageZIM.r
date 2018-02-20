@@ -1,9 +1,5 @@
 model{
 #PRIORS
- alpha[1] <- 0; # zero contrast for baseline age
- for (k in 2 : K) { 
-  alpha[k] ~ dnorm(0, 0.00001) # vague priors
- } 
 #years: 
  for (k in 1 : K) {
   beta[1, k] <- 0
@@ -37,8 +33,15 @@ model{
   sigma_gamma[k] ~ dexp(0.0001)
  }
 
- p0[1] ~ dunif(0, 1)
- for(i in 2:5) {p0[i] <- 1}
+ p0[1, 1] ~ dunif(0, 1)
+ for (k in 2 : K) {
+  p0[1, k] <- 1
+ }
+ for (j in 2 : J) {
+  for (k in 1 : K){ 
+   p0[j , k] <- 1
+  } 
+ }
 
  # Zero inflated Multinomial LIKELIHOOD   
  for (n in 1 : N) {
@@ -46,8 +49,8 @@ model{
   for (k in 1 : K) { # loop around foods
    p[n, k] <- phi0[n, k] / sum(phi0[n, ])
    phi0[n, k] <- obs[n, k] * phi[n, k] + .00001
-   log(phi[n, k]) <- alpha[k] + beta[year[n], k] + gamma[sample[n], k]
-   obs[n, k] ~ dbern(p0[k])
+   log(phi[n, k]) <- beta[year[n], k] + gamma[sample[n], k]
+   obs[n, k] ~ dbern(p0[sample[n], k])
    }
  }
 
@@ -55,7 +58,7 @@ model{
  for (n in 1 : N_pred) {
   for (k in 1 : K) { # loop around foods
    p_pred[n, k] <- phi_pred[n, k] / sum(phi_pred[n, ])
-   log(phi_pred[n, k]) <- alpha[k] + beta[year_pred[n], k] + mu_gamma[k]
+   log(phi_pred[n, k]) <- beta[year_pred[n], k] + mu_gamma[k]
   }
  }	
 } 
