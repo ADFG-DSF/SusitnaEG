@@ -7,9 +7,24 @@ age_deshka <-
   sapply(rawage_deshka, function(x) as.integer(x * 100)) %>% #effective sample size of 100
   as.data.frame() %>%
   dplyr::mutate(year = as.character(1979:2017),
-                location = "Deshka weir") %>%
+                location = ifelse(year %in% as.character(1979:1985), "Deshka creel", "Deshka weir")) %>%
   dplyr::rename(x78 = x7)
 
+age_alex <-
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of Alexander age comp.xls",
+                     range = "Alexander age comp!A11:K21",
+                     col_types = c("text", rep("skip", 2), rep("numeric", 6), "skip", "numeric"),
+                     col_names = c("year", "p3", "p4", "p5", "p6", "p7", "p6_2", "n")) %>%
+  dplyr::mutate_all(function(x) ifelse(is.na(x), 0, x)) %>%
+  dplyr::mutate(p6 = p6 + p6_2,
+                x3 = as.integer(p3 / 100 * n),
+                x4 = as.integer(p4 / 100  * n),
+                x5 = as.integer(p5 / 100  * n),
+                x6 = as.integer(p6 / 100  * n),
+                x78 = as.integer(p7 / 100  * n),
+                location = "Alexander creel") %>%
+  dplyr::select(-dplyr::starts_with("p")) %>%
+  dplyr::filter(n != 0)
 
 rawage_cfprelim <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\comm fish data\\Copy of KING_CHUM_COHO_DATA.xlsx",
@@ -86,7 +101,7 @@ xage <-
   dplyr::mutate(year = id[[1]],
                 location = id[[2]]) %>%
   dplyr::select(year, location, dplyr::everything()) %>%
-  dplyr::bind_rows(age_deshka) %>%
+  dplyr::bind_rows(age_deshka, age_alex) %>%
   dplyr::mutate(n = x3 + x4 + x5 + x6 + x78,
                 p3 = round(x3 / n, 2),
                 p4 = round(x4 / n, 2),

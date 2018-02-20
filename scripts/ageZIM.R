@@ -1,3 +1,7 @@
+#test to remove small non zero ae 3's
+#age$x3 <- ifelse(age$x3/age$n < 0.02, 0, age$x3)
+#age$n <- age$x3 + age$x4 +age$x5 +age$x6 +age$x78
+
 year = structure(1:length(unique(age$year)), names = unique(age$year))[age$year]
 jags_dat <- list(K = sum(grepl("^x.*", x = colnames(age))),
                  I = length(unique(age$year)),
@@ -12,7 +16,7 @@ jags_dat <- list(K = sum(grepl("^x.*", x = colnames(age))),
 )
 
 #paramaters of interest
-params <- c("p0", "p_pred", "alpha", "beta", "gamma", "mu_beta", "sigma_beta", "mu_gamma", "sigma_gamma")
+params <- c("p0", "p_pred", "beta", "gamma", "mu_beta", "sigma_beta", "mu_gamma", "sigma_gamma")
 
 #MCMC settings
 nc <- 3; nb <- 1000; nt <- 15; ns <- 31000
@@ -28,10 +32,9 @@ post <- jagsUI::jags(data = jags_dat,
 
 post[["summary"]][grep("^gamma", rownames(post$summary)), ]
 post[["summary"]][grep("beta", rownames(post$summary)), ]
-post[["summary"]][grep(("alpha"), rownames(post$summary)), ]
 post[["summary"]][grep(("mu_"), rownames(post$summary)), ]
 post[["summary"]][grep(("sigma_"), rownames(post$summary)), ]
-post[["summary"]][grep(("p0\\[1,1"), rownames(post$summary)), ]
+post[["summary"]][grep(("p0\\["), rownames(post$summary)), ]
 data.frame(param = names(post$summary[, "mean"]), est = post$summary[, "mean"]) %>%
   dplyr::filter(grepl("p_pred\\[", x = param)) %>%
   dplyr::mutate(year = gsub("^p_pred\\[(\\d*),\\d\\]", "\\1", param),
@@ -67,14 +70,14 @@ dat <-
                 p78 = round(x78 / n, 2)) %>%
   dplyr::select(year, location, dplyr::starts_with("p")) %>%
   tidyr::gather(age, prop, -year, - location)
+
 dplyr::left_join(one, two, "year") %>%
-  dplyr::mutate(p_mu = mu / (1 + sum_mu),
-                p_deshka = deshka / (1 + sum_deshka)) %>%
+  dplyr::mutate(p_mu = mu / (1 + sum_mu)) %>%
   dplyr::arrange(year) %>%
-  tidyr::gather(group, p, p_mu, p_deshka) %>%
-  dplyr::select(year, age, group, prop = p) %>%
+  tidyr::gather(group, p, p_mu) %>%
+  dplyr::select(year, age, prop = p) %>%
   dplyr::mutate(age = ifelse(age < 7, paste0("p", age), "p78")) %>%
-  ggplot(aes(x = as.numeric(year), y = prop, color = group)) + 
+  ggplot(aes(x = as.numeric(year), y = prop)) + 
     geom_line() + 
     geom_point(data = dat, aes(color = location)) +
     facet_grid(age ~ .)

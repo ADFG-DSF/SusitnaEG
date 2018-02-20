@@ -34,10 +34,14 @@ model{
  }
 
  p0[1, 1] ~ dunif(0, 1)
+ p0[2, 1] ~ dunif(0, 1)
+ p0[3, 1] ~ dunif(0, 1)
  for (k in 2 : K) {
   p0[1, k] <- 1
+  p0[2, k] <- 1
+  p0[3, k] <- 1
  }
- for (j in 2 : J) {
+ for (j in 4 : J) {
   for (k in 1 : K){ 
    p0[j , k] <- 1
   } 
