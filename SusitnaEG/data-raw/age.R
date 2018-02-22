@@ -1,14 +1,22 @@
-rawage_deshka <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Susitna run reconstruction data_Jan102018.xlsx",
-                   range = "Deshka brood table!I12:M50",
-                   col_names = c("x3", "x4", "x5", "x6", "x7"))
+deshka_n <- c(297, 181, 159, 298, 1329, 1463, 435, 382, 192, 351, 
+              307, NA,  156, 105,  152,  116, 338, 338, 491, 319, 
+              446, 466, 543, 558,  488,  100, 490, 488, 232, 266, #the 100 in this line in a placeholder, unknown
+              386, 336, 348, 289,  250,  242, 336, 435, 239)
 
-age_deshka <- 
-  sapply(rawage_deshka, function(x) as.integer(x * 100)) %>% #effective sample size of 100
-  as.data.frame() %>%
-  dplyr::mutate(year = as.character(1979:2017),
+age_deshka <-
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\Susitna run reconstruction data_Jan102018.xlsx",
+                   range = "Deshka brood table!A12:M50",
+                   col_names = c("year", "p3", "p4", "p5", "p6", "p78"),
+                   col_types = c("text", rep("skip", 7), rep("numeric", 5))) %>%
+  dplyr::mutate_if(is.numeric, function(x) ifelse(.$year == "1990", NA, x)) %>% # no sampling in 1990
+  dplyr::mutate(n = deshka_n,
+                x3 = as.integer(p3 * n),
+                x4 = as.integer(p4 * n),
+                x5 = as.integer(p5 * n),
+                x6 = as.integer(p6 * n),
+                x78 = as.integer(p78 *n),
                 location = ifelse(year %in% as.character(1979:1985), "Deshka creel", "Deshka weir")) %>%
-  dplyr::rename(x78 = x7)
+  dplyr::select(-dplyr::starts_with("p"))
 
 age_alex <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of Alexander age comp.xls",
@@ -112,9 +120,9 @@ xage <-
 
 library(ggplot2)
 xage %>% 
-  dplyr::select(year, location, dplyr::starts_with("p")) %>%
-  tidyr::gather(age, prop, -year, - location) %>%
-  ggplot(aes(x = year, y = prop, color = location)) + geom_point() + facet_grid(age ~ ., scales = "free_y")
+  dplyr::select(year, location, n, dplyr::starts_with("p")) %>%
+  tidyr::gather(age, prop, -year, - location, -n) %>%
+  ggplot(aes(x = year, y = prop, color = location)) + geom_point(aes(size = n)) + facet_grid(age ~ ., scales = "free_y")
 
 age <- xage %>% dplyr::select(-dplyr::starts_with("p"))
 devtools::use_data(age, pkg = ".\\SusitnaEG", overwrite = TRUE)
