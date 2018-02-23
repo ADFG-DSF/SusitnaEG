@@ -189,7 +189,7 @@ parameters=c(
 
 #### run JAGS ####
 ptm = proc.time()
-jmod = jags.model(file=".\\models\\mod_SuChin v1.04 ready for data", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
+jmod = jags.model(file=".\\models\\mod_SuChin v1.04 ready for data.R", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 update(jmod, n.iter=1000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               

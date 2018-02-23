@@ -3,8 +3,8 @@
 #  RJAGS model
 #  
 ################################################################################
-mod=function(){
-  for (c in (A+a.min):(Y+A-1)) {
+model{
+for (c in (A+a.min):(Y+A-1)) {
     log.R[c] ~ dt(log.R.mean2[c],tau.white,500)
     R[c] <- exp(log.R[c])
     log.R.mean1[c] <- log(S[c-a.max]) + lnalpha - beta * S[c-a.max] 
@@ -17,11 +17,11 @@ mod=function(){
   for (c in (A+a.min+1):(Y+A-1)) {
     log.R.mean2[c] <- log.R.mean1[c] + phi * log.resid[c-1]
     }
-  lnalpha ~ dnorm(0,1.0E-6)%_%T(0,)
-  beta ~ dnorm(0,1.0E-2)%_%T(0,)              
-  phi ~ dnorm(0,1.0E-4)%_%T(-1,1)                                       
+  lnalpha ~ dnorm(0,1.0E-6)T(0,)
+  beta ~ dnorm(0,1.0E-2)T(0,)              
+  phi ~ dnorm(0,1.0E-4)T(-1,1)                                       
   tau.white ~ dgamma(0.001,0.001)        
-  log.resid.0 ~ dnorm(0,tau.red)%_%T(-3,3) 
+  log.resid.0 ~ dnorm(0,tau.red)T(-3,3) 
   alpha <- exp(lnalpha)
   tau.red <- tau.white * (1-phi*phi)
   sigma.white <- 1 / sqrt(tau.white)
@@ -33,7 +33,7 @@ mod=function(){
   U.msy <- lnalpha.c * (0.5 - 0.07*lnalpha.c)
 
 # BROOD YEAR RETURNS W/O SR LINK DRAWN FROM COMMON LOGNORMAL DISTN
-  mean.log.R ~ dnorm(0,1.0E-4)%_%T(0,)       
+  mean.log.R ~ dnorm(0,1.0E-4)T(0,)       
   tau.R ~ dgamma(0.001,0.001)      
   R.0 <- exp(mean.log.R)
   sigma.R0 <- 1 / sqrt(tau.R)
@@ -102,7 +102,7 @@ for (y in 1:Y) {
 # DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- MAINSTEM
   Dtrib.scale ~ dunif(0.01,1)
   Dtrib.sum <- 1 / (Dtrib.scale * Dtrib.scale)
-  pi.main.1p ~ dbeta(0.17,0.83)%_%T(0.03,)
+  pi.main.1p ~ dbeta(0.17,0.83)T(0.03,)
   pi.main.2p ~ dbeta(0.17,0.66)
   pi.main.3p ~ dbeta(0.17,0.50)
   pi.main.4p ~ dbeta(0.17,0.33)
@@ -213,4 +213,3 @@ for (y in 1:Y) {
   mu[y] <- (H.marine[y]              + H.above[y]) / N[y]
   }
 }
-# END OF MODEL

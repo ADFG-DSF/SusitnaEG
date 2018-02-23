@@ -4,18 +4,18 @@ dat <- age[grepl("^Deshka", age$location), ] %>%
   dplyr::select(-x78)
 X <- as.matrix(dat[, grep("^x.*", x = colnames(dat), value = TRUE)])
 X_pmiss <- X
-X_pmiss[, "x3"] <- ifelse(grepl(".*creel$", dat$location), NA, X_pmiss[, "x3"])
+X_pmiss[, "x3"] <- ifelse(X_pmiss[, "x3"] /  age$n[grepl("^Deshka", age$location)] <= 0.02, NA, X_pmiss[, "x3"])
   #ifelse(X_pmiss[, "x3"] == 0, NA, X_pmiss[, "x3"])
-  #ifelse(X_pmiss[, "x3"] /  age$n[grepl("^Deshka", age$location)] <= 0.02, NA, X_pmiss[, "x3"])
+  #ifelse(grepl(".*creel$", dat$location), NA, X_pmiss[, "x3"])
 dat_all <- age[age$year >= 1979, ] %>%
   dplyr::mutate(x6 = x6 + x78) %>%
+  dplyr::filter(!grepl("Escapement$|Flathorn", location)) %>%
   dplyr::select(-x78)
 dat_all$year <- as.numeric(dat_all$year) - min(as.numeric(dat_all$year)) + 1
-#dat2 <- dat2[!grepl("^Alexander", dat2$location), ]
 dat_missall <- dat_all
-dat_missall$x3 <- ifelse(grepl(".*creel$", dat_all$location), NA, dat_missall$x3)
+dat_missall$x3 <- ifelse(dat_all$x3 / dat_all$n <= 0.02, NA, dat_all$x3)
   #ifelse(dat_missall$x3 == 0 & (grepl("^Deshka", dat_missall$location) | grepl("^Alexander", dat_missall$location)), NA, dat_missall$x3)
-  #ifelse(dat2$x3 / dat2$n <= 0.02 & grepl("^Deshka", dat2$location), NA, dat2$x3)
+  #ifelse(grepl(".*creel$", dat_all$location), NA, dat_missall$x3)
 
 
 
@@ -68,7 +68,7 @@ plot_dat <-
                 year = as.numeric(year) - min(as.numeric(year)) + 1) %>%
   dplyr::select(year, location, n, dplyr::starts_with("p")) %>%
   tidyr::gather(age, p, -year, -n, -location) %>%
-  dplyr::mutate(sample = ifelse(grepl("^Deshka", location), "Deshka", "Other"))
+  dplyr::mutate(sample = ifelse((p <= 0.02 & age =="p3") | grepl("Escapement$|Flathorn", location), "age3==NA", "age3==data"))
 
 #estimates of q from Poisson regression with extra data
 q_p <- 
@@ -107,4 +107,11 @@ data.frame(param = names(post$summary[, "mean"]), p = post$summary[, "mean"]) %>
     geom_line(data = q_pmissall, color = "orange") +
     geom_point(data = plot_dat, aes(size = n, color = sample)) +
     facet_grid(age ~ .)
+
+data.frame(deshka = post[["summary"]][grep("q_p\\[\\d*,1", rownames(post$summary)), ][, "mean"],
+           deshka_miss = post[["summary"]][grep("q_pmiss\\[\\d*,1", rownames(post$summary)), ][, "mean"],
+           all = post[["summary"]][grep("q_pall\\[\\d*,1", rownames(post$summary)), ][, "mean"],
+           all_miss = post[["summary"]][grep("q_pmissall\\[\\d*,1", rownames(post$summary)), ][, "mean"]) %>%
+  round(2)
+  
 
