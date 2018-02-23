@@ -22,7 +22,11 @@
 ####  v1.04 
    #  truncating pi.main[1]T(0.03,) solved mixing problem
    #  telemetry data are wrong (faked)
-   #  
+   # 
+####  v1.05 
+   #  MR mean for fish gt 500mm
+   #  telemetry data corrected (still need 2012)
+   # 
 
 library(coda)
 library(MASS)
@@ -32,6 +36,7 @@ library(boot)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(SusitnaEG)
 
 options(digits=8)        ## set output digits
 options(scipen=5)        ## reduce scientific notation   
@@ -68,18 +73,6 @@ alldat=read.csv('.\\models\\SuChin v1.04 data 17Feb18.csv',header=T)
  as.lake=as.numeric(alldat$as.lake)
  as.kahiltna=as.numeric(alldat$as.kahiltna)
  as.talachulitna=as.numeric(alldat$as.talachulitna)
-# tlm.alexander=as.numeric(alldat$tlm.alexander)         # DELETED FROM CSV
- tlm.main.dn=as.numeric(alldat$tlm.main.dn)
- tlm.deshka=as.numeric(alldat$tlm.deshka)
- tlm.east.su=as.numeric(alldat$tlm.east.su)
- tlm.talkeetna=as.numeric(alldat$tlm.talkeetna)
- tlm.main.up=as.numeric(alldat$tlm.main.up)
- tlm.chulitna=as.numeric(alldat$tlm.chulitna)
- tlm.lake=as.numeric(alldat$tlm.lake)
- tlm.kahiltna=as.numeric(alldat$tlm.kahiltna)
- tlm.talachulitna=as.numeric(alldat$tlm.talachulitna)
- tlm.skwentna=as.numeric(alldat$tlm.skwentna)
- tlm.other.yentna=as.numeric(alldat$tlm.other.yentna)
  
 #age comp count data 
 prop.a=as.matrix(alldat[,substr(colnames(alldat), 1,2)=="p."])
@@ -89,7 +82,7 @@ n.a=rowSums(x.a)
 
 air.surveys=as.matrix(alldat[,substr(colnames(alldat), 1,3)=="as."])
 
-telemetry=as.matrix(alldat[,substr(colnames(alldat), 1,4)=="tlm."])
+telemetry=as.matrix(telemetry)
 radios.main  =rowSums(telemetry[,1:6])                                       
 radios.yentna=rowSums(telemetry[,7:11])                                       
 
@@ -121,7 +114,11 @@ dat=list(Y = nyrs, A=nages, a.min=amin, a.max=amax,
  Ha.hat=Ha.hat, cv.ha=cv.ha,
  MR.mainstem=MR.mainstem, cv.mrm=cv.mrm,
  MR.yentna=MR.yentna,     cv.mry=cv.mry,
- weir.deshka=weir.deshka
+ weir.deshka=weir.deshka,
+ s3 = c(rep(0, 34), 5, 17, 19, 15, 13),
+ n3 = c(rep(0, 34), 13, 21, 36, 70, 21),
+ s4 = c(rep(0, 34), 2, 15, 3, 0, 0),
+ n4 = c(rep(0, 34), 64, 96, 92, 187, 28)
  )
 
 B.scale.init = 0.25
@@ -189,7 +186,7 @@ parameters=c(
 
 #### run JAGS ####
 ptm = proc.time()
-jmod = jags.model(file=".\\models\\mod_SuChin v1.04 ready for data.R", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
+jmod = jags.model(file=".\\models\\mod_SuChin v1.05.R", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 update(jmod, n.iter=1000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               

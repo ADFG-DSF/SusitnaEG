@@ -193,9 +193,14 @@ for (y in 1:Y) {
   tau.log.Hm[y] <- 1 / log(cv.hm[y]*cv.hm[y] + 1)
   Hm.hat[y] ~ dlnorm(log.Hm[y],tau.log.Hm[y])             
   IR[y] <- max(N[y] - H.marine[y], 1)                # IR @ RM 0
-
-  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y])
-  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y])
+  
+  #FISH LESS THAN 500mm
+  ps3[y] ~ dbeta(1,1)
+  ps4[y] ~ dbeta(1,1)
+  s3[y] ~ dbinom(ps3[y], n3[y]) 
+  s4[y] ~ dbinom(ps4[y], n4[y])
+  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
+  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
   log.IRm[y] <- log(IR.main[y])
   log.IRy[y] <- log(IR.yentna[y])
   tau.log.mrm[y] <- 1 / log(cv.mrm[y]*cv.mrm[y] + 1)
