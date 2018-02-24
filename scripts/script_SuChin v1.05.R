@@ -26,7 +26,7 @@
 ####  v1.05 
    #  MR mean for fish gt 500mm
    #  telemetry data corrected (still need 2012)
-   # 
+   #  Harvest by group
 
 library(coda)
 library(MASS)
@@ -56,8 +56,6 @@ alldat=read.csv('.\\models\\SuChin v1.04 data 17Feb18.csv',header=T)
  cv.hm=as.numeric(alldat$cv.hm)                   
 # Hx.hat=as.numeric(alldat$Hx.hat)
 # cv.hx=as.numeric(alldat$cv.hx)                   
- Ha.hat=as.numeric(alldat$Ha.hat)
- cv.ha=as.numeric(alldat$cv.ha)                   
  MR.yentna=as.numeric(alldat$MR.yentna)
  cv.mrm=as.numeric(alldat$cv.mrm)                   
  MR.mainstem=as.numeric(alldat$MR.mainstem)
@@ -73,6 +71,13 @@ alldat=read.csv('.\\models\\SuChin v1.04 data 17Feb18.csv',header=T)
  as.lake=as.numeric(alldat$as.lake)
  as.kahiltna=as.numeric(alldat$as.kahiltna)
  as.talachulitna=as.numeric(alldat$as.talachulitna)
+ 
+ Ha.hat=Ha_expand[, -which(colnames(Ha_expand) %in% c("A", "year"))] %>%
+   dplyr::mutate_all(function(x) ifelse(x == 0, 10, x)) %>%
+   as.matrix() %>%
+   rbind(matrix(NA, nrow = 2, ncol = dim(Ha.hat)[2]))
+   
+ cv.ha=matrix(0.2, nrow = dim(Ha.hat)[1] + 2, ncol = dim(Ha.hat)[2])
  
 #age comp count data 
 prop.a=as.matrix(alldat[,substr(colnames(alldat), 1,2)=="p."])
@@ -187,10 +192,10 @@ parameters=c(
 #### run JAGS ####
 ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin v1.05.R", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
-update(jmod, n.iter=1000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
-#update(jmod, n.iter=2000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
+#update(jmod, n.iter=1000, by=1, progress.bar='text')               
+#post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
+update(jmod, n.iter=10000, by=1, progress.bar='text')               
+post = coda.samples(jmod, parameters, n.iter=50000, thin=10)         
 #update(jmod, n.iter=100000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=100000, thin=50)         #  1.5h
 #post = coda.samples(jmod, parameters, n.iter=600000, thin=300)       #  

@@ -149,7 +149,7 @@ for (y in 1:Y) {
 }
   
 # AIR SURVEY DETECTABILITIES BY TRIB
-  Btheta.scale ~ dunif(0.01,1)
+  Btheta.scale ~ dunif(0.01, 1)		        
   Btheta.sum <- 1 / (Btheta.scale * Btheta.scale)
   theta.mean ~ dbeta(1,1)
   Bt1 <- Btheta.sum * theta.mean; Bt2 <- Btheta.sum - Bt1;
@@ -160,7 +160,7 @@ for (y in 1:Y) {
 tau.asmain ~ dgamma(0.01,0.01)
 sigma.asmain <- 1 / sqrt(tau.asmain)
 for(trib in 1:6) { 
-  theta[trib] ~ dbeta(Bt1,Bt2)
+  theta[trib] ~ dbeta(1,1) #dbeta(Bt1,Bt2)
   for (y in 1:Y) {
     log.tppS[y,trib] <- log(theta[trib] * pf.main[y] * pm[y,trib] * S[y])
     air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asmain)
@@ -169,7 +169,7 @@ for(trib in 1:6) {
 tau.asyent ~ dgamma(0.01,0.01)
 sigma.asyent <- 1 / sqrt(tau.asyent)
 for(trib in 7:11) { 
-  theta[trib] ~ dbeta(Bt1,Bt2)
+  theta[trib] ~ dbeta(1,1) #dbeta(Bt1,Bt2)
   for (y in 1:Y) {
     log.tppS[y,trib] <- log(theta[trib] * pf.yentna[y] * py[y,trib-6] * S[y])
     air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asyent)
@@ -208,13 +208,20 @@ for (y in 1:Y) {
   MR.mainstem[y] ~ dlnorm(log.IRm[y],tau.log.mrm[y])    
   MR.yentna[y]   ~ dlnorm(log.IRy[y],tau.log.mry[y])      
   
-  mu.Habove[y] ~ dbeta(0.1,0.1)
-  H.above[y] <- mu.Habove[y] * IR[y]
-  log.Ha[y] <- log(H.above[y])
-  tau.log.Ha[y] <- 1 / log(cv.ha[y]*cv.ha[y] + 1)
-  Ha.hat[y] ~ dlnorm(log.Ha[y],tau.log.Ha[y])       
-  S[y] <- max(IR[y] - H.above[y], 1) 
-
-  mu[y] <- (H.marine[y]              + H.above[y]) / N[y]
+  for(trib in 1:6){
+	H.above[y, trib] <- mu.Habove[y, trib] * Nm[y, trib] * (1 - mu.Hmarine[y])
+  }
+  for(trib in 7:11){
+	H.above[y, trib] <- mu.Habove[y, trib] * Ny[y, (trib - 6)] * (1 - mu.Hmarine[y])
+  } 
+  for(trib in 1:11){
+	mu.Habove[y, trib] ~ dbeta(1,1)
+	log.Ha[y, trib] <- log(H.above[y, trib])
+	tau.log.Ha[y, trib] <- 1 / log(cv.ha[y, trib]*cv.ha[y, trib] + 1)
+	Ha.hat[y, trib] ~ dlnorm(log.Ha[y, trib],tau.log.Ha[y, trib])
+  }
+  
+  S[y] <- max(IR[y] - sum(H.above[y, ]), 1) 
+  mu[y] <- (H.marine[y] + sum(H.above[y, ])) / N[y]
   }
 }
