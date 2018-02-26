@@ -149,7 +149,7 @@ for (y in 1:Y) {
 }
   
 # AIR SURVEY DETECTABILITIES BY TRIB
-  Btheta.scale ~ dunif(0.01, 1)		        
+  Btheta.scale ~ dunif(0.01, 1)      
   Btheta.sum <- 1 / (Btheta.scale * Btheta.scale)
   theta.mean ~ dbeta(1,1)
   Bt1 <- Btheta.sum * theta.mean; Bt2 <- Btheta.sum - Bt1;
@@ -160,7 +160,7 @@ for (y in 1:Y) {
 tau.asmain ~ dgamma(0.01,0.01)
 sigma.asmain <- 1 / sqrt(tau.asmain)
 for(trib in 1:6) { 
-  theta[trib] ~ dbeta(1,1) #dbeta(Bt1,Bt2)
+  theta[trib] ~ dbeta(Bt1,Bt2)      				#Btheta.scale Slicer stuck at value with infinite density
   for (y in 1:Y) {
     log.tppS[y,trib] <- log(theta[trib] * pf.main[y] * pm[y,trib] * S[y])
     air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asmain)
@@ -169,7 +169,7 @@ for(trib in 1:6) {
 tau.asyent ~ dgamma(0.01,0.01)
 sigma.asyent <- 1 / sqrt(tau.asyent)
 for(trib in 7:11) { 
-  theta[trib] ~ dbeta(1,1) #dbeta(Bt1,Bt2)
+  theta[trib] ~ dbeta(Bt1,Bt2)
   for (y in 1:Y) {
     log.tppS[y,trib] <- log(theta[trib] * pf.yentna[y] * py[y,trib-6] * S[y])
     air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asyent)
@@ -195,12 +195,14 @@ for (y in 1:Y) {
   IR[y] <- max(N[y] - H.marine[y], 1)                # IR @ RM 0
   
   #FISH LESS THAN 500mm
-  ps3[y] ~ dbeta(1,1)
-  ps4[y] ~ dbeta(1,1)
-  s3[y] ~ dbinom(ps3[y], n3[y]) 
-  s4[y] ~ dbinom(ps4[y], n4[y])
-  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
-  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
+  ps34[y] ~ dbeta(1,1)
+  #ps3[y] ~ dbeta(1,1)
+  #ps4[y] ~ dbeta(1,1)
+  s34[y] ~ dbinom(ps34[y], n34[y]) 
+  #s3[y] ~ dbinom(ps3[y], n3[y])
+  #s4[y] ~ dbinom(ps4[y], n4[y])
+  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps34[y]) #* (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y]) current model lumps age3 and age4
+  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps34[y]) #* (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
   log.IRm[y] <- log(IR.main[y])
   log.IRy[y] <- log(IR.yentna[y])
   tau.log.mrm[y] <- 1 / log(cv.mrm[y]*cv.mrm[y] + 1)
@@ -209,7 +211,7 @@ for (y in 1:Y) {
   MR.yentna[y]   ~ dlnorm(log.IRy[y],tau.log.mry[y])      
   
   for(trib in 1:6){
-	H.above[y, trib] <- mu.Habove[y, trib] * Nm[y, trib] * (1 - mu.Hmarine[y])
+	H.above[y, trib] <- mu.Habove[y, trib] * Nm[y, trib] * (1 - mu.Hmarine[y]) 
   }
   for(trib in 7:11){
 	H.above[y, trib] <- mu.Habove[y, trib] * Ny[y, (trib - 6)] * (1 - mu.Hmarine[y])

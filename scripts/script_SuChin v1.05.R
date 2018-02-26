@@ -25,8 +25,9 @@
    # 
 ####  v1.05 
    #  MR mean for fish gt 500mm
-   #  telemetry data corrected (still need 2012)
+   #  telemetry data corrected
    #  Harvest by group
+   #  Btheta.scale Slicer stuck at value with infinite density
 
 library(coda)
 library(MASS)
@@ -72,10 +73,13 @@ alldat=read.csv('.\\models\\SuChin v1.04 data 17Feb18.csv',header=T)
  as.kahiltna=as.numeric(alldat$as.kahiltna)
  as.talachulitna=as.numeric(alldat$as.talachulitna)
  
- Ha.hat=Ha_expand[, -which(colnames(Ha_expand) %in% c("A", "year"))] %>%
+ #Harvest by group
+ #use load("path to...\\Ha_expand.rda")
+ Ha.hat <-
+   Ha_expand[, -which(colnames(Ha_expand) %in% c("A", "year"))] %>%
    dplyr::mutate_all(function(x) ifelse(x == 0, 10, x)) %>%
    as.matrix() %>%
-   rbind(matrix(NA, nrow = 2, ncol = dim(Ha.hat)[2]))
+   rbind(matrix(NA, nrow = 2, ncol = sum(!(colnames(Ha_expand) %in% c("A", "year")))))
    
  cv.ha=matrix(0.2, nrow = dim(Ha.hat)[1] + 2, ncol = dim(Ha.hat)[2])
  
@@ -87,6 +91,7 @@ n.a=rowSums(x.a)
 
 air.surveys=as.matrix(alldat[,substr(colnames(alldat), 1,3)=="as."])
 
+#use load("path to...\\telemetry.rda")
 telemetry=as.matrix(telemetry)
 radios.main  =rowSums(telemetry[,1:6])                                       
 radios.yentna=rowSums(telemetry[,7:11])                                       
@@ -120,10 +125,12 @@ dat=list(Y = nyrs, A=nages, a.min=amin, a.max=amax,
  MR.mainstem=MR.mainstem, cv.mrm=cv.mrm,
  MR.yentna=MR.yentna,     cv.mry=cv.mry,
  weir.deshka=weir.deshka,
- s3 = c(rep(0, 34), 5, 17, 19, 15, 13),
- n3 = c(rep(0, 34), 13, 21, 36, 70, 21),
- s4 = c(rep(0, 34), 2, 15, 3, 0, 0),
- n4 = c(rep(0, 34), 64, 96, 92, 187, 28)
+ #s3 = c(rep(0, 34), 5, 17, 19, 15, 13), #prop of fish gt 500mm for age 3 and 4 in MR years
+ #n3 = c(rep(0, 34), 13, 21, 36, 70, 21),
+ #s4 = c(rep(0, 34), 2, 15, 3, 0, 0),
+ #n4 = c(rep(0, 34), 64, 96, 92, 187, 28),
+ s34 = c(rep(0, 34), 7, 32, 22, 15, 13),
+ n34 = c(rep(0, 34), 77, 117, 128, 257, 49)
  )
 
 B.scale.init = 0.25
@@ -186,21 +193,26 @@ parameters=c(
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
 'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
 'pi.main','pi.yent','pm','py',
-'theta','sigma.asmain','sigma.asyent','sigma.weir'
+'theta','sigma.asmain','sigma.asyent','sigma.weir',
+'ps34'
 )
 
 #### run JAGS ####
 ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin v1.05.R", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
-#update(jmod, n.iter=1000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
-update(jmod, n.iter=10000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=50000, thin=10)         
+update(jmod, n.iter=1000, by=1, progress.bar='text')               
+post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
+#update(jmod, n.iter=10000, by=1, progress.bar='text')               
+#post = coda.samples(jmod, parameters, n.iter=50000, thin=10)         
 #update(jmod, n.iter=100000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=100000, thin=50)         #  1.5h
 #post = coda.samples(jmod, parameters, n.iter=600000, thin=300)       #  
 endtime = proc.time()-ptm
 endtime[3]/60/60  
+
+plot(sum$statistics[grepl("mu.Habove", rownames(sum$statistics)), ][, "Mean"])
+abline(v = 39*1:11)
+Ha_expand
 
 # #load(file=paste(stock,version,"post") ) 
 # save(post,file=paste(stock,version,"post") ) 
