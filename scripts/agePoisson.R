@@ -103,7 +103,7 @@ data.frame(param = names(post$summary[, "mean"]), p = post$summary[, "mean"]) %>
   ggplot(aes(x = year, y = p)) + #plot it
     geom_line() + 
     geom_line(data = q_p, color = "red") +
-    geom_line(data = q_pall, color = "blue") +
+#    geom_line(data = q_pall, color = "blue") +
     geom_line(data = q_pmissall, color = "orange") +
     geom_point(data = plot_dat, aes(size = n, color = sample)) +
     facet_grid(age ~ .)
