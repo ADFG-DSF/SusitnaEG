@@ -10,3 +10,4 @@ SusitnaEG/NAMESPACE
 SusitnaEG/.gitignore
 SusitnaEG/.Rbuildignore
 SusitnaEG/man/
+*.xlsx
