@@ -9,7 +9,7 @@ X_pmiss[, "x3"] <- ifelse(X_pmiss[, "x3"] /  age$n[grepl("^Deshka", age$location
   #ifelse(grepl(".*creel$", dat$location), NA, X_pmiss[, "x3"])
 dat_all <- age[age$year >= 1979, ] %>%
   dplyr::mutate(x6 = x6 + x78) %>%
-  dplyr::filter(!grepl("Escapement$|Flathorn", location)) %>%
+  #dplyr::filter(!grepl("Escapement$|Flathorn", location)) %>%
   dplyr::select(-x78)
 dat_all$year <- as.numeric(dat_all$year) - min(as.numeric(dat_all$year)) + 1
 dat_missall <- dat_all
@@ -68,14 +68,7 @@ plot_dat <-
                 year = as.numeric(year) - min(as.numeric(year)) + 1) %>%
   dplyr::select(year, location, n, dplyr::starts_with("p")) %>%
   tidyr::gather(age, p, -year, -n, -location) %>%
-  dplyr::mutate(sample = ifelse((p <= 0.02 & age =="p3") | grepl("Escapement$|Flathorn", location), "age3==NA", "age3==data"))
-
-#estimates of q from Poisson regression with extra data
-q_p <- 
-  data.frame(param = names(post$summary[, "mean"]), p = post$summary[, "mean"]) %>%
-  dplyr::filter(grepl("^q_p\\[", x = param)) %>%
-  dplyr::mutate(year = as.numeric(gsub("^q_p\\[(\\d*),\\d\\]", "\\1", param)),
-                age = paste0("p", as.numeric(gsub("^q_p\\[\\d*,(\\d)\\]", "\\1", param)) + 2)) 
+  dplyr::mutate(sample = ifelse((p <= 0.02 & age =="p3"), "NA", "data")) #| grepl("Escapement$|Flathorn", location), "age3==NA", "age3==data"))
 
 #estimates of q from Poisson regression with missing and extra data
 q_pall <- 
@@ -84,29 +77,21 @@ q_pall <-
     dplyr::mutate(year = as.numeric(gsub("^q_pall\\[(\\d*),\\d\\]", "\\1", param)),
                 age = paste0("p", as.numeric(gsub("^q_pall\\[\\d*,(\\d)\\]", "\\1", param)) + 2)) 
 
-#estimates of q from Poisson regression with missing and extra data
-q_pmissall <- 
-  data.frame(param = names(post$summary[, "mean"]), p = post$summary[, "mean"]) %>%
-  dplyr::filter(grepl("^q_pmissall", x = param)) %>%
-  dplyr::mutate(year = as.numeric(gsub("^q_pmissall\\[(\\d*),\\d\\]", "\\1", param)),
-                age = paste0("p", as.numeric(gsub("^q_pmissall\\[\\d*,(\\d)\\]", "\\1", param)) + 2)) 
 
 library(ggplot2)
-#Red line = no missing data, deshka data only
-#Black line missing age3 data, deshka data only
-#Blue line no missing data, all availible data 
-#Orange line missing age3 data, all availible data 
+#red line = raw data
+#black line = age3 NA's in data
 data.frame(param = names(post$summary[, "mean"]), p = post$summary[, "mean"]) %>%
-  dplyr::filter(grepl("^q_pmiss\\[", x = param)) %>%
-  dplyr::mutate(year = as.numeric(gsub("^q_pmiss\\[(\\d*),\\d\\]", "\\1", param)),
-                age = paste0("p", as.numeric(gsub("^q_pmiss\\[\\d*,(\\d)\\]", "\\1", param)) + 2)) %>%
+  dplyr::filter(grepl("^q_pmissall\\[", x = param)) %>%
+  dplyr::mutate(year = as.numeric(gsub("^q_pmissall\\[(\\d*),\\d\\]", "\\1", param)),
+                age = paste0("p", as.numeric(gsub("^q_pmissall\\[\\d*,(\\d)\\]", "\\1", param)) + 2)) %>%
   ggplot(aes(x = year, y = p)) + #plot it
     geom_line() + 
-    geom_line(data = q_p, color = "red") +
-#    geom_line(data = q_pall, color = "blue") +
-    geom_line(data = q_pmissall, color = "orange") +
+    geom_line(data = q_pall, color = "red") +
     geom_point(data = plot_dat, aes(size = n, color = sample)) +
-    facet_grid(age ~ .)
+    facet_grid(age ~ .) +
+    scale_color_manual(name="Data condition", breaks = c("NA", "data"), labels = c("set to NA", "raw data"), values = c("black", "red"))
+    
 
 data.frame(deshka = post[["summary"]][grep("q_p\\[\\d*,1", rownames(post$summary)), ][, "mean"],
            deshka_miss = post[["summary"]][grep("q_pmiss\\[\\d*,1", rownames(post$summary)), ][, "mean"],

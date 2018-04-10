@@ -32,7 +32,8 @@ mlreg <- function(group_c){
     na.omit() %>%
     dplyr::filter(group == group_c) %>%
     dplyr::mutate(trib2 = relevel(as.factor(trib), ref = reflevels[group_c]),
-                  year2 = as.numeric(year) - mean(as.numeric(unique(survey_raw$year))))
+                  year2 = as.numeric(year) - mean(as.numeric(unique(survey_raw$year))),
+                  empct = count / total)
   
   test2 <- nnet::multinom(trib2 ~ year2, data = dat_reg, weights = count)
   
@@ -54,7 +55,8 @@ mlreg <- function(group_c){
 
   plot <- 
     ggplot2::ggplot(preds, ggplot2::aes(x = as.numeric(year), y = prob, color = trib)) +
-    ggplot2::geom_line()
+    ggplot2::geom_line() +
+    ggplot2::geom_point(data = dat_reg, ggplot2::aes(x = as.numeric(year), y = empct, color = trib))
   
   list(reg = test2, wald = wald, preds = preds, plot = plot)
 }
@@ -87,7 +89,7 @@ missing_col <- function(dat, missing){
 
 as_expand <-
   dplyr::left_join(survey_raw, preds, by = c("year", "trib")) %>%
-  dplyr::filter(!is.na(count)) %>%
+  dplyr::filter(!is.na(count) | year == "1980") %>%
   dplyr::group_by(year, group) %>%
   dplyr::summarise(sum_count = sum(count),
                    sum_prob = sum(prob)) %>%
@@ -100,7 +102,7 @@ as_complete <-
   survey_raw %>%
   dplyr::group_by(year, group) %>%
   dplyr::summarise(sum_count = sum(count)) %>%
-  dplyr::filter(!is.na(sum_count)) %>% 
+  dplyr::filter(!is.na(sum_count) | year == "1980") %>% 
   dplyr::select(year, group, total = sum_count) %>%
   tidyr::spread(group, total) %>%
   missing_col(missing_groups)
@@ -112,8 +114,8 @@ prod(dim(as_expand[, -1]))
 devtools::use_data(as_complete, pkg = ".\\SusitnaEG", overwrite = TRUE)
 devtools::use_data(as_expand, pkg = ".\\SusitnaEG", overwrite = TRUE)
 
-WriteXLS::WriteXLS(
-  c("codes", "as_complete", "as_expand"),
-  ".\\SusitnaEG\\data-raw\\surveydat_for_steve.xlsx", 
-  SheetNames = c("location codes", "complete as", "expanded as"),
-  na = "NA")
+# WriteXLS::WriteXLS(
+#   c("codes", "as_complete", "as_expand"),
+#   ".\\SusitnaEG\\data-raw\\surveydat_for_steve.xlsx", 
+#   SheetNames = c("location codes", "complete as", "expanded as"),
+#   na = "NA")

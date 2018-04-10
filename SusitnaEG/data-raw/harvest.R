@@ -31,7 +31,8 @@ mlreg <- function(dat, group_c){
     na.omit() %>%
     dplyr::filter(group == group_c) %>%
     dplyr::mutate(trib2 = relevel(as.factor(trib), ref = reflevels[group_c]),
-                  year2 = as.numeric(year) - mean(as.numeric(unique(dat$year))))
+                  year2 = as.numeric(year) - mean(as.numeric(unique(dat$year))),
+                  empct = count / total)
   
   test2 <- nnet::multinom(trib2 ~ year2, data = dat_reg, weights = count)
   
@@ -53,7 +54,8 @@ mlreg <- function(dat, group_c){
 
   plot <- 
     ggplot2::ggplot(preds, ggplot2::aes(x = as.numeric(year), y = prob, color = trib)) +
-    ggplot2::geom_line()
+    ggplot2::geom_line() +
+    ggplot2::geom_point(data = dat_reg, ggplot2::aes(x = as.numeric(year), y = empct, color = trib))
   
   list(reg = test2, wald = wald, preds = preds, plot = plot)
 }
