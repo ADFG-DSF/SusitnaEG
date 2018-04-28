@@ -96,7 +96,9 @@ as_expand <-
   dplyr::mutate(total = as.integer(ifelse(is.na(sum_prob), sum_count, sum_count / sum_prob))) %>% 
   dplyr::select(year, group, total) %>%
   tidyr::spread(group, total) %>%
-  missing_col(missing_groups)
+  missing_col(missing_groups) %>%
+  dplyr::mutate_all(function(x) ifelse(x == 0, NA, x)) %>%
+  dplyr::ungroup()
 
 as_complete <-
   survey_raw %>%
@@ -105,7 +107,9 @@ as_complete <-
   dplyr::filter(!is.na(sum_count) | year == "1980") %>% 
   dplyr::select(year, group, total = sum_count) %>%
   tidyr::spread(group, total) %>%
-  missing_col(missing_groups)
+  missing_col(missing_groups) %>%
+  dplyr::mutate_all(function(x) ifelse(x == 0, NA, x)) %>%
+  dplyr::ungroup()
 
 sum(is.na(as_complete))
 sum(is.na(as_expand))

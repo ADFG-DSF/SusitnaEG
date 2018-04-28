@@ -50,53 +50,49 @@ lapply(packs, require, character.only = TRUE)
 rm(list=ls(all=TRUE))
 
 stock<-"SuChin"
-version <- "v2.04"
+version <- "v2_04"
 
 alldat=read.csv('.\\models\\SuChin v1.04 data 17Feb18.csv',header=T)
 
-year=as.numeric(as.character(alldat$year))
-Hm.hat=as.numeric(alldat$Hm.hat)
-cv.hm=as.numeric(alldat$cv.hm)                   
-MR.yentna=as.numeric(alldat$MR.yentna)
-cv.mrm=as.numeric(alldat$cv.mrm)                   
-MR.mainstem=as.numeric(alldat$MR.mainstem)
-cv.mry=as.numeric(alldat$cv.mry)                   
-weir.deshka = as.numeric(alldat$weir.deshka)
-cv.wd=as.numeric(alldat$cv.wd) 
-
-#Harvest by group
-Ha.hat <-
-  Ha_expand[, -which(colnames(Ha_expand) %in% c("A", "year"))] %>%
-  #dplyr::mutate_all(function(x) ifelse(x == 0, 10, x)) %>%
-  as.matrix() %>%
-  rbind(matrix(NA, nrow = 2, ncol = ncol(.)))
-
-cv.ha=matrix(0.2, nrow = dim(Ha.hat)[1] + 2, ncol = dim(Ha.hat)[2])
- 
-#age comp count data 
-prop.a=as.matrix(alldat[,substr(colnames(alldat), 1,2)=="p."])
-colnames(prop.a)=NULL
-x.a <- round(prop.a * 100)
-n.a=rowSums(x.a)                                           
-
-air.survey <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.matrix()
-
-telemetry=as.matrix(telemetry)
-radios.main  =rowSums(telemetry[,1:6])                                       
-radios.yentna=rowSums(telemetry[,7:11]) 
-
+year <- 1979:2017
 nyrs=as.numeric(length(year))
 fyr=min(year)
 lyr=max(year)
-nages=3
+
+Hm.hat <- c(Hm$Hm_Susitna, NA)
+cv.hm <- rep(0.05, length(Hm.hat))
+
+MR.yentna <- mr$mr_yentna
+cv.mr.y  <-  mr$cv_yentna                   
+MR.mainstem <- mr$mr_mainstem
+cv.mr.m  <-  mr$cv_mainstem
+
+weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
+cv.wd <- rep(0.05, length(weir.deshka)) 
+
+Ha.hat <-
+  Ha[, -which(colnames(Ha) %in% c("A", "year"))] %>%
+  apply(1, sum, na.rm = TRUE) %>%
+  c(., rep(NA, 2))
+cv.ha <- rep(0.2, length(Ha.hat))
+ 
+#age comp count data
+x.a <- 
+  age[grepl("Deshka", age$location), ] %>%
+  dplyr::mutate(x34 = x3 + x4,
+                x678 = x6 + x78) %>%
+  dplyr::select(x34, x5, x678) %>%
+  as.matrix()
+n.a <- age[grepl("Deshka", age$location), "n"] %>% ifelse(is.na(.), 100, .) 
+nages <- ncol(x.a)
 amin=4
 amax=6
 
+air.surveys <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.matrix()
 
-                  
-
-
-
+telemetry <- as.matrix(telemetry)
+radios.main <- rowSums(telemetry[,1:6])                                       
+radios.yentna <- rowSums(telemetry[,7:11]) 
 
 
 
@@ -105,10 +101,9 @@ dat=list(Y = nyrs, A=nages, a.min=amin, a.max=amax,
  x.a=x.a, n.a=n.a, air.surveys=air.surveys, 
  telemetry=telemetry, radios.main=radios.main,radios.yentna=radios.yentna,
  Hm.hat=Hm.hat, cv.hm=cv.hm,
-# Hx.hat=Hx.hat, cv.hx=cv.hx,
  Ha.hat=Ha.hat, cv.ha=cv.ha,
- MR.mainstem=MR.mainstem, cv.mrm=cv.mrm,
- MR.yentna=MR.yentna,     cv.mry=cv.mry,
+ MR.mainstem=MR.mainstem, cv.mrm=cv.mr.m,
+ MR.yentna=MR.yentna,     cv.mry=cv.mr.y,
  weir.deshka=weir.deshka
  )
 
@@ -177,7 +172,7 @@ parameters=c(
 
 #### run JAGS ####
 ptm = proc.time()
-jmod = jags.model(file=model_file_loc, data=dat, n.chains=2, inits=inits, n.adapt=1000)  
+jmod = jags.model(file=".\\models\\mod_SuChin v2_04.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 #update(jmod, n.iter=1000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               
@@ -189,53 +184,16 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 #load(file=paste(stock,version,"post") ) 
-save(post,file=paste(stock,version,"post") ) 
-summary=summary(post); str(summary)
+saveRDS(post, file = paste0(".\\posts\\", stock, version, ".2.rds"))
+summary=summary(post); 
+str(summary)
 
-#Adam Reimer's GET.POST function   
-get.post.adam=function(post_dat, var){
-  #coerce to matrix if mcmc.list
-  if (!coda::is.mcmc.list(post_dat) & !is.matrix(post_dat)) stop("post_dat is not of class mcmc.list or matrix")
-  if (coda::is.mcmc.list(post_dat)) post_dat=as.matrix(post_dat)
-  #pull out posteriors for requested variable
-  if(substr(var,nchar(var), nchar(var))=="[") post=post_dat[,substr(colnames(post_dat), 1, nchar(var))==var] else post=post_dat[,var]
-  post
-}
 #### Use Ben Staton's GET.POST function to inspect select nodes ########## 
-source('H:/My Documents/Bayes/JAGS/source/get_post_function_for_ADFG.r')    
-      get.post(post, "ML1[", do.plot=T)
-      get.post(post, "ML2[", do.plot=T)
-      get.post(post, "N[39]", do.plot=T)
-      get.post(post, "R[", do.plot=T)
-      get.post(post, "Dtrib.sum", do.plot=T)  
-      get.post(post, "D.sum", do.plot=T)  
-      get.post(post, "Bfork.sum", do.plot=T)  
-      get.post(post, "pi.fork.main", do.plot=T)  
-      get.post(post, "pf.main[", do.plot=T)  
-      get.post(post, "Btheta.sum", do.plot=T)  
-      get.post(post, "theta[", do.plot=T)  
-      get.post(post, "pi.main[", do.plot=T)  
-      get.post(post, "pf.main[", do.plot=T)  
-      get.post(post, "pm[", do.plot=T)  
-      get.post(post, "pi.yent[", do.plot=T)  
-      get.post(post, "pf.main[", do.plot=T)  
-      get.post(post, "beta", do.plot=T)  
-      get.post(post, "lnalpha", do.plot=T)  
-      get.post(post, "phi", do.plot=T)  
-      get.post(post, "sigma.trib", do.plot=T)  
-      get.post(post, "sigma.white", do.plot=T)  
-      get.post(post, "sigma.R0", do.plot=T)  
-      get.post(post, "S.max", do.plot=T)
-      get.post(post, "S.eq", do.plot=F)
-      get.post(post, "S.msy", do.plot=F)
-      get.post(post, "log.resid.vec[", do.plot=T)
-      get.post(post, "log.resid.0", do.plot=T)
-      get.post(post, "mu.Habove[", do.plot=T)
-      get.post(post, "mu.Hmarine[", do.plot=T)
-      get.post(post, "N[", do.plot=T)
-      get.post(post, "S[", do.plot=T)
-      get.post(post, "R[", do.plot=T)
-
+source('.\\scripts\\get_post_function_for_ADFG.r')
+postcheck <- c("ML1[", "ML2[", "N[39]", "R[", "Dtrib.sum", "D.sum", "Bfork.sum", "pi.fork.main", "pf.main[", "Btheta.sum", "theta[", 
+  "pi.main[", "pf.main[", "pi.yent[", "pf.main[", "beta", "lnalpha", "phi", "sigma.white", "sigma.R0", "S.max",
+  "S.eq", "S.msy", "log.resid.vec[", "log.resid.0", "mu.Habove[", "mu.Hmarine[", "N[", "S[", "R[")
+lapply(postcheck, get.post, post.samp = post, do.plot = TRUE)
 
 #### Find nodes with POOR convergence ##########################
 gel=as.data.frame(gelman.diag(post, multivariate=F)[[1]])
@@ -250,26 +208,6 @@ for(i in 1:nrow(gel)){
 poor=poor[!is.na(poor[,1]),]
 poor=as.data.frame(poor); colnames(poor)=c("Parameter", "Gelman-Rubin")
 poor
-
-#### PLOT traces and density of all monitored nodes to pdf) ####
-#windows(record=T) 
-#pdf(paste(stock,version,"trace.pdf"),onefile=T,useDingbats=F)
-#plot(post)
-#dev.off()
-
-#### CALCULATE DIC criteria ########################################
-dic.pD  <-dic.samples(jmod,n.iter=10000,thin=10,"pD")
-dic.popt<-dic.samples(jmod,n.iter=10000,thin=10,"popt")
-dev1 <- sum(dic.pD[[1]])
-pD   <- sum(dic.pD[[2]])
-dic.pD <- dev1 + pD
-dic.pD.summary <- c(dev1, pD, dic.pD)
-write(dic.pD.summary, file=paste("YukCanChin",version,"_DIC_pD.txt") )  
-      
-
-#### WRITE posterior samples and summaries to disk ########################
-#save(post,file=paste(stock,version,"post") ) 
-#load(file=paste(stock,version,"post"))
 
 #summary=summary(post); str(summary)
 stats=summary$statistics;      colnames(stats)
