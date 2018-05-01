@@ -184,80 +184,24 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 #load(file=paste(stock,version,"post") ) 
-saveRDS(post, file = paste0(".\\posts\\", stock, version, ".2.rds"))
+#saveRDS(post, file = paste0(".\\posts\\", stock, version, ".rds"))
+post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 summary=summary(post); 
 str(summary)
 
-#### Use Ben Staton's GET.POST function to inspect select nodes ########## 
-source('.\\scripts\\get_post_function_for_ADFG.r')
-postcheck <- c("ML1[", "ML2[", "N[39]", "R[", "Dtrib.sum", "D.sum", "Bfork.sum", "pi.fork.main", "pf.main[", "Btheta.sum", "theta[", 
-  "pi.main[", "pf.main[", "pi.yent[", "pf.main[", "beta", "lnalpha", "phi", "sigma.white", "sigma.R0", "S.max",
-  "S.eq", "S.msy", "log.resid.vec[", "log.resid.0", "mu.Habove[", "mu.Hmarine[", "N[", "S[", "R[")
-lapply(postcheck, get.post, post.samp = post, do.plot = TRUE)
+#inspect convergence
+shinystan::launch_shinystan(shineystan::as.shinystan(post))
 
-#### Find nodes with POOR convergence ##########################
-gel=as.data.frame(gelman.diag(post, multivariate=F)[[1]])
-gel
-poor.threshold=1.10#values less than 1.2 are generally considered converged
-poor=matrix(NA, nrow=nrow(gel), ncol=2)
-for(i in 1:nrow(gel)){
-  if(gel[i,1]>poor.threshold){
-    poor[i,1]=rownames(gel[i,])
-    poor[i,2]=round(gel[i,1],2)}
-}
-poor=poor[!is.na(poor[,1]),]
-poor=as.data.frame(poor); colnames(poor)=c("Parameter", "Gelman-Rubin")
-poor
+summary <- get_summary(post)
 
-#summary=summary(post); str(summary)
-stats=summary$statistics;      colnames(stats)
-quants=summary$quantiles;      colnames(quants)
-statsquants = cbind(stats,quants)       # combine for output file
-write.csv(statsquants, file= paste(stock,version," statsquants.csv") )    # writes csv file
+#2d age at maturity and age comp arrays
+table_age(summary, "p") #age-at-maturity
+table_age(summary, "q") #age comp
+table_age(summary, "N.ta") #total run by age
 
-#### COLLECT posterior stats for 2d age at maturity and age comp arrays ###########
-cyear     <- year                           # calendar year vector
-byear     <- (fyr-amax):(lyr-amin)          # brood years vector
-ryear     <- fyr:(lyr-amin)                 # resid years vector
-cyrs      <- length(cyear) 
-byrs      <- length(byear)
-ryrs      <- length(ryear)
+plot_age(as.data.frame(x.a), summary)
 
-pnames <- rownames(stats[substr(rownames(stats),1,2)=="p[",])
-p.mn=stats[substr(rownames(stats),1,2)=="p[",1]
-P01=data.frame(P=p.mn,row.names=pnames)                  # p dataframe with names
-P02=data.frame(expand.grid(BYEAR=1:byrs,AGE=1:3),P=p.mn) # add byear and age columns
-P03=tapply(P02$P,P02$BYEAR,t)                            # transpose by year to create list of 3-element vectors
-P.mn=data.frame(BYEAR=1:length(P03),AGE1=-999,AGE2=-999,AGE3=-999) # Dummy data.frame-fill in below
-i=1
-while(i<=length(P03)){P.mn[i,2:4]=P03[[i]]; i=i+1 }
 
-pinames <- rownames(stats[substr(rownames(stats),1,5)=="pi.y[",])
-pi.mn=stats[substr(rownames(stats),1,5)=="pi.y[",1]
-Pi01=data.frame(Pi=pi.mn,row.names=pinames)                  # p dataframe with names
-Pi02=data.frame(expand.grid(BYEAR=1:byrs,AGE=1:3),Pi=pi.mn)  # add byear and age columns
-Pi03=tapply(Pi02$Pi,Pi02$BYEAR,t)                            # transpose by year to create list of 3-element vectors
-Pi.mn=data.frame(BYEAR=1:length(Pi03),AGE1=-999,AGE2=-999,AGE3=-999) # Dummy data.frame-fill in below
-i=1
-while(i<=length(P03)){Pi.mn[i,2:4]=Pi03[[i]]; i=i+1 }
-
-qnames <- rownames(stats[substr(rownames(stats),1,2)=="q[",])
-q.mn=stats[substr(rownames(stats),1,2)=="q[",1]
-Q01=data.frame(Q=q.mn,row.names=qnames)                  # q dataframe with names
-Q02=data.frame(expand.grid(CYEAR=1:cyrs,AGE=1:3),Q=q.mn) # add byear and age columns
-Q03=tapply(Q02$Q,Q02$CYEAR,t)                            # transpose by year to create list of 3-element vectors
-Q.mn=data.frame(CYEAR=1:length(Q03),AGE1=-999,AGE2=-999,AGE3=-999) # Dummy data.frame-fill in below
-i=1
-while(i<=length(Q03)){Q.mn[i,2:4]=Q03[[i]]; i=i+1 }
-
-Nnames <- rownames(stats[substr(rownames(stats),1,5)=="N.ta[",])
-n.mn=stats[substr(rownames(stats),1,5)=="N.ta[",1]
-N01=data.frame(N=n.mn,row.names=Nnames)                  # q dataframe with names
-N02=data.frame(expand.grid(CYEAR=1:cyrs,AGE=1:3),N=n.mn)   # add cyear and age columns
-N03=tapply(N02$N,N02$CYEAR,t)                            # transpose by year to create list of 3-element vectors
-N.mn=data.frame(CYEAR=1:length(N03),AGE1=-999,AGE2=-999,AGE3=-999) # Dummy data.frame-fill in below
-i=1
-while(i<=length(N03)){N.mn[i,2:4]=N03[[i]]; i=i+1 }
 
 #### COLLECT posterior stats for mainstem and yentna stock comp arrays ###########
 
