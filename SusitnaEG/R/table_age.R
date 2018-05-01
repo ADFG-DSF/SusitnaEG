@@ -2,26 +2,33 @@
 #'
 #' Produces a table of total run by age along with cv's.
 #'
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param stats_dat stats_dat The output from get_summary() for the SRA model mcmc.list ouput
+#' @param node The posterior node of interest as a character string; p(age at maturity), q(age at return) or N.ta(Number at return)
 #'
 #' @return A table
 #'
 #' @examples
-#' table_age(get_summary(post_er))
+#' table_age(get_summary(post_er), "N.ta")
 #'
 #' @export
-table_age <- function(stats_dat){
-  stats_dat %>%
-    tibble::rownames_to_column() %>%
-    dplyr::filter(grepl("^N.ta\\[", rowname)) %>%
-    dplyr::select_(rowname = "rowname", median = as.name("50%"), mean = "Mean", sd = "SD") %>%
+table_age <- function(stats_dat, node){
+  mean <- get_array(stats_dat, node, "Mean") %>%
+    tidyr::gather(age, mean, dplyr::starts_with("age"))
+  
+  sd <- get_array(stats_dat, node, statistic = "SD") %>%
+    tidyr::gather(age, sd, dplyr::starts_with("age"))
+  
+  yname <- names(mean)[grepl("year", names(mean))]
+  
+  dplyr::left_join(mean, sd, by = c(yname, "age")) %>%
     dplyr::mutate(CV = sd/mean,
-                  print = paste0(format(median, digits = 0, big.mark = ",", scientific = FALSE), " (", format(CV, trim = TRUE, digits = 2), ")")) %>%
-    tidyr::separate(rowname, into = c("year", "age"), ",") %>%
-    dplyr::select(year, age, print) %>%
-    dplyr::mutate(year = as.numeric(gsub("[^0-9]", "", year)) + 1978,
-                  age = paste0("age",gsub("[^0-9]", "", age))) %>%
+                  print = paste0(SusitnaEG:::digits(mean), " (", SusitnaEG:::digits(if(node == "N.ta") CV else sd), ")")) %>%
+    dplyr::select(which(grepl(paste0(yname, "|age|print"), names(.)))) %>%
     tidyr::spread(age, print) %>%
+    dplyr::mutate_if(is.numeric, dplyr::funs(if(node == "p") {. - 6 + 1978} else(. + 1978))) %>%
     pixiedust::dust() %>%
-    pixiedust::sprinkle_colnames("Year", "Age-34 (CV)", "Age-5 (CV)", "Age-678 (CV)")
+    pixiedust::sprinkle_colnames(if(yname =="cyear") "Calendar Year" else("Brood Year"),
+                                   paste0("Age-34 (", if(node == "N.ta") "CV)" else("sd)")),
+                                   paste0("Age-5 (", if(node == "N.ta") "CV)" else("sd)")),
+                                   paste0("Age-678 (", if(node == "N.ta") "CV)" else("sd)")))
 }
