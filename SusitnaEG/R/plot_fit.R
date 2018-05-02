@@ -19,7 +19,7 @@ qhat <- stats_dat %>%
   dplyr::select(rowname, q = Mean) %>%
   dplyr::mutate(index_name = ifelse(rowname == "q.i[1]", "ncpue", ifelse(rowname == "q.i[2]", "nasb", ifelse(rowname =="q.i[3]", "scpue", "NhatLR"))))
 
-indicies1 <- input_dat %>%
+indicies1 <- input_dat %>% 
   dplyr::select(ncpue, nasb, scpue, NhatLR, DLge75, ALge75) %>%
   tibble::rownames_to_column(var = "year") %>%
   dplyr::mutate(year = 1985 + as.numeric(year)) %>%

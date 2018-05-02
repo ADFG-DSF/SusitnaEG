@@ -1,0 +1,57 @@
+#' State Variable Plot
+#'
+#' Produces a faceted plot of escapement, recruitment, total run, Ricker residuals and harvest rate plotted with 95% confidence envelopes.
+#'
+#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param S_msr Logical (TRUE) indicating if S_msr shoud be included in the escapement panel.  Defaults to FALSE.
+#'
+#' @return A figure
+#'
+#' @examples
+#' plot_state(get_summary(post_er), TRUE)
+#'
+#' @export
+plot_state <- function(stats_dat, S_msr = FALSE){
+
+msy50 <- stats_dat %>%
+  dplyr::select_(median = as.name("50%")) %>%
+  tibble::rownames_to_column() %>%
+  dplyr::filter(grepl("msy$", rowname)) %>%
+  dplyr::mutate(name = factor(stringr::str_sub(rowname, stringr::str_locate(rowname, ".")),
+                       levels = c("S", "U"),
+                       labels = c("Escapement", "Harvest Rate")))
+
+msr50 <- stats_dat %>%
+  dplyr::select_(median = as.name("50%")) %>%
+  tibble::rownames_to_column() %>%
+  dplyr::filter(rowname == "beta" | rowname == "lnalpha") %>%
+  dplyr::mutate(msr = ifelse(rowname == "beta", 1 / median, 1-1/exp(median)),
+                name = factor(c("S", "U"),
+                              levels = c("S", "U"),
+                              labels = c("Escapement", "Harvest Rate")))
+
+stats_dat %>%
+  dplyr::select_(median = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
+  tibble::rownames_to_column() %>%
+  dplyr::filter(grepl("^R\\[|S\\[|N\\[|log.resid.vec\\[|mu\\[", rowname)) %>%
+  dplyr::mutate(name = factor(stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
+                       levels = c("S", "N", "R", "mu", "log.resid.vec"),
+                       labels = c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")),
+         index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
+         year = (name != c("Recruitment")) * (1978 + index) +
+           (name == "Recruitment") * (1978 - 6 + index)) %>%
+  dplyr::filter(year >= 1978) %>%
+  ggplot2::ggplot(ggplot2::aes(x = year, y = median)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_point() +
+    ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
+    ggplot2::facet_grid(name ~ ., scales = "free_y", switch = "y") +
+    ggplot2::labs(x = NULL, y = NULL) +
+    ggplot2::scale_x_continuous("Year", breaks = seq(1979, 2017, 3), minor_breaks = NULL)  +
+    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+    ggplot2::geom_hline(data = msy50, ggplot2::aes(yintercept = median), color = "red", linetype = 2) +
+    ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5) + #ifelse(S_msr == TRUE, 5, 0)) +
+    ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+}

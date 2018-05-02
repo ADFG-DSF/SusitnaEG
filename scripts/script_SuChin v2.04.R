@@ -186,8 +186,6 @@ endtime[3]/60/60
 #load(file=paste(stock,version,"post") ) 
 #saveRDS(post, file = paste0(".\\posts\\", stock, version, ".rds"))
 post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
-summary=summary(post); 
-str(summary)
 
 #inspect convergence
 shinystan::launch_shinystan(shineystan::as.shinystan(post))
@@ -200,6 +198,8 @@ table_age(summary, "q") #age comp
 table_age(summary, "N.ta") #total run by age
 
 plot_age(as.data.frame(x.a), summary)
+
+plot_stock(telemetry, summary)
 
 
 
@@ -464,133 +464,6 @@ par(mfrow=c(5,1),mar=c(1,4,1,1)+0.1, ps=12, lwd=1)
 #par(mfrow=c(1,1)); dev.off()
 #
 
-################################################################################
-#  
-#  Age Comp and Abundance by Age Plots
-#  
-################################################################################
-
-
-#png(paste(stock,version,"AgePanel.png"),width=6.5,height=8.5,units="in",res=1200)
-par(mfrow=c(3,1),mar=c(1,4,4,1)+0.1,ps=12)
-
-pi4.fit <- Pi.mn$AGE1
-pi45.fit <- Pi.mn$AGE1 + Pi.mn$AGE2
-pi456.fit <- Pi.mn$AGE1 + Pi.mn$AGE2 + Pi.mn$AGE3
-
-p4.fit <- P.mn$AGE1
-p45.fit <- P.mn$AGE1 + P.mn$AGE2
-p456.fit <- P.mn$AGE1 + P.mn$AGE2 + P.mn$AGE3
-
-Q.obs <- x.a/n.a
-q4.obs <- Q.obs[,1]
-q45.obs <- Q.obs[,1] + Q.obs[,2]
-q456.obs <- Q.obs[,1] + Q.obs[,2] + Q.obs[,3]
-
-q4.fit <- Q.mn$AGE1
-q45.fit <- Q.mn$AGE1 + Q.mn$AGE2
-q456.fit <- Q.mn$AGE1 + Q.mn$AGE2 + Q.mn$AGE3
-
-plot(p456.fit~byear, type='l', col="black", pch=1, ps=2, xlim=c(1980,2020), ylim=c(0, 1), ylab="Proportion",
-     main="Age at Maturity", lty=2)
-  lines(p45.fit~byear, lty=2) 
-  lines(p4.fit~byear, lty=2) 
-  lines(pi456.fit~byear, lty=1) 
-  lines( pi45.fit~byear, lty=1) 
-  lines(  pi4.fit~byear, lty=1) 
-
-plot(q456.obs~cyear, type='p', col="black", pch=1, ps=2, xlim=c(1980,2020), ylim=c(0, 1), ylab="Proportion",
-     main="Age Composition")
-  points(q45.obs~cyear)
-  points(q4.obs~cyear)
-  lines(q456.fit~cyear, lty=2) 
-  lines(q45.fit~cyear, lty=2) 
-  lines(q4.fit~cyear, lty=2) 
-
-N4.fit <- N.mn$AGE1
-N45.fit <- N.mn$AGE1 + N.mn$AGE2
-N456.fit <- N.mn$AGE1 + N.mn$AGE2 + N.mn$AGE3
-plot(N456.fit~cyear, main="Total Run by Age", type='l', lty=3, col="black", pch=15, ylim=c(0,max(TR.mn)), 
-     xlim=c(1980,2020), xaxt='n', xlab="Year", ylab="Number of Chinook")
-  lines(N45.fit~cyear, type='l', lty=2, col="black",  ps=1)
-  lines(N4.fit~cyear, type='l', lty=2, col="black",  ps=1)
-  points(TR.mn~cyear, type='l', lty=2, col="black",  ps=1)
-  axis(side=1, at=cyear, labels=cyear)
-
-#par(mfrow=c(1,1))
-#dev.off()
-
-################################################################################
-#  
-#  Stock Composition Plots
-#  
-################################################################################
-
-#png(paste(stock,version,"StockPanel.png"),width=6.5,height=8.5,units="in",res=1200)
-par(mfrow=c(3,1),mar=c(1,4,4,1)+0.1,ps=12)
-
-pf.obs <- MR.mainstem/(MR.mainstem + MR.yentna)
-pfmain.50=quants[substr(rownames(quants),1,8)  =="pf.main[",3]
-pfmain.02=quants[substr(rownames(quants),1,8)  =="pf.main[",1]
-pfmain.98=quants[substr(rownames(quants),1,8)  =="pf.main[",5]
-
-plot(pfmain.50~cyear, type='l', col="black", pch=1, ps=2, xlim=c(1978,2018), ylim=c(0, 1), ylab="Proportion",
-     main="Mainstem Proportion")
-points(pf.obs~cyear, col="red")
-lines(pfmain.02~cyear, lty=3) 
-lines(pfmain.98~cyear, lty=3) 
-
-
-pm1.fit <- Pm.mn$TRIB1
-pm12.fit <- Pm.mn$TRIB1 + Pm.mn$TRIB2
-pm123.fit <- Pm.mn$TRIB1 + Pm.mn$TRIB2 + Pm.mn$TRIB3 
-pm1234.fit <- Pm.mn$TRIB1 + Pm.mn$TRIB2 + Pm.mn$TRIB3 + Pm.mn$TRIB4 
-pm12345.fit <- Pm.mn$TRIB1 + Pm.mn$TRIB2 + Pm.mn$TRIB3 + Pm.mn$TRIB4 + Pm.mn$TRIB5
-
-Pm.obs <- telemetry[,1:6]/radios.main
-pm1.obs <- Pm.obs[,1]
-pm12.obs <- Pm.obs[,1] + Pm.obs[,2]
-pm123.obs <- Pm.obs[,1] + Pm.obs[,2] + Pm.obs[,3] 
-pm1234.obs <- Pm.obs[,1] + Pm.obs[,2] + Pm.obs[,3] + Pm.obs[,4] 
-pm12345.obs <- Pm.obs[,1] + Pm.obs[,2] + Pm.obs[,3] + Pm.obs[,4] + Pm.obs[,5] 
-
-plot(pm12345.obs~cyear, type='p', col="black", pch=1, ps=2, xlim=c(1978,2018), ylim=c(0, 1), ylab="Proportion",
-     main="Mainstem Stock Composition")
-  points(pm1234.obs~cyear, col="red")
-  points(pm123.obs~cyear, col="blue")
-  points(pm12.obs~cyear, col="green")
-  points(pm1.obs~cyear)
-  lines(pm12345.fit~cyear, lty=2) 
-  lines(pm1234.fit~cyear, lty=2, col="red") 
-  lines(pm123.fit~cyear, lty=2, col="blue") 
-  lines(pm12.fit~cyear, lty=2, col="green") 
-  lines(pm1.fit~cyear, lty=2) 
-
-py1.fit <- Py.mn$TRIB1
-py12.fit <- Py.mn$TRIB1 + Py.mn$TRIB2
-py123.fit <- Py.mn$TRIB1 + Py.mn$TRIB2 + Py.mn$TRIB3 
-py1234.fit <- Py.mn$TRIB1 + Py.mn$TRIB2 + Py.mn$TRIB3 + Py.mn$TRIB4 
-
-Py.obs <- telemetry[,7:11]/radios.yentna
-py1.obs <- Py.obs[,1]
-py12.obs <- Py.obs[,1] + Py.obs[,2]
-py123.obs <- Py.obs[,1] + Py.obs[,2] + Py.obs[,3] 
-py1234.obs <- Py.obs[,1] + Py.obs[,2] + Py.obs[,3] + Py.obs[,4] 
-
-plot(py1234.obs~cyear, type='p', col="black", pch=1, ps=2, xlim=c(1978,2018), ylim=c(0, 1), ylab="Proportion",
-     main="Yentna Stock Composition")
-  points(py123.obs~cyear, col="red")
-  points(py12.obs~cyear, col="blue")
-  points(py1.obs~cyear)
-  lines(py1234.fit~cyear, lty=2) 
-  lines(py123.fit~cyear, lty=2, col="red") 
-  lines(py12.fit~cyear, lty=2, col="blue") 
-  lines(py1.fit~cyear, lty=2) 
-
-#par(mfrow=c(1,1))
-#dev.off()
-  
-  
 ################################################################################
 #  
 #  HORSETAIL plots of run size N

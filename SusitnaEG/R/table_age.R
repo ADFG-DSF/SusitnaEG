@@ -1,6 +1,6 @@
-#' Total Run by age table
+#' Age composition table
 #'
-#' Produces a table of total run by age along with cv's.
+#' Produces a table of age-at-maturity, age composition or total run by age along with sd or cv.
 #'
 #' @param stats_dat stats_dat The output from get_summary() for the SRA model mcmc.list ouput
 #' @param node The posterior node of interest as a character string; p(age at maturity), q(age at return) or N.ta(Number at return)
@@ -8,7 +8,7 @@
 #' @return A table
 #'
 #' @examples
-#' table_age(get_summary(post_er), "N.ta")
+#' table_age(get_summary(post), "N.ta")
 #'
 #' @export
 table_age <- function(stats_dat, node){
