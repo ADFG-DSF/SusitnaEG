@@ -3,12 +3,11 @@
 #' Produces a table of paramerater estimates for the SRA.
 #'
 #' @param stats_dat The output from Kenai SRA::get_summary()
-#' @param run A character vector specify "er" for an Early rUn paramerater table and "lr" for a late run paramerater table
 #'
 #' @return A table
 #'
 #' @examples
-#' table_params(get_summary(post_er))
+#' table_params(get_summary(post))
 #'
 #' @export
 table_params <- function(stats_dat){

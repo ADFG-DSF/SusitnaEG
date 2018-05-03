@@ -38,7 +38,7 @@
    #  ML1[A]=0
    # 
 
-packs <- c("dplyr", "tidyr", "ggplot2", "SusitnaEG", "rjags", "coda")
+packs <- c("SusitnaEG", "rjags", "coda")
 lapply(packs, require, character.only = TRUE)
 
 
@@ -51,8 +51,6 @@ rm(list=ls(all=TRUE))
 
 stock<-"SuChin"
 version <- "v2_04"
-
-alldat=read.csv('.\\models\\SuChin v1.04 data 17Feb18.csv',header=T)
 
 year <- 1979:2017
 nyrs=as.numeric(length(year))
@@ -188,7 +186,7 @@ endtime[3]/60/60
 post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 
 #inspect convergence
-shinystan::launch_shinystan(shineystan::as.shinystan(post))
+shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
 
@@ -199,31 +197,15 @@ table_age(summary, "N.ta") #total run by age
 
 plot_age(as.data.frame(x.a), summary)
 
+table_stock(summary)
 plot_stock(telemetry, summary)
 
+plot_state(summary)
 
-
-
-#### COLLECT posterior stats for mainstem and yentna stock comp arrays ###########
-
-pmnames <- rownames(stats[substr(rownames(stats),1,3)=="pm[",])
-pm.mn=stats[substr(rownames(stats),1,3)=="pm[",1]
-Pm01=data.frame(Pm=pm.mn,row.names=pmnames)                  # p dataframe with names
-Pm02=data.frame(expand.grid(CYEAR=1:cyrs,TRIB=1:6),Pm=pm.mn) # add byear and age columns
-Pm03=tapply(Pm02$Pm,Pm02$CYEAR,t)                            # transpose by year to create list of 6-element vectors
-Pm.mn=data.frame(CYEAR=1:length(Pm03),TRIB1=-999,TRIB2=-999,TRIB3=-999,TRIB4=-999,TRIB5=-999,TRIB6=-999) 
-i=1
-while(i<=length(Pm03)){Pm.mn[i,2:7]=Pm03[[i]]; i=i+1 }
-
-pynames <- rownames(stats[substr(rownames(stats),1,3)=="py[",])
-py.mn=stats[substr(rownames(stats),1,3)=="py[",1]
-Py01=data.frame(Py=py.mn,row.names=pynames)                  # p dataframe with names
-Py02=data.frame(expand.grid(CYEAR=1:cyrs,TRIB=1:5),Py=py.mn) # add byear and age columns
-Py03=tapply(Py02$Py,Py02$CYEAR,t)                            # transpose by year to create list of 5-element vectors
-Py.mn=data.frame(CYEAR=1:length(Py03),TRIB1=-999,TRIB2=-999,TRIB3=-999,TRIB4=-999,TRIB5=-999) 
-i=1
-while(i<=length(Py03)){Py.mn[i,2:6]=Py03[[i]]; i=i+1 }
-
+plot_statepairs(post)
+plot_horse(post, summary, 325000)
+plot_profile(get_profile(post, 200000))
+plot_ey(get_profile(post, 125000), plot_max = 125000)
 
 #### Collect posterior stats on scalars and vectors #####################################
 
@@ -332,25 +314,6 @@ while(i<=length(Py03)){Py.mn[i,2:6]=Py03[[i]]; i=i+1 }
 
 ################################################################################
 #  
-#   START WRITE TO PDF
-#  
-################################################################################
-
-pdf(paste(stock,version,"output.pdf"),width=6.5,height=9.5)
-
-################################################################################
-#  
-#  SCATTER PLOT MATRIX of abundance index data
-#  
-################################################################################
-#dev.off()      
-#png(paste(stock,version,"ScatterPlotData.png"),width=9.5,height=7.0,units="in",res=1200)
-par(mfrow=c(1,1))
-indices <- cbind(as.deshka,as.east.su,as.talkeetna, as.main.up,as.chulitna,as.lake,as.kahiltna,as.talachulitna,weir.deshka,MR.mainstem,MR.yentna)
-pairs(indices,cex=0.6)
-#dev.off()
-################################################################################
-#  
 #  Model Fit Plots
 #  
 ################################################################################
@@ -416,57 +379,6 @@ ylim3 <- max(expanded.lake[!is.na(expanded.lake)],expanded.kahiltna[!is.na(expan
 
 ################################################################################
 #  
-#  State Variables Panel
-#  
-################################################################################
-#par(mfrow=c(3,1),mar=c(1,4,4,1)+0.1,ps=12)    #SAVE
-#dev.off()
-
-#png(paste(stock,version,"StateVarsPanel.png"),width=6.5,height=8.5,units="in",res=1200)
-par(mfrow=c(5,1),mar=c(1,4,1,1)+0.1, ps=12, lwd=1)
-
-      plot(S.mn~cyear, type='b', col="black", pch=15, ps=2, xlim=c(1980,2020), ylim=c(0, max(S.98)),
-           ylab="Escapement" )#, xaxt='n')
-      lines(S.02~cyear, col="grey", lty=2) 
-      lines(S.98~cyear, col="grey", lty=2)
-      abline(h=Seq.50,col="red",lty=1)
-      abline(h=Smax.50,col="red",lty=2)
-      abline(h=Smsy.50,col="red",lty=3)
-      legend(x="topleft",c("Seq","Smax","Smsy"),lty=1:3,col="red",bty="n",text.col="red")
-
-      plot(R.mn~byear, type='b', col="black", pch=15, ps=2, xlim=c(1980,2020), ylim=c(0,max(R.98)), 
-           xaxt='n', ylab="Recruitment")
-      lines(R.02~byear, col="grey", lty=2) 
-      lines(R.98~byear, col="grey", lty=2)
-
-      plot(TR.mn~cyear, type='b', col="black", pch=15, ps=2, xlim=c(1980,2020), ylim=c(0,max(TR.98)), 
-           xaxt='n', ylab="Total Run")
-      lines(TR.02~cyear, col="grey", lty=2) 
-      lines(TR.98~cyear, col="grey", lty=2)
-      axis(side=1)                                    #requires par xaxt='n'
-
-      plot(resid.mn~ryear, type='b', col="black", pch=15, ps=2, xlim=c(1980,2020),
-           ylim=c(min(resid.02),max(resid.98)), xaxt='n', ylab="Recruitment Resids")
-      lines(resid.02~ryear, col="grey", lty=2) 
-      lines(resid.98~ryear, col="grey", lty=2)
-      abline(h=0,col="red",lty=2)
-      legend(x="topleft",c("Average Productivity"),lty=3,col="red",bty="n",text.col="red")
-
-      par(mar=c(2,4,1,1)+0.1)
-      plot(mu.mn~cyear, type='b', col="black", pch=15, ps=2, xlim=c(1980,2020), ylim=c(0,1), 
-           xaxt='n', ylab="Harvest Rate", xlab="Year")
-      lines(mu.02~cyear, col="grey", lty=2) 
-      lines(mu.98~cyear, col="grey", lty=2)
-      abline(h=Umax.50,col="red",lty=2)
-      abline(h=Umsy.50,col="red",lty=3)
-      axis(side=1, at=cyear, labels=year)
-      legend(x="topleft",c("Umax","Umsy"),lty=c(2,3),col="red",bty="n",text.col="red")
-
-#par(mfrow=c(1,1)); dev.off()
-#
-
-################################################################################
-#  
 #  HORSETAIL plots of run size N
 #  
 ################################################################################
@@ -499,189 +411,6 @@ plot(TR.mn~cyear, type='b', col="black", pch=15, ps=2, xlim=c(1980,2020), ylim=c
 #dev.off()
 #par(mfrow=c(1,1))
 
-################################################################################
-#  
-#  SCATTER PLOT MATRIX of posterior correlations
-#  
-################################################################################
-#dev.off()      
-#png(paste(stock,version,"ScatterPlotMatrix.png"),width=9.5,height=7.0,units="in",res=1200)
-
-postdf <- as.data.frame(as.matrix(post))   
-#namesdf <- names(postdf)
-numkeep <- 200
-#nodes2=c('beta','lnalpha','phi','S.msy','A.gamma')
-nodes2=c('beta','lnalpha','phi','S.msy','sigma.white')
-subset2 = postdf[,nodes2]
-subset3 = subset2[subset2$S.msy>Smsy.02,]
-subset4 = subset3[subset3$S.msy<Smsy.98,]
-str(subset4)
-rows1 <- length(subset4[,1]); #rows1
-int <- rows1 / numkeep; #int
-keep <- seq(1,rows1,by=int); #keep
-thinned <- subset4[keep,]; str(thinned)
-sampnum=1:length(thinned[,1]); #sampnum
-
-par(mfrow=c(1,1))
-pairs(thinned,cex=0.6)
-#dev.off()
-
-################################################################################
-#  
-#  R v S plot w "horsetails", error bars, year labels
-#  
-################################################################################
-S.smp <- get.post(post, "S[", do.post = T)$posterior
-R.smp <- get.post(post, "R[", do.post = T)$posterior
-
-lna.smp <- get.post(post, "lnalpha", do.post = T)$posterior
-beta.smp <- get.post(post, "beta", do.post = T)$posterior
-lnab.smp <- cbind(lna.smp,beta.smp)
-Smsy.smp <- get.post(post, "S.msy", do.post = T)$posterior
-lnac.smp <- get.post(post, "lnalpha.c", do.post = T)$posterior
-
-samples <- length(lna.smp); samples
-
-R     <- R.mn[-c(1:amax)]                   #omit first a.max values
-S     <- S.mn[1:length(R)]
-S.05 <- numeric(length(R))
-S.50 <- numeric(length(R))
-S.95 <- numeric(length(R))
-R.05 <- numeric(length(R))
-R.50 <- numeric(length(R))
-R.95 <- numeric(length(R))
-str(S.smp)
-str(R.smp)
-for (t in 1:length(R)){                 # 90% envelope for S 
-    S.05[t] <- quantile(S.smp[,t],0.05)
-    S.95[t] <- quantile(S.smp[,t],0.95)
-    S.50[t] <- quantile(S.smp[,t],0.5)
-    R.05[t] <- quantile(R.smp[,t+amax],0.05)
-    R.95[t] <- quantile(R.smp[,t+amax],0.95)
-    R.50[t] <- quantile(R.smp[,t+amax],0.5)
-    }
-
-
-#s <- seq(0,1.25*Seq.50[1],by=100)         #increments of S for plotting
-s <- seq(0,300000,by=5000)         #increments of S for plotting
-
-Rs.md <- numeric(length(s))
-Rs.02 <- numeric(length(s))
-Rs.98 <- numeric(length(s))
-
-Rs<-matrix(NA, nrow=length(s), ncol=samples)
-SY<-matrix(NA, nrow=length(s), ncol=samples)
-
-for (j in 1:length(s)){                 # OYP calculations
-    for (k in 1:samples){               
-        Rs[j,k] <- s[j]  * exp(lnac.smp[k]  - beta.smp[k] * s[j])
-        SY[j,k] <- Rs[j,k] - s[j]
-        }
-    }
-
-for (j in 1:length(s)){                 # 95% envelope for E[R] by increments in S
-    Rs.md[j] <- quantile(s[j] * exp(lna.smp - beta.smp * s[j]),0.5)
-    Rs.02[j] <- quantile(s[j] * exp(lna.smp - beta.smp * s[j]),0.025)
-    Rs.98[j] <- quantile(s[j] * exp(lna.smp - beta.smp * s[j]),0.975)
-    }
-
-
-n.keep <- 40
-int <- samples / n.keep; 
-rows.kept <- seq(1,samples,by=int); rows.kept
-lnab.thin <- lnab.smp[rows.kept,]; str(lnab.thin)
-
-
-#par(mfrow=c(1,1),mar = c(8, 3, 15, 2))  
-par(mfrow=c(1,1),mar = c(4, 3, 5, 2))  
-
-plot(S.50,R.50,xlab='Spawners', pch=19, ylab='Recruits', xlim=c(0,max(R.mn)),ylim=c(0,max(R.mn)))
-for (j in 1:n.keep){
-    Rs <- s * exp(lna.smp[j] - beta.smp[j] * s)
-    lines(s,Rs,lty=3,lwd = 0.1,col='gray')
-    }
-points(Rs.md~s)
-
-arrows(R,x0=S.95,x1=S.05,code=0,lty=2,lwd=0.6)  #horiz err bar
-arrows(S,y0=R.95,y1=R.05,code=0,lty=2,lwd=0.6)  #vert err bar
-abline(0,1)
-text(S,R, labels=cyear[1:length(R)], cex= 0.7, pos=1)    # year labels         
-
-################################################################################
-#  Yield Panel
-#  Optimal Yield Profiles
-#  Escapement Frequency Distribution
-#  Expected Yield Plot
-################################################################################
-#pdf(paste(stock,version,"yieldplot.pdf"),width=6.5,height=9.5)
-par(mfrow=c(2,1),mar=c(2,4,4,1)+0.1,ps=12)
-
-probMSY70 <- numeric(length(s))
-probMSY80 <- numeric(length(s))
-probMSY90 <- numeric(length(s))
-mean.SY <- numeric(length(s))
-median.SY <- numeric(length(s))
-p10.SY <- numeric(length(s))
-p90.SY <- numeric(length(s))
-p25.SY <- numeric(length(s))
-p75.SY <- numeric(length(s))
-Rmsy.smp <- numeric(samples)
-MSY.smp <- numeric(samples)
-
-increments_s <- length(s); increments_s
-r  <- matrix(NA, nrow=increments_s,  ncol=samples)
-SY<-matrix(NA, nrow=length(s), ncol=samples)
-gtMSY70<-matrix(NA, nrow=length(s), ncol=samples)
-gtMSY80<-matrix(NA, nrow=length(s), ncol=samples)
-gtMSY90<-matrix(NA, nrow=length(s), ncol=samples)
-
-for (k in 1:samples){               
-    Rmsy.smp[k] <- Smsy.smp[k] * exp(lnac.smp[k] - beta.smp[k] * Smsy.smp[k])
-    MSY.smp[k] <- Rmsy.smp[k] - Smsy.smp[k]
-    }
-for (j in 1:increments_s){
-    for (k in 1:samples){               
-        r[j,k] <- s[j] * exp(lnac.smp[k] - beta.smp[k] * s[j])
-        SY[j,k] <- r[j,k] - s[j]
-        gtMSY70[j,k] <- (SY[j,k] - 0.7 * MSY.smp[k]) > 0
-        gtMSY80[j,k] <- (SY[j,k] - 0.8 * MSY.smp[k]) > 0
-        gtMSY90[j,k] <- (SY[j,k] - 0.9 * MSY.smp[k]) > 0
-        }
-    }
-for (j in 1:length(s)){                 
-    probMSY70[j] <- mean(gtMSY70[j,])
-    probMSY80[j] <- mean(gtMSY80[j,])
-    probMSY90[j] <- mean(gtMSY90[j,])
-    mean.SY[j] <- mean(SY[j,])
-    median.SY[j] <- median(SY[j,])
-    p10.SY[j] <- quantile(SY[j,],probs=0.10,na.rm=TRUE)
-    p90.SY[j] <- quantile(SY[j,],probs=0.90,na.rm=TRUE)
-    p25.SY[j] <- quantile(SY[j,],probs=0.25,na.rm=TRUE)
-    p75.SY[j] <- quantile(SY[j,],probs=0.75,na.rm=TRUE)
-    }
-
-# Optimal Yield Profiles
-par(mfrow=c(3,1),mar=c(2,4,4,1)+0.1,ps=12)
-#plot(probMSY90~s, type="l",lty=1,xlim=c(0,max(s)),ylim=c(0,1))
-plot(probMSY90~s, ylab="Pr(SY > 0.9 MSY)",type="l",lty=1,xlim=c(0,200000),ylim=c(0,1))
-lines(probMSY80~s, lty=2)
-lines(probMSY70~s, lty=3)
-abline(v=c(0.77*Smsy.50,0.77*Smsy.50),col="red",lty=1) # RED LINE IS AVERAGE OF 22 CHINOOK LOWER BOUNDS
-
-# Histogram of Annual Eggs Spawned
-hist(S.mn,xlim=c(0,200000),main="",ylab="Freq (Escapement)",nclass=12)
-abline(v=c(0.77*Smsy.50,0.77*Smsy.50),col="red",lty=1)  # RED LINE IS AVERAGE OF 22 CHINOOK LOWER BOUNDS
-
-# Expected Yield Plot
-plot(median.SY~s, type="l",lty=1,xlim=c(0,200000),ylim=c(0,max(p75.SY)))
-lines(p25.SY~s, lty=2)
-lines(p75.SY~s, lty=2)
-abline(v=c(0.77*Smsy.50,0.77*Smsy.50),col="red",lty=1)
-tex <- c(paste('0.77*Smsy= ',round(0.77*Smsy.50,0))) 
-legend(x="topright",c("75th %ile","50th %ile","25th %ile"),lty=c(2,1,2),
-       col="black",bty="n", text.col="black")
-
-par(mfrow=c(1,1))
 
 
 ################################################################################
@@ -719,50 +448,4 @@ lbl <- lyr-amin - 2000
 year.lbl <- c(fbl:99,0:lbl)
 #text(S,R, labels=year.lbl[1:length(R)], cex= 0.7, pos=1)    # year labels         
 text(Smd,Rmd, labels=year.lbl[1:length(R)], cex= 0.8)    # year labels         
-
-
-dev.off() 
-
-################################################################################
-#  
-#  END WRITE TO PDF
-#  Next write stats
-#  
-################################################################################
-
-yield.stats=cbind(s,probMSY90,probMSY80,probMSY70,p25.SY,median.SY,p75.SY)
-write.csv(yield.stats,paste(stock,version,"yield.csv"))
-
-postdf <- as.data.frame(as.matrix(post))   
-#namesdf <- names(postdf)
-#colnames(postdf)
-
-nodes1<- c('N[39]',
-'beta','sigma.white','sigma.R0','lnalpha','lnalpha.c','alpha', 
-'phi','S.eq','S.max','S.msy','U.msy','D.sum','D.scale','Dtrib.sum','Btheta.sum','Bfork.sum',
-'pi.fork.main','sigma.asmain','sigma.asyent','sigma.weir',
-'pi.main[1]','pi.main[2]','pi.main[3]','pi.main[4]','pi.main[5]','pi.main[6]',
-'pi.yent[1]','pi.yent[2]','pi.yent[3]','pi.yent[4]','pi.yent[5]',
-'theta[1]','theta[2]','theta[3]','theta[4]','theta[5]','theta[6]',
-'theta[7]','theta[8]','theta[9]','theta[10]','theta[11]',
-'ML1[1]','ML1[2]','ML1[3]','ML2[1]','ML2[2]','ML2[3]')
-subset1 = postdf[,nodes1]
-
-p.mn<-apply(subset1,2,mean)
-p.sd<-apply(subset1,2,sd)
-p.50<-apply(subset1,2,quantile,0.50)
-p.25<-apply(subset1,2,quantile,0.25)
-p.75<-apply(subset1,2,quantile,0.75)
-p.10<-apply(subset1,2,quantile,0.10)
-p.90<-apply(subset1,2,quantile,0.90)
-p.05<-apply(subset1,2,quantile,0.05)
-p.95<-apply(subset1,2,quantile,0.95)
-p.02<-apply(subset1,2,quantile,0.025)
-p.98<-apply(subset1,2,quantile,0.975)
-p.stats.mat<-cbind(p.mn,p.sd,p.02,p.05,p.10,p.25,p.50,p.75,p.90,p.95,p.98)
-str(p.stats.mat)
-options(scipen=0)
-p.stats.tab <- signif(p.stats.mat,digits=3)
-write.csv(p.stats.tab,paste(stock,version,"Rounded Stats.csv"))
-
 

@@ -3,15 +3,14 @@
 #' Produces a table of stock composition by drainage along with cv's.
 #'
 #' @param stats_dat stats_dat The output from get_summary() for the SRA model mcmc.list ouput
-#' @param node The posterior node of interest as a character string; p(age at maturity), q(age at return) or N.ta(Number at return)
 #'
 #' @return A table
 #'
 #' @examples
-#' table_stock(get_summary(post), "N.ta")
+#' table_stock(get_summary(post))
 #'
 #' @export
-table_stock <- function(stats_dat, node){
+table_stock <- function(stats_dat){
   id <- codes[["name"]][-1]
   
   fork <- stats_dat[grepl("^pf.main", rownames(stats_dat)), "Mean"] %>%

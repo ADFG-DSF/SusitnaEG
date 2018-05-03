@@ -20,3 +20,9 @@ simpleCap <- function(x) {
   paste(toupper(substring(s, 1,1)), substring(s, 2),
         sep="", collapse=" ")
 }
+
+#Scale Statewide BEGs bounds by Smsy for plotting
+get_BEGbounds <- function(scale_Smsy){
+  dat_chinBEGs %>% dplyr::mutate(lb = scale_Smsy*lb/Smsy,
+                                 ub = scale_Smsy*ub/Smsy)
+}
