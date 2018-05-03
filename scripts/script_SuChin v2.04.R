@@ -203,6 +203,7 @@ plot_stock(telemetry, summary)
 
 
 
+
 #### COLLECT posterior stats for mainstem and yentna stock comp arrays ###########
 
 pmnames <- rownames(stats[substr(rownames(stats),1,3)=="pm[",])
