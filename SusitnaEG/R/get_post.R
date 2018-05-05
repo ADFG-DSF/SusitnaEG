@@ -1,4 +1,4 @@
-#' Get Posterior Summaries/Plot
+#' Get Posterior Summaries
 #'
 #' @description This function allows you to pull out variables from a mcmc.list or matrix.
 #'    Modifided version of oriiginal written by Ben Stanton (bas0041@auburn.edu).
