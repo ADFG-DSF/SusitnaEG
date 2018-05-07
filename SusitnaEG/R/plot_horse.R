@@ -9,10 +9,15 @@
 #' @return A figure
 #'
 #' @examples
-#' plot_horse(post_er, get_summary(post), 20000)
+#' plot_horse(post, get_summary(post), 35000)
 #'
 #' @export
 plot_horse <- function(post_dat, stats_dat, upper){
+  stopifnot(exists("year_id", .GlobalEnv),
+            exists("age_max", .GlobalEnv))
+  yr0 <- as.numeric(min(year_id)) - 1
+  yr0_R <- yr0 - age_max
+  
   coeflines <- sapply(c("beta", "lnalpha"), function(x){get_post(post, var = x)}) %>% 
     as.data.frame() %>%
     dplyr::sample_n(40) %>%
@@ -31,7 +36,7 @@ plot_horse <- function(post_dat, stats_dat, upper){
     dplyr::filter(grepl("^R\\[|S\\[", rowname)) %>%
     dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
            index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
-           year = (name != "R") * (1978 + index) + (name == "R") * (1978 - 6 + index))
+           year = (name != "R") * (yr0 + index) + (name == "R") * (yr0_R + index))
 
   v_dat <-  temp %>% dplyr::filter(name == "R") %>% dplyr::select(vlb = lb, vub = ub, year)
   h_dat <-  temp %>% dplyr::filter(name == "S") %>% dplyr::select(hlb = lb, hub = ub, year)

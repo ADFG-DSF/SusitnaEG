@@ -13,13 +13,18 @@
 #'
 #' @export
 plot_rickeryear <- function(stats_dat){
+  stopifnot(exists("year_id", .GlobalEnv),
+            exists("age_max", .GlobalEnv))
+  yr0 <- as.numeric(min(year_id)) - 1
+  yr0_R <- yr0 - age_max
+  
 text <- stats_dat %>%
   dplyr::select_(median =as.name("50%")) %>%
   tibble::rownames_to_column() %>%
   dplyr::filter(grepl("^R\\[|S\\[", rowname)) %>%
   dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
                 index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
-                year = (name != "R") * (1978 + index) + (name == "R") * (1978 - 6 + index)) %>%
+                year = (name != "R") * (yr0 + index) + (name == "R") * (yr0_R + index)) %>%
   dplyr::select(median, name, year) %>%
   tidyr::spread(name, median) %>%
   dplyr::filter(!is.na(R) & ! is.na(S))
@@ -29,7 +34,7 @@ lines <- stats_dat %>%
   tibble::rownames_to_column()  %>% 
   dplyr::filter(grepl("^lnalpha.vec", rowname)) %>%
   dplyr::mutate(index = as.numeric(gsub("^.*\\[(\\d+)\\]", "\\1", rowname)),
-                year = as.character((1978 + index)),
+                year = as.character((yr0 + index)),
                 beta = as.numeric(summary[grepl("beta", rownames(summary)), "Mean"])) %>%
   dplyr::select(value, beta) %>%
   as.matrix() %>%

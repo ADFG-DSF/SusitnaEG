@@ -11,20 +11,26 @@
 #'
 #' @export
 plot_fit <- function(stats_dat){
+  stopifnot(exists("year_id", .GlobalEnv),
+            exists("age_max", .GlobalEnv),
+            "package:SusitnaEG" %in% search())
+  yr0 <- as.numeric(min(year_id)) - 1
+  yr0_R <- yr0 - age_max
+  
 id <- codes[-1, ] %>% tibble::rowid_to_column("stockn")
   
 fork <- stats_dat%>%
   tibble::rownames_to_column() %>%
   dplyr::filter(grepl("^pf.main.*", rowname)) %>%
   dplyr::mutate(param = gsub("(^.*)\\[.*", "\\1", rowname),
-                year = as.numeric(gsub("^pf.main\\[(\\d+)\\]", "\\1", rowname)) + 1978) %>%
+                year = as.numeric(gsub("^pf.main\\[(\\d+)\\]", "\\1", rowname)) + yr0) %>%
   dplyr::select(year, pf = Mean)
   
 stock <- function(node){
     stats_dat %>%
       tibble::rownames_to_column() %>%
       dplyr::filter(grepl(paste0(node, "\\["), rowname)) %>%
-      dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + 1978,
+      dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
                     stock0 = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
                     node = node, 
                     stockn = ifelse(node == "pm", stock0, stock0 + 6)) %>%
@@ -66,7 +72,7 @@ markrecap <- mr %>%
   dplyr::mutate(value = mr_mainstem + mr_yentna,
                 name = "Mark-Recapture",
                 name_f = "IR",
-                year = 1979:2017) %>%
+                year = year_id) %>%
   dplyr::select(year, name, name_f, value)
 
 indicies <- 
@@ -99,7 +105,7 @@ rbind(stats, stats[grepl("^S\\[\\d+\\]", stats$rowname), ] %>% dplyr::mutate(nam
   dplyr::mutate(name_f =  factor(name_f,
                                  levels = c("Smain", "Syent", "IR"),
                                  labels = c("Escapement-mainstem", "Escapement-Yentna", "Inriver Run")),
-         year = as.numeric(gsub("^.*\\[(\\d+)\\]", "\\1", rowname)) + 1978) %>%
+         year = as.numeric(gsub("^.*\\[(\\d+)\\]", "\\1", rowname)) + yr0) %>%
   ggplot2::ggplot(ggplot2::aes(x = year, y = value)) +
     ggplot2::geom_line() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
@@ -113,7 +119,7 @@ rbind(stats, stats[grepl("^S\\[\\d+\\]", stats$rowname), ] %>% dplyr::mutate(nam
     ggplot2::scale_shape_manual(name ="Index",
                                 breaks = breaks$name,
                                 values = shapes) +
-    ggplot2::scale_x_continuous("Year", breaks = seq(1979, 2017, 3), minor_breaks = NULL) +
+    ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::theme_bw() +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")

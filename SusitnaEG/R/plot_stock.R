@@ -12,6 +12,9 @@
 #'
 #' @export
 plot_stock <- function(input_dat, stats_dat){
+stopifnot(exists("year_id", .GlobalEnv),
+          "package:SusitnaEG" %in% search())
+  
 id <- codes[-1, ] %>% tibble::rowid_to_column("stock")
 id$name <- factor(id$name, id$name)
   
@@ -28,16 +31,18 @@ id$name <- factor(id$name, id$name)
 #     dplyr::ungroup(year) %>%
 #     dplyr::mutate(year = 1978 + as.numeric(year))
 
-fork <- stats_dat[grepl("^pf.main", rownames(stats_dat)), "Mean"] %>%
-  dplyr::rename(main = Mean) %>%
-  dplyr::mutate(year = 1979:2017,
-                yent = 1 - main)
+fork <- stats_dat %>%
+  tibble::rownames_to_column() %>%
+  dplyr::filter(grepl("pf.main\\[", rowname)) %>%
+  dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
+                yent = 1 - Mean) %>%
+  dplyr::select(year, main = Mean, yent)
 
 stock <- function(node){
   stats_dat %>%
   tibble::rownames_to_column() %>%
   dplyr::filter(grepl(paste0(node, "\\["), rowname)) %>%
-  dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + 1978,
+  dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
                 stock0 = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
                 node = node, 
                 stockn = ifelse(node == "pm", stock0, stock0 + 6)) %>%
@@ -49,10 +54,10 @@ dplyr::left_join(rbind(stock("pm"), stock("py")), fork, by = "year") %>%
                       stock = id$name[stockn],
                       drainage = id$drainage[stockn]) %>%
         dplyr::select(-main, -yent) %>%
-  ggplot2::ggplot(ggplot2::aes(x = year, y = p, fill = stock)) +
+  ggplot2::ggplot(ggplot2::aes(x = as.numeric(year), y = p, fill = stock)) +
     ggplot2::geom_area() +
-    ggplot2::facet_grid(drainage ~ ., scales = "free", switch = "y") +
-    ggplot2::scale_x_continuous(breaks = seq(1979, 2017, 3), minor_breaks = NULL) +
+    ggplot2::facet_grid(drainage ~ ., switch = "y") +
+    ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::percent) +
     ggplot2::scale_color_discrete(breaks = id$name) +
     #ggplot2::geom_point(data = obs, ggplot2::aes(color = stock), size = 3) +

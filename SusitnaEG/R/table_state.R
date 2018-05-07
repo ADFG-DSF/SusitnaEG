@@ -11,13 +11,18 @@
 #'
 #' @export
 table_state <- function(stats_dat){
+  stopifnot(exists("year_id", .GlobalEnv),
+            exists("age_max", .GlobalEnv))
+  yr0 <- as.numeric(min(year_id)) - 1
+  yr0_R <- yr0 - age_max
+  
   stats_dat %>%
     dplyr::select_(median = as.name("50%"), mean = "Mean", sd = "SD") %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("^R\\[|S\\[|N\\[|IR\\[", rowname)) %>%
     dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
                   index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
-                  year = (name != c("R")) * (1978 + index) + (name == "R") * (1978 - 6 + index),
+                  year = (name != c("R")) * (yr0 + index) + (name == "R") * (yr0_R + index),
                   cv = sd/mean,
                   print = paste0(format(round(median, 0), big.mark = ","), " (", format(round(cv, 2), nsmall = 2), ")")) %>%
     dplyr::select(year, print, name) %>%

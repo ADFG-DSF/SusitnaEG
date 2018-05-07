@@ -12,7 +12,11 @@
 #'
 #' @export
 plot_state <- function(stats_dat, S_msr = FALSE){
-
+  stopifnot(exists("year_id", .GlobalEnv),
+            exists("age_max", .GlobalEnv))
+  yr0 <- as.numeric(min(year_id)) - 1
+  yr0_R <- yr0 - age_max
+  
 msy50 <- stats_dat %>%
   dplyr::select_(median = as.name("50%")) %>%
   tibble::rownames_to_column() %>%
@@ -30,7 +34,8 @@ msr50 <- stats_dat %>%
                               levels = c("S", "U"),
                               labels = c("Escapement", "Harvest Rate")))
 
-stats_dat %>%
+plot <-
+  stats_dat %>%
   dplyr::select_(median = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
   tibble::rownames_to_column() %>%
   dplyr::filter(grepl("^R\\[|S\\[|N\\[|log.resid.vec\\[|mu\\[", rowname)) %>%
@@ -38,20 +43,23 @@ stats_dat %>%
                        levels = c("S", "N", "R", "mu", "log.resid.vec"),
                        labels = c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")),
          index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
-         year = (name != c("Recruitment")) * (1978 + index) +
-           (name == "Recruitment") * (1978 - 6 + index)) %>%
-  dplyr::filter(year >= 1978) %>%
+         year = (name != c("Recruitment")) * (yr0 + index) +
+           (name == "Recruitment") * (yr0_R + index)) %>%
+  dplyr::filter(year >= yr0) %>%
   ggplot2::ggplot(ggplot2::aes(x = year, y = median)) +
     ggplot2::geom_line() +
     ggplot2::geom_point() +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
     ggplot2::facet_grid(name ~ ., scales = "free_y", switch = "y") +
     ggplot2::labs(x = NULL, y = NULL) +
-    ggplot2::scale_x_continuous("Year", breaks = seq(1979, 2017, 3), minor_breaks = NULL)  +
+    ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
     ggplot2::geom_hline(data = msy50, ggplot2::aes(yintercept = median), color = "red", linetype = 2) +
-    ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5) + #ifelse(S_msr == TRUE, 5, 0)) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
     ggplot2::theme_bw() +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+
+if(S_msr == TRUE) {plot <- plot +     ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5)}
+
+plot
 }

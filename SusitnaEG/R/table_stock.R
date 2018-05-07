@@ -11,18 +11,22 @@
 #'
 #' @export
 table_stock <- function(stats_dat){
+  stopifnot(exists("year_id", .GlobalEnv),
+            "package:SusitnaEG" %in% search())
   id <- codes[["name"]][-1]
   
-  fork <- stats_dat[grepl("^pf.main", rownames(stats_dat)), "Mean"] %>%
-    dplyr::rename(main = Mean) %>%
-    dplyr::mutate(year = 1979:2017,
-                  yent = 1 - main)
+  fork <- stats_dat %>%
+    tibble::rownames_to_column() %>%
+    dplyr::filter(grepl("pf.main\\[", rowname)) %>%
+    dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
+                  yent = 1 - Mean) %>%
+    dplyr::select(year, main = Mean, yent)
 
   stock <- function(node){
     stats_dat %>%
       tibble::rownames_to_column() %>%
       dplyr::filter(grepl(paste0(node, "\\["), rowname)) %>%
-      dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + 1978,
+      dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
                     stock0 = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
                     node = node,
                     stockn = ifelse(node == "pm", stock0, stock0 + 6),
@@ -31,7 +35,7 @@ table_stock <- function(stats_dat){
   }
 
   Susitna <- 
-    dplyr::left_join(rbind(stock("pm"), stock("py")), fork, by = "year") %>%
+    dplyr::left_join(rbind(stock("pm"), stock("py")), fork, by = "year") %>% # can wrap with suppressWarnings()
       dplyr::mutate(p = ifelse(stockn <= 6, p * main, p * yent),
                     print = paste0(SusitnaEG:::digits(p), " (", SusitnaEG:::digits(SD), ")")) %>%
       dplyr::select(-p, -SD, -stockn, -main, -yent) %>%
