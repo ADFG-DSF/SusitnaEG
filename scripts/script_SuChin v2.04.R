@@ -52,56 +52,41 @@ rm(list=ls(all=TRUE))
 stock<-"SuChin"
 version <- "v2_04"
 
-year <- 1979:2017
-nyrs=as.numeric(length(year))
-
-Hm.hat <- c(Hm$Hm_Susitna, NA)
-cv.hm <- rep(0.05, length(Hm.hat))
-
-MR.yentna <- mr$mr_yentna
-cv.mr.y  <-  mr$cv_yentna                   
-MR.mainstem <- mr$mr_mainstem
-cv.mr.m  <-  mr$cv_mainstem
+get_ids()
 
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
-cv.wd <- rep(0.05, length(weir.deshka)) 
 
 Ha.hat <-
   Ha[, -which(colnames(Ha) %in% c("A", "year"))] %>%
   apply(1, sum, na.rm = TRUE) %>%
   c(., rep(NA, 2))
-cv.ha <- rep(0.2, length(Ha.hat))
- 
-#age comp count data
+
 x.a <- 
   age[grepl("Deshka", age$location), ] %>%
   dplyr::mutate(x34 = x3 + x4,
                 x678 = x6 + x78) %>%
   dplyr::select(x34, x5, x678) %>%
   as.matrix()
-n.a <- age[grepl("Deshka", age$location), "n"] %>% ifelse(is.na(.), 100, .) 
-nages <- ncol(x.a)
-amin=4
-amax=6
+n.a <- rowSums(x.a) %>% ifelse(is.na(.), 100, .) 
 
 air.surveys <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.matrix()
 
-telemetry <- as.matrix(telemetry)
-radios.main <- rowSums(telemetry[,1:6])                                       
-radios.yentna <- rowSums(telemetry[,7:11]) 
-
-
-
 ####  Bundle data to be passed to JAGS  ####
-dat=list(Y = nyrs, A=nages, a.min=amin, a.max=amax,
- x.a=x.a, n.a=n.a, air.surveys=air.surveys, 
- telemetry=telemetry, radios.main=radios.main,radios.yentna=radios.yentna,
- Hm.hat=Hm.hat, cv.hm=cv.hm,
- Ha.hat=Ha.hat, cv.ha=cv.ha,
- MR.mainstem=MR.mainstem, cv.mrm=cv.mr.m,
- MR.yentna=MR.yentna,     cv.mry=cv.mr.y,
- weir.deshka=weir.deshka
- )
+dat = list(
+  Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
+  x.a = x.a, n.a = n.a, 
+  air.surveys = air.surveys, 
+  telemetry = telemetry, 
+  radios.main = rowSums(telemetry[,1:6]), 
+  radios.yentna = rowSums(telemetry[,7:11]),
+  Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.hm = rep(0.05, length(year_id)),
+  Ha.hat = Ha.hat, cv.ha = rep(0.2, length(Ha.hat)),
+  MR.mainstem = mr$mr_mainstem, cv.mrm = mr$cv_mainstem,
+  MR.yentna = mr$mr_yentna,     cv.mry = mr$cv_yentna,
+  weir.deshka = weir.deshka,
+  s34 = c(rep(NA, length(year_id) - length(lt500$n_small)), lt500$n_small),
+  n34 = c(rep(0, length(year_id) - length(lt500$n)), lt500$n)
+)
 
 # bundle inits for JAGS
 inits <- list(get_inits(), get_inits())
