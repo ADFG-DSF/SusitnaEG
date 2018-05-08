@@ -54,8 +54,6 @@ version <- "v2_04"
 
 year <- 1979:2017
 nyrs=as.numeric(length(year))
-fyr=min(year)
-lyr=max(year)
 
 Hm.hat <- c(Hm$Hm_Susitna, NA)
 cv.hm <- rep(0.05, length(Hm.hat))
@@ -105,52 +103,8 @@ dat=list(Y = nyrs, A=nages, a.min=amin, a.max=amax,
  weir.deshka=weir.deshka
  )
 
-B.scale.init = 0.25
-D.scale.init = 0.17
-lnalpha.init = 1.6
-beta.init = 0.00002
-log.resid.0.init = 0
-mean.log.R.init = 11.3
-phi.init = 0.49
-pi.main.1.init = 0.1
-pi.main.2p.init = 0.3
-pi.main.3p.init = 0.5
-pi.main.4p.init = 0.5
-pi.main.5p.init = 0.5
-pi.yent.1.init = 0.1
-pi.yent.2p.init = 0.3
-pi.yent.3p.init = 0.5
-pi.yent.4p.init = 0.5
-tau.R.init = 1.93
-tau.white.init = 16.65
-tau.init = 5
-ML1.inits = c(-1,0,NA) 
-ML2.inits = c(0.05,0,NA) 
-
-####  initial parameter values to be passed to JAGS  ####
-
-inits1=list(
-pi.main.1p=pi.main.1.init,
-Bfork.scale=B.scale.init,
-Btheta.scale=B.scale.init,
-D.scale=D.scale.init,
-Dtrib.scale=D.scale.init,
-beta=beta.init,
-lnalpha=lnalpha.init,
-log.resid.0=log.resid.0.init,
-mean.log.R=mean.log.R.init,
-phi=phi.init,
-tau.R=tau.R.init,
-tau.white=tau.white.init,
-tau.asmain=tau.init,
-tau.asyent=tau.init,
-tau.weir=tau.init,
-ML1=ML1.inits,
-ML2=ML2.inits
-)
-
 # bundle inits for JAGS
-inits=list(inits1,inits1)
+inits <- list(get_inits(), get_inits())
 
 ####        Define the parameters (nodes) of interest   ##### 
 parameters=c(
