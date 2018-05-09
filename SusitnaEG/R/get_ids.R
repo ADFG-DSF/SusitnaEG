@@ -6,7 +6,8 @@
 #' @param age_id named vector of beta names and beta column position.
 #'
 #' @return writes 3 objects to R's Global Environment; year_id and age_id where each object is a named vector where the names are informative
-#' and the elements are jags array locations. Also, age_max the number of years between spawning and recruitment for the oldest non-negligible age class.
+#' and the elements are jags array locations. Also, age_min and age_max the number of years between spawning and recruitment for the youngest and
+#' oldest non-negligible age classes.
 #'
 #' @examples
 #' get_ids(1979:2017)
@@ -22,6 +23,7 @@ get_ids <- function(year_range = 1979:2017,
 
   list <- list(year_id = year_id,
                age_id = age_id,
+               age_min = age_min,
                age_max = age_max)
   list2env(list, .GlobalEnv)
 }

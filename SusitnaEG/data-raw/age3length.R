@@ -48,12 +48,13 @@ d17$year <- 2017
 
 rbind(d13, d14, d15, d16, d17) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
-  ggplot(aes(x = length)) + 
-    geom_histogram() + 
-    geom_vline(aes(xintercept = 500)) +
-    facet_grid(age ~ year)
+  ggplot2::ggplot(ggplot2::aes(x = length)) + 
+    ggplot2::geom_histogram() + 
+    ggplot2::geom_vline(ggplot2::aes(xintercept = 500)) +
+    ggplot2::facet_grid(age ~ year)
 
-rbind(d13, d14, d15, d16, d17) %>%
+lt500_2 <- 
+  rbind(d13, d14, d15, d16, d17) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   dplyr::mutate(small = (length <= 500)) %>%
   dplyr::group_by(year, age) %>%
@@ -61,3 +62,10 @@ rbind(d13, d14, d15, d16, d17) %>%
                    n = n(),
                    p_small = round(mean(small), 2)) %>%
   dplyr::arrange(age, year)
+
+lt500 <- lt500_2 %>%
+  dplyr::summarise(n_small = sum(n_small),
+                   n = sum(n),
+                   p_small = n_small / n)
+
+devtools::use_data(lt500, pkg = ".\\SusitnaEG", overwrite = TRUE)

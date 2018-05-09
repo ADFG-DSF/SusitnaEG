@@ -61,7 +61,7 @@
 #' @format tibble
 "as_complete"
 
-#' Expanded Areial SUrvey data
+#' Expanded Areial Survey data
 #'
 #' Aerial survey data by group with missing surveys expanded by their average contribution using multiple logistic regression
 #'
@@ -70,3 +70,49 @@
 #' @format tibble
 "as_expand"
 
+#' Weir data
+#'
+#' Annual weir passage estimates within the Susitna River Drainage
+#'
+#' @docType data
+#' 
+#' @format tibble
+"weir"
+
+#' Telemetry data
+#'
+#' Radio Telemetry final destinations
+#'
+#' @docType data
+#' 
+#' @format matrix
+"telemetry"
+
+#' Less than 500mm MEF 
+#'
+#' Number of Chinook salmon lt 500mm MEF and total number sampled 
+#'
+#' @docType data
+#' 
+#' @format tibble
+"lt500"
+
+#' Dataframe with Statewide Chinook Salmon Smsy and goal ranges
+#'
+#' Statewide Chinook Salmon Smsy and goal ranges
+#'
+#' @docType data
+#'
+#' @usage data(dat_ChinBEGs)
+#'
+#' @format A data frame
+#'   \describe{
+#'   \item{REGION}{Sport Fish Region}
+#'   \item{STOCK}{Name of the Stock}
+#'   \item{SMSY}{Smsy of the Stock}
+#'   \item{LB}{Lower bound of the Goal}
+#'   \item{UB}{Upper bound of the Goal}
+#'   }
+#'
+#' @source Initially compiled by Steve F.
+"dat_chinBEGs"
