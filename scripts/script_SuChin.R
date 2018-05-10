@@ -63,9 +63,8 @@ Ha.hat <-
 
 x.a <- 
   age[grepl("Deshka", age$location), ] %>%
-  dplyr::mutate(x34 = x3 + x4,
-                x678 = x6 + x78) %>%
-  dplyr::select(x34, x5, x678) %>%
+  dplyr::mutate(x678 = x6 + x78) %>%
+  dplyr::select(x3, x4, x5, x678) %>%
   as.matrix()
 n.a <- rowSums(x.a) %>% ifelse(is.na(.), 100, .) 
 
@@ -84,14 +83,14 @@ dat = list(
   MR.mainstem = mr$mr_mainstem, cv.mrm = mr$cv_mainstem,
   MR.yentna = mr$mr_yentna,     cv.mry = mr$cv_yentna,
   weir.deshka = weir.deshka,
-  s34 = c(rep(NA, length(year_id) - length(lt500$n_small)), lt500$n_small),
-  n34 = c(rep(0, length(year_id) - length(lt500$n)), lt500$n)
+  s3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
+  s4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
 )
 
 # bundle inits for JAGS
 inits <- list(get_inits(), get_inits())
 
-####        Define the parameters (nodes) of interest   ##### 
+####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
 'beta','sigma.white','sigma.R0',
 'lnalpha','lnalpha.c','alpha','lnalpha.vec', 
@@ -109,9 +108,9 @@ parameters=c(
 
 #### run JAGS ####
 ptm = proc.time()
-jmod = jags.model(file=".\\models\\mod_SuChin v2_04.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
+jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 #update(jmod, n.iter=1000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
+#post = coda.samples(jmod, parameters, n.iter=5000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
@@ -129,8 +128,10 @@ shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
 
+table_params(summary)
+
 plot_fit(summary)
-plot_state(summary)
+plot_state(summary, S_msr = TRUE)
 plot_statepairs(post)
 
 #2d age at maturity and age comp arrays
@@ -143,6 +144,9 @@ plot_age(as.data.frame(x.a), summary)
 table_stock(summary)
 plot_stock(telemetry, summary)
 
+plot_theta(summary)
+
 plot_horse(post, summary, 325000)
+plot_rickeryear(summary)
 plot_profile(get_profile(post, 200000))
 plot_ey(get_profile(post, 250000))

@@ -53,7 +53,7 @@ rbind(d13, d14, d15, d16, d17) %>%
     ggplot2::geom_vline(ggplot2::aes(xintercept = 500)) +
     ggplot2::facet_grid(age ~ year)
 
-lt500_2 <- 
+lt500 <- 
   rbind(d13, d14, d15, d16, d17) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   dplyr::mutate(small = (length <= 500)) %>%
@@ -63,9 +63,9 @@ lt500_2 <-
                    p_small = round(mean(small), 2)) %>%
   dplyr::arrange(age, year)
 
-lt500 <- lt500_2 %>%
-  dplyr::summarise(n_small = sum(n_small),
-                   n = sum(n),
-                   p_small = n_small / n)
+# lt500 <- lt500_2 %>%
+#   dplyr::summarise(n_small = sum(n_small),
+#                    n = sum(n),
+#                    p_small = n_small / n)
 
 devtools::use_data(lt500, pkg = ".\\SusitnaEG", overwrite = TRUE)

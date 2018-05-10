@@ -196,10 +196,12 @@ for (y in 1:Y) {
   Hm.hat[y] ~ dlnorm(log.Hm[y],tau.log.Hm[y])             
   IR[y] <- max(N[y] - H.marine[y], 1)                # IR @ RM 0
 
-  ps34[y] ~ dbeta(1,1)
-  s34[y] ~ dbinom(ps34[y], n34[y]) 
-  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps34[y]) 
-  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps34[y])
+  ps3[y] ~ dbeta(1,1)
+  ps4[y] ~ dbeta(1,1)
+  s3[y, 1] ~ dbinom(ps3[y], s3[y, 2])
+  s4[y, 1] ~ dbinom(ps4[y], s4[y, 2])
+  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y]) 
+  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
   log.IRm[y] <- log(IR.main[y])
   log.IRy[y] <- log(IR.yentna[y])
   tau.log.mrm[y] <- 1 / log(cv.mrm[y]*cv.mrm[y] + 1)

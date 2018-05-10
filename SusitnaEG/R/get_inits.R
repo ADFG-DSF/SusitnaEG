@@ -10,6 +10,8 @@
 #'
 #' @export
 get_inits <- function(){
+  stopifnot(exists("age_id", .GlobalEnv))
+  
   list(
     Bfork.scale = runif(1, 0.1, 0.75),
     Btheta.scale = runif(1, 0.1, 0.75),
@@ -25,7 +27,7 @@ get_inits <- function(){
     tau.asmain = runif(1, 1, 25),
     tau.asyent = runif(1, 1, 25),
     tau.weir = runif(1, 1, 25),
-    ML1 = c(runif(2, -1, 1), NA),
-    ML2 = c(runif(2, -0.1, 0.1), NA)
+    ML1 = c(runif(length(age_id) - 1, -1, 1), NA),
+    ML2 = c(runif(length(age_id) - 1, -0.1, 0.1), NA)
   )
 }
