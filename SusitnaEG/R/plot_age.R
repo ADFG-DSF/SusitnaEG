@@ -26,13 +26,13 @@ plot_age <- function(input_dat, stats_dat){
   
 Q.obs <- as.data.frame(input_dat / rowSums(input_dat)) %>%
   setNames(paste0("age", 1:ncol(input_dat))) %>%
-  tibble::rownames_to_column(var = "year") %>%
+  tibble::rownames_to_column(var = "yr_id") %>%
   tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
-  dplyr::group_by(year) %>%
+  dplyr::group_by(yr_id) %>%
   dplyr::mutate(prop = cumsum(prop), plot = "Age Composition") %>%
-  dplyr::ungroup(year) %>%
-  dplyr::mutate(year = yr0 + as.numeric(year))
-
+  dplyr::ungroup(yr_id) %>%
+  dplyr::mutate(year = as.numeric(year_id[a$yr.a[as.numeric(yr_id)]]))
+                
 P.mn <- get_array(stats_dat, "p") %>%
   tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
   dplyr::mutate(plot = "Age-at-Maturity") %>%

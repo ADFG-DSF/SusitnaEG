@@ -49,9 +49,6 @@ lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
 
-stock<-"SuChin"
-version <- "v2_04"
-
 get_ids()
 
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
@@ -122,7 +119,7 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 #load(file=paste(stock,version,"post") ) 
-#saveRDS(post, file = paste0(".\\posts\\", stock, version, ".rds"))
+saveRDS(post, file = ".\\posts\\SuChinook_allagedat96430d7c.rds")
 post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 
 #inspect convergence
