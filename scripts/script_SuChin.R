@@ -61,19 +61,21 @@ Ha.hat <-
   apply(1, sum, na.rm = TRUE) %>%
   c(., rep(NA, 2))
 
-x.a <- 
-  age[grepl("Deshka", age$location), ] %>%
+a <- 
+  age[age$year >= 1979, ] %>%
   dplyr::mutate(x678 = x6 + x78) %>%
-  dplyr::select(x3, x4, x5, x678) %>%
-  as.matrix()
-n.a <- rowSums(x.a) %>% ifelse(is.na(.), 100, .) 
+  dplyr::left_join(data.frame(yr.a = as.numeric(names(year_id)), year = year_id, stringsAsFactors = FALSE),
+                   by = "year") %>%
+  dplyr::select(yr.a, x3, x4, x5, x678) %>%
+  dplyr::filter(!is.na(x4))
+x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
 air.surveys <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.matrix()
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = n.a, 
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a),  
   air.surveys = air.surveys, 
   telemetry = telemetry, 
   radios.main = rowSums(telemetry[,1:6]), 

@@ -83,8 +83,8 @@ for (c in 1:(Y+A-1)) {
 # MULTINOMIAL SCALE SAMPLING ON TOTAL ANNUAL RETURN N
 # INDEX t IS CALENDAR YEAR
 # OVERLAP IS MUCH LARGER THAN IN PREVIOUS VERSIONS         
-for (y in 1:Y) {  
-  x.a[y, 1:A] ~ dmulti(q[y, ], n.a[y])
+for (y in 1:N.yr.a) {  
+  x.a[y, 1:A] ~ dmulti(q[yr.a[y], ], n.a[y])
   }
 
 
