@@ -41,16 +41,9 @@
 packs <- c("SusitnaEG", "rjags", "coda")
 lapply(packs, require, character.only = TRUE)
 
-
-#options(digits=8)        ## set output digits
-#options(scipen=5)        ## reduce scientific notation   
-
 ####   Start here to create new version  #######################################################
 
 rm(list=ls(all=TRUE))
-
-stock<-"SuChin"
-version <- "v2_04"
 
 get_ids()
 
@@ -104,14 +97,14 @@ parameters=c(
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
 'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
 'pi.main','pi.yent','pm','py',
-'theta','sigma.asmain','sigma.asyent','sigma.weir'
+'theta', 'theta.mean', 'sigma.asmain','sigma.asyent','sigma.weir'
 )
 
 #### run JAGS ####
 ptm = proc.time()
-jmod = jags.model(file=".\\models\\mod_SuChin v2_04.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
-#update(jmod, n.iter=1000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
+jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
+update(jmod, n.iter=1000, by=1, progress.bar='text')               
+post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
