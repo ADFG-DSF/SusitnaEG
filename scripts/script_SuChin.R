@@ -38,14 +38,23 @@
    #  ML1[A]=0
    # 
 
-packs <- c("SusitnaEG", "rjags", "coda")
+packs <- c("SusitnaEG", "rjags", "coda", "ggplot2")
 lapply(packs, require, character.only = TRUE)
 
-
-#options(digits=8)        ## set output digits
-#options(scipen=5)        ## reduce scientific notation   
-
-####   Start here to create new version  #######################################################
+##Motivating example##
+#Sampling programs are bias
+#Creel biased toawrds larger fish
+age[, 3:7] %>% 
+  (function(x) {x/rowSums(x)}) %>% 
+  cbind(age[, c("year", "location")]) %>% 
+  tidyr::gather(age, p, -year, -location) %>%
+  dplyr::mutate(loc2 = ifelse(grepl("creel|Creel", location), "Creel",
+                              ifelse(grepl("weir|Weir", location), "Weir", "Other"))) %>%
+  dplyr::filter(year >= "1979") %>%
+  ggplot(aes(x = year, y = p, color = loc2)) +
+  geom_point() +
+  facet_grid(age ~ .)
+######
 
 rm(list=ls(all=TRUE))
 
@@ -60,10 +69,11 @@ Ha.hat <-
 
 a <- 
   age[age$year >= 1979, ] %>%
-  dplyr::mutate(x678 = x6 + x78) %>%
+  dplyr::mutate(x678 = x6 + x78,
+                samp = ifelse(grepl("creel|Creel", location), 2, ifelse(grepl("weir|Weir", location), 1, 3))) %>% 
   dplyr::left_join(data.frame(yr.a = as.numeric(names(year_id)), year = year_id, stringsAsFactors = FALSE),
                    by = "year") %>%
-  dplyr::select(yr.a, x3, x4, x5, x678) %>%
+  dplyr::select(yr.a, samp, x3, x4, x5, x678) %>%
   dplyr::filter(!is.na(x4))
 x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
@@ -72,7 +82,7 @@ air.surveys <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.mat
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a),  
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, #x.creel = a$creel, x.other = a$other,  
   air.surveys = air.surveys, 
   telemetry = telemetry, 
   radios.main = rowSums(telemetry[,1:6]), 
@@ -98,7 +108,7 @@ parameters=c(
 'pi.y','D.sum','D.scale','ML1','ML2',
 'mu','mu.Hmarine','mu.Habove',
 'S','N','R','IR','IR.main','IR.yentna',
-'p','N.ta','q',
+'p','N.ta','q', "b", "q.star",
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
 'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
 'pi.main','pi.yent','pm','py',
@@ -119,13 +129,32 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 #load(file=paste(stock,version,"post") ) 
-saveRDS(post, file = ".\\posts\\SuChinook_allagedat96430d7c.rds")
-post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
+#saveRDS(post, file = ".\\posts\\SuChinook_allagedat96430d7c.rds")
+#post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 
 #inspect convergence
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
+
+##changes in q##
+new <- get_array(summary, "q") %>%
+  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
+  dplyr::mutate(plot = "Age Composition",
+                year = as.numeric(year_id[cyear]),
+                model = "all data w/beta")
+old <- get_array(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds")), "q") %>%
+  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
+  dplyr::mutate(plot = "Age Composition",
+                year = as.numeric(year_id[cyear]),
+                model = "all data")
+
+#estimates unchanged late in time series (only weir data)
+#early estimates generaly smaller percentages of age4 and larger percentages of age1 & age2
+rbind(new, old) %>%
+  ggplot(aes(x = year, y = prop, color = model)) +
+  geom_line() +
+  facet_grid(age ~ .)
 
 table_params(summary)
 
