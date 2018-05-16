@@ -12,7 +12,7 @@
 get_inits <- function(){
   list(
     Bfork.scale = runif(1, 0.1, 0.75),
-    Btheta.scale = runif(1, 0.1, 0.75),
+    Btheta.scale = runif(11, 0.1, 0.75),
     D.scale = runif(1, 0.1, 0.5),
     Dtrib.scale = runif(1, 0.1, 0.5),
     beta = rlnorm(1, log(2e-5), 0.4),

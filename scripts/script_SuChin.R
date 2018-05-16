@@ -103,8 +103,8 @@ parameters=c(
 #### run JAGS ####
 ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
-update(jmod, n.iter=1000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
+#update(jmod, n.iter=1000, by=1, progress.bar='text')               
+#post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
@@ -115,12 +115,28 @@ endtime[3]/60/60
 
 #load(file=paste(stock,version,"post") ) 
 #saveRDS(post, file = paste0(".\\posts\\", stock, version, ".rds"))
-post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
+#post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 
 #inspect convergence
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
+
+#deshka observed theta and estimated theta track
+plot(1979:2017, summary[grepl("theta\\[\\d+,2\\]", rownames(summary)), "Mean"]$Mean, type = "l")
+points(1979:2017, air.surveys[,"C"]/weir.deshka)
+
+#Similar mean for each stock to old version
+tibble::rownames_to_column(summary) %>% 
+  dplyr::filter(grepl("^theta\\[", rowname)) %>%
+  dplyr::mutate(year = as.numeric(gsub("theta\\[(\\d+),\\d+\\]", "\\1", rowname)),
+                stock = factor(as.numeric(gsub("theta\\[\\d+,(\\d+)\\]", "\\1", rowname)), labels = codes$name[-1])) %>%
+  ggplot(aes(x = year, y = Mean)) +
+    geom_line() +
+    facet_grid(. ~ stock)
+
+plot_theta(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds")))
+
 
 plot_fit(summary)
 plot_state(summary)
@@ -135,6 +151,8 @@ plot_age(as.data.frame(x.a), summary)
 
 table_stock(summary)
 plot_stock(telemetry, summary)
+
+table_params(summary)
 
 plot_horse(post, summary, 325000)
 plot_profile(get_profile(post, 200000))
