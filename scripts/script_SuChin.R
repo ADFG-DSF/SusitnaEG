@@ -129,7 +129,7 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 #load(file=paste(stock,version,"post") ) 
-#saveRDS(post, file = ".\\posts\\SuChinook_allagedat96430d7c.rds")
+#saveRDS(post, file = ".\\posts\\SuChinook_fourages_3ec064bc.rds")
 #post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 
 #inspect convergence
@@ -155,6 +155,9 @@ rbind(new, old) %>%
   ggplot(aes(x = year, y = prop, color = model)) +
   geom_line() +
   facet_grid(age ~ .)
+
+#age at maturity trend maintained
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("ML", rowname))
 
 table_params(summary)
 

@@ -87,7 +87,7 @@ for (y in 1:N.yr.a) {
   x.a[y, 1:A] ~ dmulti(q.star[y, ], n.a[y])
     for (a in 1:A) {
       q.star[y,a] <- rho[y,a] / sum(rho[y,1:A])
-	  rho[y,a] <- N.ta[yr.a[y],a] / N.ta[yr.a[y], 1] + b[x.samp[y], a]
+	  log(rho[y,a]) <- log(N.ta[yr.a[y],a] / N.ta[yr.a[y], 1]) + b[x.samp[y], a]
       }
   }
 for(a in 1:A){b[1,a] <- 0} #corner point weir
