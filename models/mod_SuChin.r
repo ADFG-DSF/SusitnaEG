@@ -149,31 +149,35 @@ for (y in 1:Y) {
     telemetry[y, 1:6] ~  dmulti(pm[y, ], radios.main[y])
     telemetry[y, 7:11] ~ dmulti(py[y, ], radios.yentna[y])
 }
-  
-# AIR SURVEY DETECTABILITIES BY TRIB
-  Btheta.scale ~ dunif(0.01,1)
-  Btheta.sum <- 1 / (Btheta.scale * Btheta.scale)
-  theta.mean ~ dbeta(1,1)
-  Bt1 <- Btheta.sum * theta.mean; Bt2 <- Btheta.sum - Bt1;
 
 # AIR SURVEY COUNTS W LOGNORMAL ERRORS
 # px[y,t] ARE FRACTIONS  OF MAIN OR YENTNA RETURNING BY TRIB BY YEAR
 # ASSUME THAT HARVEST ABOVE ALEXANDER CK IS PROPORTIONAL TO RUN, FOR NOW 
 tau.asmain ~ dgamma(0.01,0.01)
 sigma.asmain <- 1 / sqrt(tau.asmain)
-for(trib in 1:6) { 
-  theta[trib] ~ dbeta(Bt1,Bt2)
+theta1 ~ dunif(1, 100)
+theta2 ~ dunif(1, 100)
+for(trib in 1:6) {
+  theta.mean[trib] ~ dbeta(theta1, theta2)
+  Btheta.scale[trib] ~ dunif(0.01,1)
+  Btheta.sum[trib] <- 1 / (Btheta.scale[trib] * Btheta.scale[trib])
+  Bt1[trib] <- Btheta.sum[trib] * theta.mean[trib]; Bt2[trib] <- Btheta.sum[trib] - Bt1[trib];
   for (y in 1:Y) {
-    log.tppS[y,trib] <- log(theta[trib] * pf.main[y] * pm[y,trib] * S[y])
+	theta[y, trib] ~ dbeta(Bt1[trib],Bt2[trib])
+    log.tppS[y,trib] <- log(theta[y, trib] * pf.main[y] * pm[y,trib] * S[y])
     air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asmain)
     }
   }
 tau.asyent ~ dgamma(0.01,0.01)
 sigma.asyent <- 1 / sqrt(tau.asyent)
 for(trib in 7:11) { 
-  theta[trib] ~ dbeta(Bt1,Bt2)
+  theta.mean[trib] ~ dbeta(theta1, theta2)
+  Btheta.scale[trib] ~ dunif(0.01,1)
+  Btheta.sum[trib] <- 1 / (Btheta.scale[trib] * Btheta.scale[trib])
+  Bt1[trib] <- Btheta.sum[trib] * theta.mean[trib]; Bt2[trib] <- Btheta.sum[trib] - Bt1[trib];
   for (y in 1:Y) {
-    log.tppS[y,trib] <- log(theta[trib] * pf.yentna[y] * py[y,trib-6] * S[y])
+	theta[y, trib] ~ dbeta(Bt1[trib],Bt2[trib])
+    log.tppS[y,trib] <- log(theta[y, trib] * pf.yentna[y] * py[y,trib-6] * S[y])
     air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asyent)
     }
   }
