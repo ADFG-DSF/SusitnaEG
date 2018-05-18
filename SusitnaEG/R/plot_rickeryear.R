@@ -33,9 +33,9 @@ lines <- stats_dat %>%
   dplyr::select(value = Mean) %>%
   tibble::rownames_to_column()  %>% 
   dplyr::filter(grepl("^lnalpha.vec", rowname)) %>%
-  dplyr::mutate(index = as.numeric(gsub("^.*\\[(\\d+)\\]", "\\1", rowname)),
-                year = as.character((yr0 + index)),
-                beta = as.numeric(summary[grepl("beta", rownames(summary)), "Mean"])) %>%
+  dplyr::mutate(#index = as.numeric(gsub("^.*\\[(\\d+)\\]", "\\1", rowname)),
+                #year = as.character(yr0 + index),
+                beta = as.numeric(stats_dat[grepl("beta", rownames(stats_dat)), "Mean"])) %>%
   dplyr::select(value, beta) %>%
   as.matrix() %>%
   plyr::alply(1, function(coef) {ggplot2::stat_function(fun = function(x){x * exp(coef[1] - coef[2] * x)}, colour="grey", alpha = 0.5)})

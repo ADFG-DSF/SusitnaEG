@@ -77,16 +77,26 @@ for (c in 1:(Y+A-1)) {
   for (y in 1:Y) {
     N[y] <- sum(N.ta[y,1:A])
     for (a in 1:A) {
-      q[y,a] <- N.ta[y,a] / N[y]
+	  q[y,a] <- N.ta[y,a] / N[y]
       }
     }
 # MULTINOMIAL SCALE SAMPLING ON TOTAL ANNUAL RETURN N
 # INDEX t IS CALENDAR YEAR
-# OVERLAP IS MUCH LARGER THAN IN PREVIOUS VERSIONS         
-for (y in 1:Y) {  
-  x.a[y, 1:A] ~ dmulti(q[y, ], n.a[y])
+# Adjustment for sampling program         
+for (y in 1:N.yr.a) {  
+  x.a[y, 1:A] ~ dmulti(q.star[y, ], n.a[y])
+    for (a in 1:A) {
+      q.star[y,a] <- rho[y,a] / sum(rho[y,1:A])
+	  log(rho[y,a]) <- log(N.ta[yr.a[y],a] / N.ta[yr.a[y], 1]) + b[x.samp[y], a]
+      }
   }
-
+for(a in 1:A){b[1,a] <- 0} #corner point weir
+for(s in 2:3){
+	b[s,1] <- 0 #zero first age
+	for(a in 2:A){
+		b[s,a] ~ dnorm(0, 0.0001)
+	}
+}
 
 # PROPORTIONS TO MAINSTEM V YENTNA BY CALENDAR YEAR
   Bfork.scale ~ dunif(0.01,1)
@@ -200,10 +210,12 @@ for (y in 1:Y) {
   Hm.hat[y] ~ dlnorm(log.Hm[y],tau.log.Hm[y])             
   IR[y] <- max(N[y] - H.marine[y], 1)                # IR @ RM 0
 
-  ps34[y] ~ dbeta(1,1)
-  s34[y] ~ dbinom(ps34[y], n34[y]) 
-  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps34[y]) 
-  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps34[y])
+  ps3[y] ~ dbeta(1,1)
+  ps4[y] ~ dbeta(1,1)
+  s3[y, 1] ~ dbinom(ps3[y], s3[y, 2])
+  s4[y, 1] ~ dbinom(ps4[y], s4[y, 2])
+  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y]) 
+  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
   log.IRm[y] <- log(IR.main[y])
   log.IRy[y] <- log(IR.yentna[y])
   tau.log.mrm[y] <- 1 / log(cv.mrm[y]*cv.mrm[y] + 1)

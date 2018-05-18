@@ -38,10 +38,22 @@
    #  ML1[A]=0
    # 
 
-packs <- c("SusitnaEG", "rjags", "coda")
+packs <- c("SusitnaEG", "rjags", "coda", "ggplot2")
 lapply(packs, require, character.only = TRUE)
 
-####   Start here to create new version  #######################################################
+##Motivating example##
+#Sampling programs are bias
+#Creel biased toawrds larger fish
+age[, 3:7] %>% 
+  (function(x) {x/rowSums(x)}) %>% 
+  cbind(age[, c("year", "location")]) %>% 
+  tidyr::gather(age, p, -year, -location) %>%
+  dplyr::mutate(loc2 = ifelse(grepl("creel|Creel", location), "Creel",
+                              ifelse(grepl("weir|Weir", location), "Weir", "Other"))) %>%
+  dplyr::filter(year >= "1979") %>%
+  ggplot(aes(x = year, y = p, color = loc2)) +
+  geom_point() +
+  facet_grid(age ~ .)
 
 rm(list=ls(all=TRUE))
 
@@ -54,20 +66,22 @@ Ha.hat <-
   apply(1, sum, na.rm = TRUE) %>%
   c(., rep(NA, 2))
 
-x.a <- 
-  age[grepl("Deshka", age$location), ] %>%
-  dplyr::mutate(x34 = x3 + x4,
-                x678 = x6 + x78) %>%
-  dplyr::select(x34, x5, x678) %>%
-  as.matrix()
-n.a <- rowSums(x.a) %>% ifelse(is.na(.), 100, .) 
+a <- 
+  age[age$year >= 1979, ] %>%
+  dplyr::mutate(x678 = x6 + x78,
+                samp = ifelse(grepl("creel|Creel", location), 2, ifelse(grepl("weir|Weir", location), 1, 3))) %>% 
+  dplyr::left_join(data.frame(yr.a = as.numeric(names(year_id)), year = year_id, stringsAsFactors = FALSE),
+                   by = "year") %>%
+  dplyr::select(yr.a, samp, x3, x4, x5, x678) %>%
+  dplyr::filter(!is.na(x4))
+x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
 air.surveys <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.matrix()
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = n.a, 
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, #x.creel = a$creel, x.other = a$other,  
   air.surveys = air.surveys, 
   telemetry = telemetry, 
   radios.main = rowSums(telemetry[,1:6]), 
@@ -77,14 +91,14 @@ dat = list(
   MR.mainstem = mr$mr_mainstem, cv.mrm = mr$cv_mainstem,
   MR.yentna = mr$mr_yentna,     cv.mry = mr$cv_yentna,
   weir.deshka = weir.deshka,
-  s34 = c(rep(NA, length(year_id) - length(lt500$n_small)), lt500$n_small),
-  n34 = c(rep(0, length(year_id) - length(lt500$n)), lt500$n)
+  s3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
+  s4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
 )
 
 # bundle inits for JAGS
 inits <- list(get_inits(), get_inits())
 
-####        Define the parameters (nodes) of interest   ##### 
+####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
 'beta','sigma.white','sigma.R0',
 'lnalpha','lnalpha.c','alpha','lnalpha.vec', 
@@ -93,7 +107,7 @@ parameters=c(
 'pi.y','D.sum','D.scale','ML1','ML2',
 'mu','mu.Hmarine','mu.Habove',
 'S','N','R','IR','IR.main','IR.yentna',
-'p','N.ta','q',
+'p','N.ta','q', "b", "q.star",
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
 'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
 'pi.main','pi.yent','pm','py',
@@ -104,7 +118,7 @@ parameters=c(
 ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 #update(jmod, n.iter=1000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=10000, thin=1)        # 10 min
+#post = coda.samples(jmod, parameters, n.iter=5000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
@@ -113,8 +127,8 @@ post = coda.samples(jmod, parameters, n.iter=100000, thin=50)         #  1.5h
 endtime = proc.time()-ptm
 endtime[3]/60/60  
 
-#load(file=paste(stock,version,"post") ) 
-#saveRDS(post, file = paste0(".\\posts\\", stock, version, ".rds"))
+
+#saveRDS(post, file = ".\\posts\\SuChinook_fourages_3ec064bc.rds")
 #post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
 
 #inspect convergence
@@ -137,9 +151,32 @@ tibble::rownames_to_column(summary) %>%
 
 plot_theta(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds")))
 
+##changes in q##
+new <- get_array(summary, "q") %>%
+  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
+  dplyr::mutate(plot = "Age Composition",
+                year = as.numeric(year_id[cyear]),
+                model = "all data w/beta")
+old <- get_array(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds")), "q") %>%
+  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
+  dplyr::mutate(plot = "Age Composition",
+                year = as.numeric(year_id[cyear]),
+                model = "all data")
+
+#estimates unchanged late in time series (only weir data)
+#early estimates generaly smaller percentages of age4 and larger percentages of age1 & age2
+rbind(new, old) %>%
+  ggplot(aes(x = year, y = prop, color = model)) +
+  geom_line() +
+  facet_grid(age ~ .)
+
+#age at maturity trend maintained
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("ML", rowname))
+
+table_params(summary)
 
 plot_fit(summary)
-plot_state(summary)
+plot_state(summary, S_msr = TRUE)
 plot_statepairs(post)
 
 #2d age at maturity and age comp arrays
@@ -152,8 +189,9 @@ plot_age(as.data.frame(x.a), summary)
 table_stock(summary)
 plot_stock(telemetry, summary)
 
-table_params(summary)
+plot_theta(summary)
 
 plot_horse(post, summary, 325000)
+plot_rickeryear(summary)
 plot_profile(get_profile(post, 200000))
 plot_ey(get_profile(post, 250000))

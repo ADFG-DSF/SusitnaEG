@@ -14,9 +14,9 @@
 #'
 #' @export
 get_ids <- function(year_range = 1979:2017,
-                    age_id = c("age34" = 1, "age5" = 2, "age678" = 3)){
+                    age_id = c("age3" = 1, "age4" = 2, "age5" = 3, "age678" = 4)){
   age_min <- as.numeric(gsub("^age.*(\\d$)", "\\1", names(age_id)[1]))
-  age_max <- as.numeric(gsub("^age(\\d).*", "\\1", names(age_id)[3]))
+  age_max <- as.numeric(gsub("^age(\\d).*", "\\1", names(age_id)[length(age_id)]))
 
   year_id <- as.character(year_range)
   names(year_id) <- 1:length(year_range)
