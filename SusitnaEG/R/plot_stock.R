@@ -17,32 +17,39 @@ stopifnot(exists("year_id", .GlobalEnv),
   
 id <- codes[-1, ] %>% tibble::rowid_to_column("stock")
 id$name <- factor(id$name, id$name)
-  
-# obs <- 
-#   input_dat %>%
-#     dplyr::mutate_all(function(x) ifelse(x == 0, NA, round(x))) %>%
-#     (function(x) {x/rowSums(x)}) %>%
-#     tibble::rownames_to_column(var = "year") %>%
-#     tidyr::gather(code, p, -year) %>%
-#     dplyr::left_join(id[, c("name", "drainage", "code")], by = "code") %>%
-#     dplyr::rename(stock = name) %>%
-#     dplyr::group_by(year) %>%
-#     dplyr::mutate(p = cumsum(p)) %>%
-#     dplyr::ungroup(year) %>%
-#     dplyr::mutate(year = 1978 + as.numeric(year))
 
 fork <- stats_dat %>%
   tibble::rownames_to_column() %>%
   dplyr::filter(grepl("pf.main\\[", rowname)) %>%
-  dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
+  dplyr::mutate(year = unname(year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))]),
                 yent = 1 - Mean) %>%
   dplyr::select(year, main = Mean, yent)
+  
+obs_f <- function(drain){
+  input_dat[, id$code[id$drainage == drain]] %>%
+    dplyr::mutate_all(function(x) ifelse(x == 0, NA, round(x))) %>%
+    (function(x) {x/rowSums(x)}) %>%
+    tibble::rownames_to_column() %>%
+    tidyr::gather(code, p00, -rowname) %>%
+    dplyr::left_join(id, by = "code") %>%
+    dplyr::group_by(rowname, drainage) %>%
+    dplyr::arrange(rowname, drainage, dplyr::desc(name)) %>%
+    dplyr::mutate(year = unname(year_id[rowname]),
+                  p0 = cumsum(p00)) %>%
+    dplyr::ungroup() %>%
+    dplyr::left_join(fork, "year") %>% 
+    dplyr::mutate(p = if(drain == "Susitna R.") {p0 * main} else(p0 * yent)) %>%
+    dplyr::select(year, stock = name, drainage, p) %>%
+    dplyr::filter(!is.na(p))
+}
+
+obs <- rbind(obs_f("Susitna R."), obs_f("Yentna R."))
 
 stock <- function(node){
   stats_dat %>%
   tibble::rownames_to_column() %>%
   dplyr::filter(grepl(paste0(node, "\\["), rowname)) %>%
-  dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
+  dplyr::mutate(year = unname(year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))]),
                 stock0 = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
                 node = node, 
                 stockn = ifelse(node == "pm", stock0, stock0 + 6)) %>%
@@ -55,12 +62,12 @@ dplyr::left_join(rbind(stock("pm"), stock("py")), fork, by = "year") %>%
                       drainage = id$drainage[stockn]) %>%
         dplyr::select(-main, -yent) %>%
   ggplot2::ggplot(ggplot2::aes(x = as.numeric(year), y = p, fill = stock)) +
-    ggplot2::geom_area() +
+    ggplot2::geom_area(alpha = 0.5) +
     ggplot2::facet_grid(drainage ~ ., switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::percent) +
     ggplot2::scale_color_discrete(breaks = id$name) +
-    #ggplot2::geom_point(data = obs, ggplot2::aes(color = stock), size = 3) +
+    ggplot2::geom_point(data = obs, ggplot2::aes(color = stock), size = 3) +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
 
