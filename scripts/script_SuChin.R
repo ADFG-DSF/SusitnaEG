@@ -62,9 +62,13 @@ get_ids()
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 
 Ha.hat <-
-  Ha[, -which(colnames(Ha) %in% c("A", "year"))] %>%
-  apply(1, sum, na.rm = TRUE) %>%
-  c(., rep(NA, 2))
+  data.frame(
+    Ha[, grepl("C|E|F", names(Ha))],
+    Z = Ha[, !grepl("year|A|C|E|F", names(Ha))] %>% apply(1, sum, na.rm = TRUE)
+  ) %>%
+  dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
+  as.matrix() %>%
+  rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat)[1], ncol = dim(Ha.hat)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%
@@ -87,7 +91,7 @@ dat = list(
   radios.main = rowSums(telemetry[,1:6]), 
   radios.yentna = rowSums(telemetry[,7:11]),
   Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.hm = rep(0.05, length(year_id)),
-  Ha.hat = Ha.hat, cv.ha = rep(0.2, length(Ha.hat)),
+  Ha.hat = Ha.hat, cv.ha = rep(0.2, dim(Ha.hat)[1]),
   MR.mainstem = mr$mr_mainstem, cv.mrm = mr$cv_mainstem,
   MR.yentna = mr$mr_yentna,     cv.mry = mr$cv_yentna,
   weir.deshka = weir.deshka,
@@ -107,7 +111,7 @@ parameters=c(
 'pi.y','D.sum','D.scale','ML1','ML2',
 'mu','mu.Hmarine','mu.Habove',
 'S','N','R','IR','IR.main','IR.yentna',
-'p','N.ta','q', "b", "q.star",
+'p','N.ta','q', "b", "q.star", "N.ys", "S.ys",
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
 'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
 'pi.main','pi.yent','pm','py',
@@ -117,8 +121,8 @@ parameters=c(
 #### run JAGS ####
 ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
-#update(jmod, n.iter=1000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=5000, thin=1)        # 10 min
+update(jmod, n.iter=1000, by=1, progress.bar='text')               
+post = coda.samples(jmod, parameters, n.iter=3000, thin=1)        # 10 min
 #update(jmod, n.iter=2000, by=1, progress.bar='text')               
 #post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               

@@ -4,43 +4,45 @@
 #  
 ################################################################################
 model{
-  for (c in (A+a.min):(Y+A-1)) {
-    log.R[c] ~ dt(log.R.mean2[c],tau.white,500)
-    R[c] <- exp(log.R[c])
-    log.R.mean1[c] <- log(S[c-a.max]) + lnalpha - beta * S[c-a.max] 
-    log.resid[c] <- log(R[c]) - log.R.mean1[c]
-    lnalpha.y[c] <- lnalpha + log.resid[c] 
-    }
-  log.resid.vec <- log.resid[(A+a.min):(Y+A-1)]
-  lnalpha.vec <- lnalpha.y[(A+a.min):(Y+A-1)]
-  log.R.mean2[A+a.min] <- log.R.mean1[A+a.min] + phi * log.resid.0
-  for (c in (A+a.min+1):(Y+A-1)) {
-    log.R.mean2[c] <- log.R.mean1[c] + phi * log.resid[c-1]
-    }
-  lnalpha ~ dnorm(0,1.0E-6)T(0,)
-  beta ~ dnorm(0,1.0E-2)T(0,)              
-  phi ~ dnorm(0,1.0E-4)T(-1,1)                                       
-  tau.white ~ dgamma(0.001,0.001)        
-  log.resid.0 ~ dnorm(0,tau.red)T(-3,3) 
-  alpha <- exp(lnalpha)
-  tau.red <- tau.white * (1-phi*phi)
-  sigma.white <- 1 / sqrt(tau.white)
-  sigma.red <- 1 / sqrt(tau.red)
-  lnalpha.c <- lnalpha + (sigma.white * sigma.white / 2 / (1-phi*phi) )
-  S.max <- 1 / beta
-  S.eq <- lnalpha.c * S.max
-  S.msy <- S.eq * (0.5 - 0.07*lnalpha.c)
-  U.msy <- lnalpha.c * (0.5 - 0.07*lnalpha.c)
+  for (stock in 1:4){
+	log.resid.vec[1:(Y - a.min), stock] <- log.resid[(A+a.min):(Y+A-1), stock]
+	lnalpha.vec[1:(Y - a.min), stock] <- lnalpha.y[(A+a.min):(Y+A-1), stock]
+	  for (c in (A+a.min):(Y+A-1)) {
+		log.R[c, stock] ~ dt(log.R.mean2[c, stock],tau.white[stock],500)
+		R[c, stock] <- exp(log.R[c, stock])
+		log.R.mean1[c, stock] <- log(S.ys[c-a.max, stock]) + lnalpha[stock] - beta[stock] * S.ys[c-a.max, stock] 
+		log.resid[c, stock] <- log(R[c, stock]) - log.R.mean1[c, stock]
+		lnalpha.y[c, stock] <- lnalpha[stock] + log.resid[c, stock] 
+		}
+	  log.R.mean2[A+a.min, stock] <- log.R.mean1[A+a.min, stock] + phi * log.resid.0[stock]
+	  for (c in (A+a.min+1):(Y+A-1)) {
+		log.R.mean2[c, stock] <- log.R.mean1[c, stock] + phi * log.resid[c-1, stock]
+		}
+	  lnalpha[stock] ~ dnorm(0,1.0E-6)T(0,)
+	  beta[stock] ~ dnorm(0,1.0E-2)T(0,)                                                     
+	  tau.white[stock] ~ dgamma(0.001,0.001)        
+	  log.resid.0[stock] ~ dnorm(0,tau.red[stock])T(-3,3) 
+	  alpha[stock] <- exp(lnalpha[stock])
+	  tau.red[stock] <- tau.white[stock] * (1-phi*phi)
+	  sigma.white[stock] <- 1 / sqrt(tau.white[stock])
+	  sigma.red[stock] <- 1 / sqrt(tau.red[stock])
+	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white[stock] * sigma.white[stock] / 2 / (1-phi*phi) )
+	  S.max[stock] <- 1 / beta[stock]
+	  S.eq[stock] <- lnalpha.c[stock] * S.max[stock]
+	  S.msy[stock] <- S.eq[stock] * (0.5 - 0.07*lnalpha.c[stock])
+	  U.msy[stock] <- lnalpha.c[stock] * (0.5 - 0.07*lnalpha.c[stock])
 
-# BROOD YEAR RETURNS W/O SR LINK DRAWN FROM COMMON LOGNORMAL DISTN
-  mean.log.R ~ dnorm(0,1.0E-4)T(0,)       
-  tau.R ~ dgamma(0.001,0.001)      
-  R.0 <- exp(mean.log.R)
-  sigma.R0 <- 1 / sqrt(tau.R)
-  for (c in 1:a.max) { 
-    log.R[c] ~ dt(mean.log.R,tau.R,500)   
-    R[c] <- exp(log.R[c])
-    }
+	# BROOD YEAR RETURNS W/O SR LINK DRAWN FROM COMMON LOGNORMAL DISTN
+	  mean.log.R[stock] ~ dnorm(0,1.0E-4)T(0,)       
+	  tau.R[stock] ~ dgamma(0.001,0.001)      
+	  R.0[stock] <- exp(mean.log.R[stock])
+	  sigma.R0[stock] <- 1 / sqrt(tau.R[stock])
+	  for (c in 1:a.max) { 
+		log.R[c, stock] ~ dt(mean.log.R[stock],tau.R[stock],500)   
+		R[c, stock] <- exp(log.R[c, stock])
+		}
+	}
+	phi ~ dnorm(0,1.0E-4)T(-1,1)
        
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
@@ -69,7 +71,7 @@ for (c in 1:(Y+A-1)) {
 # ASSIGN PRODUCT OF P AND R TO ALL CELLS IN N MATRIX
     for (a in 1:A) {
         for (c in a:(Y + (a - 1))) {
-            N.ta[c - (a - 1), (A + 1 - a)] <- p[c, (A + 1 - a)] * R[c]
+            N.ta[c - (a - 1), (A + 1 - a)] <- p[c, (A + 1 - a)] * sum(R[c, ])
             }
         }
 
@@ -163,47 +165,45 @@ for (y in 1:Y) {
 # AIR SURVEY COUNTS W LOGNORMAL ERRORS
 # px[y,t] ARE FRACTIONS  OF MAIN OR YENTNA RETURNING BY TRIB BY YEAR
 # ASSUME THAT HARVEST ABOVE ALEXANDER CK IS PROPORTIONAL TO RUN, FOR NOW 
+#theta1 ~ dunif(1, 10)
+#theta2 ~ dunif(1, 10)
+for(trib in 1:11) {
+  theta.mean[trib] ~ dunif(0.25, 0.75)#dbeta(theta1, theta2)
+  Btheta.scale[trib] ~ dunif(0.01,1)
+  Btheta.sum[trib] <- 1 / (Btheta.scale[trib] * Btheta.scale[trib])
+  Bt1[trib] <- Btheta.sum[trib] * theta.mean[trib]; Bt2[trib] <- Btheta.sum[trib] - Bt1[trib];
+  for (y in 1:Y) {
+	theta[y, trib] ~ dbeta(Bt1[trib],Bt2[trib])
+    }
+  }
 tau.asmain ~ dgamma(0.01,0.01)
 sigma.asmain <- 1 / sqrt(tau.asmain)
-theta1 ~ dunif(1, 100)
-theta2 ~ dunif(1, 100)
-for(trib in 1:6) {
-  theta.mean[trib] ~ dbeta(theta1, theta2)
-  Btheta.scale[trib] ~ dunif(0.01,1)
-  Btheta.sum[trib] <- 1 / (Btheta.scale[trib] * Btheta.scale[trib])
-  Bt1[trib] <- Btheta.sum[trib] * theta.mean[trib]; Bt2[trib] <- Btheta.sum[trib] - Bt1[trib];
-  for (y in 1:Y) {
-	theta[y, trib] ~ dbeta(Bt1[trib],Bt2[trib])
-    log.tppS[y,trib] <- log(theta[y, trib] * pf.main[y] * pm[y,trib] * S[y])
-    air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asmain)
-    }
-  }
 tau.asyent ~ dgamma(0.01,0.01)
-sigma.asyent <- 1 / sqrt(tau.asyent)
-for(trib in 7:11) { 
-  theta.mean[trib] ~ dbeta(theta1, theta2)
-  Btheta.scale[trib] ~ dunif(0.01,1)
-  Btheta.sum[trib] <- 1 / (Btheta.scale[trib] * Btheta.scale[trib])
-  Bt1[trib] <- Btheta.sum[trib] * theta.mean[trib]; Bt2[trib] <- Btheta.sum[trib] - Bt1[trib];
-  for (y in 1:Y) {
-	theta[y, trib] ~ dbeta(Bt1[trib],Bt2[trib])
-    log.tppS[y,trib] <- log(theta[y, trib] * pf.yentna[y] * py[y,trib-6] * S[y])
-    air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib],tau.asyent)
-    }
-  }
+sigma.asyent <- 1 / sqrt(tau.asyent)  
+for (y in 1:Y) {
+	log.tppS[y, 1] <- log(theta[y, 1] * pf.main[y] * pm[y, 1] / (1 - sum(pm[y, 2:4])) * S.ys[y, 4])  
+	log.tppS[y, 2] <- log(theta[y, 2] * S.ys[y, 1])
+	log.tppS[y, 3] <- log(theta[y, 3] * S.ys[y, 2])
+	log.tppS[y, 4] <- log(theta[y, 4] * S.ys[y, 3])
+	for(trib in 5:6){log.tppS[y, trib] <- log(theta[y, trib] * pf.main[y] * pm[y, trib] / (1 - sum(pm[y, 2:4])) * S.ys[y, 4])}
+	for(trib in 1:6){air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib], tau.asmain)}
+	for(trib in 7:11){log.tppS[y, trib] <- log(theta[y, trib] * pf.yentna[y] * py[y, trib - 6] * S.ys[y, 4])}
+	for(trib in 7:11){air.surveys[y,trib] ~ dlnorm(log.tppS[y,trib], tau.asyent)}
+}
+   
 # DESHKA WEIR COUNTS W (SMALL) LOGNORMAL ERRORS
 # DETECTABILITY IS ONE;
 # pm[y,2] ARE PROPORTIONS OF MAINSTEM RUN RETURNING TO DESHKA BY YEAR
   tau.weir ~ dgamma(0.1,0.1)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
-    log.p1pS[y] <- log(pm[y,2] * pf.main[y] * S[y])                  # INDEX 2 = DESHKA
+    log.p1pS[y] <- log(S.ys[y, 1])                  # INDEX 2 = DESHKA
     weir.deshka[y] ~ dlnorm(log.p1pS[y],tau.weir)
     }
 
 # INRIVER RUN AND HARVESTS ESTIMATED
 for (y in 1:Y) {
-  mu.Hmarine[y] ~ dbeta(0.1,0.1)
+  mu.Hmarine[y] ~ dbeta(0.5,0.5)
   H.marine[y] <- mu.Hmarine[y] * N[y]
   log.Hm[y] <- log(H.marine[y])
   tau.log.Hm[y] <- 1 / log(cv.hm[y]*cv.hm[y] + 1)
@@ -221,15 +221,21 @@ for (y in 1:Y) {
   tau.log.mrm[y] <- 1 / log(cv.mrm[y]*cv.mrm[y] + 1)
   tau.log.mry[y] <- 1 / log(cv.mry[y]*cv.mry[y] + 1)
   MR.mainstem[y] ~ dlnorm(log.IRm[y],tau.log.mrm[y])    
-  MR.yentna[y]   ~ dlnorm(log.IRy[y],tau.log.mry[y])      
-  
-  mu.Habove[y] ~ dbeta(0.1,0.1)
-  H.above[y] <- mu.Habove[y] * IR[y]
-  log.Ha[y] <- log(H.above[y])
-  tau.log.Ha[y] <- 1 / log(cv.ha[y]*cv.ha[y] + 1)
-  Ha.hat[y] ~ dlnorm(log.Ha[y],tau.log.Ha[y])       
-  S[y] <- max(IR[y] - H.above[y], 1) 
+  MR.yentna[y]   ~ dlnorm(log.IRy[y],tau.log.mry[y])
 
-  mu[y] <- (H.marine[y]              + H.above[y]) / N[y]
+  tau.log.Ha[y] <- 1 / log(cv.ha[y]*cv.ha[y] + 1)
+  N.ys[y, 1] <- Nm[y, 2]
+  N.ys[y, 2] <- Nm[y, 3]
+  N.ys[y, 3] <- Nm[y, 4]
+  N.ys[y, 4] <- sum(Nm[y, c(1, 5, 6)]) + sum(Ny[y, ]) 
+  for (stock in 1:4){
+    IR.ys[y, stock] <- N.ys[y, stock] * (1 - mu.Hmarine[y])
+	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
+	H.above[y, stock] <- mu.Habove[y, stock] * IR.ys[y, stock]
+	log.Ha[y, stock] <- log(H.above[y, stock])
+	Ha.hat[y, stock] ~ dlnorm(log.Ha[y, stock], tau.log.Ha[y])       
+	S.ys[y, stock] <- max(IR.ys[y, stock] - H.above[y, stock], 1)
+    }
+  S[y] <- sum(S.ys[y, ])
   }
 } 
