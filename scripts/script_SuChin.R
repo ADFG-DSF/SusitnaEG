@@ -61,14 +61,16 @@ get_ids()
 
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 
-Ha.hat <-
+Ha.hat0 <-
   data.frame(
     Ha[, grepl("C|E|F", names(Ha))],
-    Z = Ha[, !grepl("year|A|C|E|F", names(Ha))] %>% apply(1, sum, na.rm = TRUE)
+    M = Ha[, grepl("B|G|H", names(Ha))] %>% apply(1, sum, na.rm = TRUE),
+    Y = Ha[, grepl("J|K|L|M|N", names(Ha))] %>% apply(1, sum, na.rm = TRUE)
   ) %>%
   dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
-  as.matrix() %>%
-  rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat)[1], ncol = dim(Ha.hat)[2]))
+  as.matrix() 
+Ha.hat <- Ha.hat0 %>%
+  rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat0)[1], ncol = dim(Ha.hat0)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%
@@ -123,8 +125,8 @@ ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 update(jmod, n.iter=1000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=3000, thin=1)        # 10 min
-#update(jmod, n.iter=2000, by=1, progress.bar='text')               
-#post = coda.samples(jmod, parameters, n.iter=20000, thin=10)         
+update(jmod, n.iter=50000, by=1, progress.bar='text')               
+post = coda.samples(jmod, parameters, n.iter=30000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=100000, thin=50)         #  1.5h
 #post = coda.samples(jmod, parameters, n.iter=600000, thin=300)       #  
@@ -139,6 +141,13 @@ endtime[3]/60/60
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
+plot(as.numeric(summary[grepl("S.ys\\[\\d+,3\\]", rownames(summary)), "Mean"][[1]]), 
+     as.numeric(summary[grepl("R\\[\\d+,3\\]", rownames(summary)), "Mean"][[1]][4:42]))
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^S.msy\\[", rowname)) %>% print(n = 210)
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^beta\\[", rowname)) %>% print(n = 210)
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^lnalpha.c\\[", rowname)) %>% print(n = 210)
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^sigma.white", rowname)) %>% print(n = 210)
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^phi", rowname)) %>% print(n = 210)
 
 #deshka observed theta and estimated theta track
 plot(1979:2017, summary[grepl("theta\\[\\d+,2\\]", rownames(summary)), "Mean"]$Mean, type = "l")
