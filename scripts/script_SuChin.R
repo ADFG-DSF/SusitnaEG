@@ -64,8 +64,8 @@ weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 Ha.hat0 <-
   data.frame(
     Ha[, grepl("C|E|F", names(Ha))],
-    M = Ha[, grepl("B|G|H", names(Ha))] %>% apply(1, sum, na.rm = TRUE),
-    Y = Ha[, grepl("J|K|L|M|N", names(Ha))] %>% apply(1, sum, na.rm = TRUE)
+    Y = Ha[, grepl("J|K|L|M|N", names(Ha))] %>% apply(1, sum, na.rm = TRUE),
+    M = Ha[, grepl("B|G|H", names(Ha))] %>% apply(1, sum, na.rm = TRUE)
   ) %>%
   dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
   as.matrix() 
@@ -111,7 +111,7 @@ parameters=c(
 'phi','log.resid.0','log.resid.vec',
 'S.eq','S.max','S.msy','U.msy',
 'pi.y','D.sum','D.scale','ML1','ML2',
-'mu','mu.Hmarine','mu.Habove',
+'mu.Hmarine','mu.Habove',
 'S','N','R','IR','IR.main','IR.yentna',
 'p','N.ta','q', "b", "q.star", "N.ys", "S.ys",
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
@@ -141,13 +141,23 @@ endtime[3]/60/60
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
-plot(as.numeric(summary[grepl("S.ys\\[\\d+,3\\]", rownames(summary)), "Mean"][[1]]), 
-     as.numeric(summary[grepl("R\\[\\d+,3\\]", rownames(summary)), "Mean"][[1]][4:42]))
+lapply(1:5,
+       function(x){plot(as.numeric(summary[grepl(paste0("S.ys\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]]), 
+                        as.numeric(summary[grepl(paste0("R\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]][4:42]))}
+       )
 tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^S.msy\\[", rowname)) %>% print(n = 210)
 tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^beta\\[", rowname)) %>% print(n = 210)
 tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^lnalpha.c\\[", rowname)) %>% print(n = 210)
 tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^sigma.white", rowname)) %>% print(n = 210)
 tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^phi", rowname)) %>% print(n = 210)
+
+lapply(1:5, function(x){
+  tibble::rownames_to_column(summary) %>% 
+    dplyr::filter(grepl(paste0("^mu.Habove\\[\\d+,", x, "\\]"), rowname)) %>% 
+    dplyr::select(Mean) %>% 
+    unlist() %>% 
+    hist()}
+  )
 
 #deshka observed theta and estimated theta track
 plot(1979:2017, summary[grepl("theta\\[\\d+,2\\]", rownames(summary)), "Mean"]$Mean, type = "l")
