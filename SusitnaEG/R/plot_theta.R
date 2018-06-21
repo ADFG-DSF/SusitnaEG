@@ -18,7 +18,7 @@ id$name <- factor(id$name, id$name)
 
 theta_est <- stats_dat %>%
   tibble::rownames_to_column() %>%
-  dplyr::filter(grepl("^theta", rowname)) %>%
+  dplyr::filter(grepl("^theta\\[", rowname)) %>%
   dplyr::mutate(stockn = as.numeric(gsub("theta\\[(\\d+)\\]$", "\\1", rowname)),
                 stock = id$name[stockn]) %>%
   dplyr::select(stock, theta = Mean)

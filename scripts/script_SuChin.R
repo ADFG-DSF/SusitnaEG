@@ -61,12 +61,14 @@ get_ids()
 
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 
-Ha.hat0 <-
-  data.frame(
-    Ha[, grepl("C|E|F", names(Ha))],
-    Y = Ha[, grepl("J|K|L|M|N", names(Ha))] %>% apply(1, sum, na.rm = TRUE),
-    M = Ha[, grepl("B|G|H", names(Ha))] %>% apply(1, sum, na.rm = TRUE)
-  ) %>%
+diff <- setdiff(names(as_complete), names(Ha))
+mat <- matrix(NA, dim(Ha)[1], length(diff))
+colnames(mat) <- diff
+df <- data.frame(
+  Ha[, !grepl("year|A", names(Ha))],
+  mat
+  )
+Ha.hat0 <- df[, order(names(df))]  %>%
   dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
   as.matrix() 
 Ha.hat <- Ha.hat0 %>%
@@ -89,8 +91,8 @@ dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
   x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, #x.creel = a$creel, x.other = a$other,  
   air.surveys = air.surveys, 
-  telemetry = telemetry, 
-  radios.main = rowSums(telemetry[,1:6]), 
+  telemetry = telemetry[, c(1, 5:11)], 
+  radios.main = rowSums(telemetry[,c(1, 5, 6)]), 
   radios.yentna = rowSums(telemetry[,7:11]),
   Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.ha = rep(0.2, dim(Ha.hat)[1]),
@@ -113,11 +115,11 @@ parameters=c(
 'pi.y','D.sum','D.scale','ML1','ML2',
 'mu.Hmarine','mu.Habove',
 'S','N','R','IR','IR.main','IR.yentna',
-'p','N.ta','q', "b", "q.star", "N.ys", "S.ys",
+'p','N.ta','q', "b", "q.star", "S.ys",
 'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
 'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
 'pi.main','pi.yent','pm','py',
-'theta', 'theta.mean', 'sigma.asmain','sigma.asyent','sigma.weir'
+'theta', 'theta.mean', 'sigma.as', 'sigma.weir'
 )
 
 #### run JAGS ####
