@@ -61,18 +61,15 @@ get_ids()
 
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 
-diff <- setdiff(names(as_complete), names(Ha))
-mat <- matrix(NA, dim(Ha)[1], length(diff))
-colnames(mat) <- diff
-df <- data.frame(
-  Ha[, !grepl("year|A", names(Ha))],
-  mat
-  )
-Ha.hat0 <- df[, order(names(df))]  %>%
+Ha.hat0 <- 
+  data.frame(C = Ha$C, 
+             E = Ha$E, 
+             F = Ha$F, 
+             Y = rowSums(Ha[, names(Ha) %in% c("J", "K", "L", "N")], na.rm = TRUE), 
+             R = rowSums(Ha[, names(Ha) %in% c("B", "G", "H")], na.rm = TRUE)) %>%
   dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
-  as.matrix() 
-Ha.hat <- Ha.hat0 %>%
-  rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat0)[1], ncol = dim(Ha.hat0)[2]))
+  as.matrix()
+Ha.hat <- Ha.hat0 %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat0)[1], ncol = dim(Ha.hat0)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%
@@ -84,23 +81,39 @@ a <-
   dplyr::filter(!is.na(x4))
 x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
-air.surveys <- as_complete[, !grepl("year|A", colnames(as_complete))] %>% as.matrix()
+draw <- MCMCpack::rdirichlet(dim(mr)[[1]], c(15,15,10,5))
+MR = data.frame(C = mr$mr_mainstem*draw[,1], 
+                E = mr$mr_mainstem*draw[,2], 
+                F = mr$mr_mainstem*draw[,3], 
+                Y = mr$mr_yentna, 
+                Z = mr$mr_mainstem*draw[,4])
+
+tele.S2 <-round(telemetry$E * MCMCpack::rdirichlet(dim(telemetry)[1], c(10, 5, 7, 15, 23, 10, 30)))
+Ntele.S2 <- rowSums(tele.S2)
+tele.S3 <- round(telemetry$F * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75)))
+Ntele.S3 <- rowSums(tele.S3)
+temp <- MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75))
+tele.S4 <- round(data.frame(telemetry$K * temp[, 1], telemetry$J, telemetry$K * temp[, 2], telemetry$L) * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75)))
+Ntele.S4 <- rowSums(tele.S4)
+tele.S5 <- round(data.frame(telemetry$H, telemetry$G * MCMCpack::rdirichlet(dim(telemetry)[1], c(33, 67))))
+Ntele.S5 <- rowSums(tele.S5)
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, #x.creel = a$creel, x.other = a$other,  
-  air.surveys = air.surveys, 
-  telemetry = telemetry[, c(1, 5:11)], 
-  radios.main = rowSums(telemetry[,c(1, 5, 6)]), 
-  radios.yentna = rowSums(telemetry[,7:11]),
-  Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.hm = rep(0.05, length(year_id)),
-  Ha.hat = Ha.hat, cv.ha = rep(0.2, dim(Ha.hat)[1]),
-  MR.mainstem = mr$mr_mainstem, cv.mrm = mr$cv_mainstem,
-  MR.yentna = mr$mr_yentna,     cv.mry = mr$cv_yentna,
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp,  
+  tele.S2 = tele.S2, Ntele.S2 = Ntele.S2,
+  tele.S3 = tele.S3, Ntele.S3 = Ntele.S3,
+  tele.S4 = tele.S4, Ntele.S4 = Ntele.S4,
+  tele.S5 = tele.S5, Ntele.S5 = Ntele.S5,
+  air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
+  Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.Hm = rep(0.05, length(year_id)),
+  Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
+  MR = MR, 
+  cv.MR = mr$cv_mainstem,
   weir.deshka = weir.deshka,
-  s3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
-  s4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
+  small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
+  small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
 )
 
 # bundle inits for JAGS
@@ -108,18 +121,18 @@ inits <- list(get_inits(), get_inits())
 
 ####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
-'beta','sigma.white','sigma.R0',
-'lnalpha','lnalpha.c','alpha','lnalpha.vec', 
-'phi','log.resid.0','log.resid.vec',
-'S.eq','S.max','S.msy','U.msy',
-'pi.y','D.sum','D.scale','ML1','ML2',
-'mu.Hmarine','mu.Habove',
-'S','N','R','IR','IR.main','IR.yentna',
-'p','N.ta','q', "b", "q.star", "S.ys",
-'Bfork.sum','Dtrib.sum','Btheta.sum','Btheta.scale',
-'pi.fork.main','pi.fork.yent','pf.main','pf.yentna',
-'pi.main','pi.yent','pm','py',
-'theta', 'theta.mean', 'sigma.as', 'sigma.weir'
+'sigma.white', 'sigma.R0', 'sigma.air', 'sigma.weir',
+'beta', 'mu.beta', 'sigma.beta', 'lnalpha', 'mu.lnalpha', 'sigma.lnalpha', 'lnalpha.c', 'alpha', 'lnalpha.vec', 
+'phi', 'log.resid.0', 'log.resid.vec',
+'S.eq', 'S.max', 'S.msy', 'U.msy',
+'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
+'S','N','R','IR',
+'N.ta','q', 'b', 'q.star',
+'Dsum.S2', 'Bsum.S3', 'Dsum.S4', 'Dsum.S5',
+'p.S2', 'p.S3', 'p.S4', 'p.S5',
+'theta.mean', 'Bsum.theta', 'theta.S1', 'theta.S2', 'theta.S3', 'theta.S4', 'theta.S5',
+'p.small3', 'p.small4', 
+'mu.Hmarine', 'mu.Habove'
 )
 
 #### run JAGS ####
@@ -127,8 +140,8 @@ ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 update(jmod, n.iter=1000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=3000, thin=1)        # 10 min
-update(jmod, n.iter=50000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=30000, thin=10)         
+update(jmod, n.iter=15000, by=1, progress.bar='text')               
+post = coda.samples(jmod, parameters, n.iter=10000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=100000, thin=50)         #  1.5h
 #post = coda.samples(jmod, parameters, n.iter=600000, thin=300)       #  
@@ -144,7 +157,7 @@ shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
 lapply(1:5,
-       function(x){plot(as.numeric(summary[grepl(paste0("S.ys\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]]), 
+       function(x){plot(as.numeric(summary[grepl(paste0("S\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]]), 
                         as.numeric(summary[grepl(paste0("R\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]][4:42]))}
        )
 tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^S.msy\\[", rowname)) %>% print(n = 210)

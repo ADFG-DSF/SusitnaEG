@@ -14,7 +14,7 @@ model{
 	  for (c in (A+a.min):(Y+A-1)) {
 		log.R[c, stock] ~ dt(log.R.mean2[c, stock],tau.white,500)
 		R[c, stock] <- exp(log.R[c, stock])
-		log.R.mean1[c, stock] <- log(S.ys[c-a.max, stock]) + lnalpha[stock] - beta[stock] * S.ys[c-a.max, stock] 
+		log.R.mean1[c, stock] <- log(S[c-a.max, stock]) + lnalpha[stock] - beta[stock] * S[c-a.max, stock] 
 		log.resid[c, stock] <- log(R[c, stock]) - log.R.mean1[c, stock]
 		lnalpha.y[c, stock] <- lnalpha[stock] + log.resid[c, stock] 
 		}
@@ -22,8 +22,8 @@ model{
 	  for (c in (A+a.min+1):(Y+A-1)) {
 		log.R.mean2[c, stock] <- log.R.mean1[c, stock] + phi * log.resid[c-1, stock]
 		}
-	  lnalpha[stock] ~ dnorm(mu_lnalpha, tau_lnalpha)T(0,) #dnorm(0,1.0E-6)T(0,)
-	  beta[stock] ~ dnorm(mu_beta, tau_beta)T(0, ) #dnorm(0,1.0E-2)T(0,)                                                             
+	  lnalpha[stock] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,) #dnorm(0,1.0E-6)T(0,)
+	  beta[stock] ~ dnorm(mu.beta, tau.beta)T(0, ) #dnorm(0,1.0E-2)T(0,)                                                             
 	  log.resid.0[stock] ~ dnorm(0,tau.red)T(-3,3) 
 	  alpha[stock] <- exp(lnalpha[stock])
 	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white * sigma.white / 2 / (1-phi*phi) )
@@ -34,19 +34,19 @@ model{
 
 	# BROOD YEAR RETURNS W/O SR LINK DRAWN FROM COMMON LOGNORMAL DISTN
 	  mean.log.R[stock] ~ dnorm(0,1.0E-4)T(0,)       
-#	  tau.R[stock] ~ dgamma(0.001,0.001)      
 	  R.0[stock] <- exp(mean.log.R[stock])
-#	  sigma.R0[stock] <- 1 / sqrt(tau.R[stock])
 	  for (c in 1:a.max) { 
 		log.R[c, stock] ~ dt(mean.log.R[stock],tau.R,500)   
 		R[c, stock] <- exp(log.R[c, stock])
 		}
 	}
 	phi ~ dnorm(0,1.0E-4)T(-1,1)
-	mu_lnalpha ~ dnorm(0, 1E-6)T(0,)
-	mu_beta ~ dnorm(0, 1E-6)T(0,)
-	tau_lnalpha ~ dgamma(0.001,0.001)
-	tau_beta ~ dgamma(0.001,0.001)
+	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
+	mu.beta ~ dnorm(0, 1E-6)T(0,)
+	tau.lnalpha ~ dgamma(0.001,0.001)
+	tau.beta ~ dgamma(0.001,0.001)
+	sigma.lnalpha <- 1 / sqrt(tau.lnalpha)
+	sigma.beta <- 1 / sqrt(tau.beta)
 	tau.white ~ dgamma(0.001,0.001)
 	tau.red <- tau.white * (1-phi*phi)
 	sigma.white <- 1 / sqrt(tau.white)
@@ -57,9 +57,8 @@ model{
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
 # GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
-  D.scale ~ dunif(0.01,1)
-  D.sum <- 1 / (D.scale * D.scale)
-#  ML1[A] <- 1  
+  Dscale.age ~ dunif(0.01,1)
+  Dsum.age <- 1 / (Dscale.age * Dscale.age)  
   ML1[A] <- 0  
   ML2[A] <- 0
 for (a in 1:(A-1)) { 
@@ -70,16 +69,15 @@ for (a in 1:(A-1)) {
 for (c in 1:(Y+A-1)) {
   for (a in 1:A) {
     logistic.a[c,a] <- exp(ML1[a] + ML2[a] * c)
-    pi.y[c,a] <- logistic.a[c,a] / sum(logistic.a[c,])
-    gamma[c,a] <- D.sum * pi.y[c,a]
+    pi[c,a] <- logistic.a[c,a] / sum(logistic.a[c,])
+    gamma[c,a] <- Dsum.age * pi[c,a]
     g[c,a] ~ dgamma(gamma[c,a],0.1)
     p[c,a] <- g[c,a]/sum(g[c,])
     }
   }
 
-# ASSIGN PRODUCT OF P AND R TO ALL CELLS IN N MATRIX
+# ASSIGN PRODUCT OF p AND R TO ALL CELLS IN N MATRIX
 # c SUBSCRIPT INDEXES BROOD YEAR (COHORT)
-# ASSIGN PRODUCT OF P AND R TO ALL CELLS IN N MATRIX
 for (stock in 1:5){
     for (a in 1:A) {
         for (c in a:(Y + (a - 1))) {
@@ -90,21 +88,15 @@ for (stock in 1:5){
 
 # CALENDAR YEAR AGE COMPOSITION 
   for (y in 1:Y) {
-    N[y] <- sum(N.tas[y,1:A, 1:5])
     for (a in 1:A) {
 	  N.ta[y,a] <- sum(N.tas[y,a, 1:5])
-	  q[y,a] <- N.ta[y,a] / N[y]
+	  q[y,a] <- N.ta[y,a] / sum(N.ta[y, ])
       }
     }
 	
-  for (y in 1:Y) {
-    for (stock in 1:5) {
-	    N.ts[y, stock] <- sum(N.tas[y,1:A, stock])
-      }
-    }
 # MULTINOMIAL SCALE SAMPLING ON TOTAL ANNUAL RETURN N
-# INDEX t IS CALENDAR YEAR
-# Adjustment for sampling program         
+# INDEX y IS CALENDAR YEAR
+# MULTIVARIATE LOGISTIC MODEL ALLOWS SAMPLING BIAS
 for (y in 1:N.yr.a) {  
   x.a[y, 1:A] ~ dmulti(q.star[y, ], n.a[y])
     for (a in 1:A) {
@@ -120,170 +112,173 @@ for(s in 2:3){
 	}
 }
 
-# MAINSTEM V YENTNA BY CALENDAR YEAR
-  for(y in 1:(Y)){                                                    
-      N.main[y]   <- sum(N.ts[y, c(1, 2, 3, 5)])            # DOES NOT INCLUDE ALEXANDER CK
-      N.yentna[y] <- N.ts[y, 4]
-      }
-# #PROPORTIONS TO MAINSTEM V YENTNA BY CALENDAR YEAR
-  # Bfork.scale ~ dunif(0.01,1)
-  # Bfork.sum <- 1 / (Bfork.scale * Bfork.scale)
-  # pi.fork.main ~ dbeta(1,1)
-  # pi.fork.yent <- 1 - pi.fork.main
-  # B1 <- Bfork.sum * pi.fork.main; B2 <- Bfork.sum - B1;
-  # for(y in 1:(Y)){                                                    
-      # pf.main[y] ~ dbeta(B1,B2)
-      # pf.yentna[y] <- 1 - pf.main[y]
-      # N.main[y]   <- N[y] * pf.main[y]           # DOES NOT INCLUDE ALEXANDER CK
-      # N.yentna[y] <- N[y] * pf.yentna[y]
-      # }
+# ANNUAL RETURN N
+for (y in 1:Y) {
+  for (stock in 1:5) {
+    N[y, stock] <- sum(N.tas[y,1:A, stock])
+  }
+}
 
-# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- MAINSTEM
-  Dtrib.scale ~ dunif(0.01,1)
-  Dtrib.sum <- 1 / (Dtrib.scale * Dtrib.scale)
-  pi.main.1p ~ dbeta(0.17,0.83)T(0.03,)
-  pi.main.2p ~ dbeta(0.17,0.66)
-  pi.main.3p ~ dbeta(0.17,0.50)
-
-  pi.main[1] <- pi.main.1p
-  pi.main[2] <- pi.main.2p * (1 - pi.main[1])
-  pi.main[3] <- 1 -  pi.main[1] - pi.main[2]
-for (trib in 1:3) {
-    gamma.main[trib] <- Dtrib.sum * pi.main[trib]
+# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITION BY CALENDAR YEAR- East
+  Dscale.S2 ~ dunif(0.01,1)
+  Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
+  pi.S2.1p ~ dbeta(0.14,0.86)T(0.03,)
+  pi.S2.2p ~ dbeta(0.14,0.72)
+  pi.S2.3p ~ dbeta(0.14,0.58)
+  pi.S2.4p ~ dbeta(0.14,0.44)
+  pi.S2.5p ~ dbeta(0.14,0.30)
+  pi.S2.6p ~ dbeta(0.14,0.16)
+  pi.S2[1] <- pi.S2.1p
+  pi.S2[2] <- pi.S2.2p * (1 - pi.S2[1])
+  pi.S2[3] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2])
+  pi.S2[4] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
+  pi.S2[5] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
+  pi.S2[6] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
+  pi.S2[7] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6]
+for (trib in 1:7) {
+    gamma.S2[trib] <- Dsum.S2 * pi.S2[trib]
     for (y in 1:Y) {
-      gm[y,trib] ~ dgamma(gamma.main[trib],0.1)
-      pm[y,trib] <- gm[y,trib]/sum(gm[y,])
-      Nm[y,trib] <- N.ts[y, 5] * pm[y,trib]
+      g.S2[y,trib] ~ dgamma(gamma.S2[trib],0.1)
+      p.S2[y,trib] <- g.S2[y,trib]/sum(g.S2[y,])
       }
     }
-# # DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- MAINSTEM
-  # Dtrib.scale ~ dunif(0.01,1)
-  # Dtrib.sum <- 1 / (Dtrib.scale * Dtrib.scale)
-  # pi.main.1p ~ dbeta(0.17,0.83)T(0.03,)
-  # pi.main.2p ~ dbeta(0.17,0.66)
-  # pi.main.3p ~ dbeta(0.17,0.50)
-  # pi.main.4p ~ dbeta(0.17,0.33)
-  # pi.main.5p ~ dbeta(0.17,0.17)
-  # pi.main[1] <- pi.main.1p
-  # pi.main[2] <- pi.main.2p * (1 - pi.main[1])
-  # pi.main[3] <- pi.main.3p * (1 - pi.main[1] - pi.main[2])
-  # pi.main[4] <- pi.main.4p * (1 - pi.main[1] - pi.main[2] - pi.main[3])
-  # pi.main[5] <- pi.main.5p * (1 - pi.main[1] - pi.main[2] - pi.main[3] - pi.main[4])
-  # pi.main[6] <- 1 -  pi.main[1] - pi.main[2] - pi.main[3] - pi.main[4] - pi.main[5]
-# for (trib in 1:6) {
-    # gamma.main[trib] <- Dtrib.sum * pi.main[trib]
-    # for (y in 1:Y) {
-      # gm[y,trib] ~ dgamma(gamma.main[trib],0.1)
-      # pm[y,trib] <- gm[y,trib]/sum(gm[y,])
-      # Nm[y,trib] <- N.main[y] * pm[y,trib]
-      # }
-    # }
 
-# SUBSTOCK COMPOSITIONS- YENTNA
-  pi.yent[1] ~ dbeta(0.2,0.8)
-  pi.yent.2p ~ dbeta(0.2,0.6)
-  pi.yent.3p ~ dbeta(0.2,0.4)
-  pi.yent.4p ~ dbeta(0.2,0.2)
-  pi.yent[2] <- pi.yent.2p * (1 - pi.yent[1])
-  pi.yent[3] <- pi.yent.3p * (1 - pi.yent[1] - pi.yent[2])
-  pi.yent[4] <- pi.yent.4p * (1 - pi.yent[1] - pi.yent[2] - pi.yent[3])
-  pi.yent[5] <-               1 - pi.yent[1] - pi.yent[2] - pi.yent[3] - pi.yent[4]
-for (trib in 1:5) {
-    gamma.yent[trib] <- Dtrib.sum * pi.yent[trib]
+# SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Talketna
+  Bscale.S3 ~ dunif(0.01,1)
+  Bsum.S3 <- 1 / (Bscale.S3 * Bscale.S3)
+  pi.S3 ~ dbeta(1,1)
+  B1.S3 <- Bsum.S3 * pi.S3; 
+  B2.S3 <- Bsum.S3 - B1.S3;
+  for(y in 1:Y){                                                    
+      p.S3[y, 1] ~ dbeta(B1.S3,B2.S3)
+	  p.S3[y, 2] <- 1 - p.S3[y, 1]
+      } 
+	  
+# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Yentna
+  Dscale.S4 ~ dunif(0.01,1)
+  Dsum.S4 <- 1 / (Dscale.S4 * Dscale.S4)
+  pi.S4.1p ~ dbeta(0.25,0.75)T(0.03,)
+  pi.S4.2p ~ dbeta(0.25,0.50)
+  pi.S4.3p ~ dbeta(0.25,0.25)
+  pi.S4[1] <- pi.S4.1p
+  pi.S4[2] <- pi.S4.2p * (1 - pi.S4[1])
+  pi.S4[3] <- pi.S4.3p * (1 - pi.S4[1] - pi.S4[2])
+  pi.S4[4] <- 1 -  pi.S4[1] - pi.S4[2] - pi.S4[3]
+for (trib in 1:4) {
+    gamma.S4[trib] <- Dsum.S4 * pi.S4[trib]
     for (y in 1:Y) {
-      gy[y,trib] ~ dgamma(gamma.yent[trib],0.1)
-      py[y,trib] <- gy[y,trib]/sum(gy[y,])
-      Ny[y,trib] <- N.yentna[y] * py[y,trib]
+      g.S4[y,trib] ~ dgamma(gamma.S4[trib],0.1)
+      p.S4[y,trib] <- g.S4[y,trib]/sum(g.S4[y,])
+      }
+    }
+	
+# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- other main
+  Dscale.S5 ~ dunif(0.01,1)
+  Dsum.S5 <- 1 / (Dscale.S5 * Dscale.S5)
+  pi.S5.1p ~ dbeta(0.33,0.67)T(0.03,)
+  pi.S5.2p ~ dbeta(0.33,0.33)
+  pi.S5[1] <- pi.S5.1p
+  pi.S5[2] <- pi.S5.2p * (1 - pi.S5[1])
+  pi.S5[3] <- 1 -  pi.S5[1] - pi.S5[2]
+for (trib in 1:3) {
+    gamma.S5[trib] <- Dsum.S5 * pi.S5[trib]
+    for (y in 1:Y) {
+      g.S5[y,trib] ~ dgamma(gamma.S5[trib],0.1)
+      p.S5[y,trib] <- g.S5[y,trib]/sum(g.S5[y,])
       }
     }
 
 # MULTINOMIAL COUNTS OF RADIOS TRACKED TO INDIVIDUAL TRIBS
 for (y in 1:Y) { 
-    telemetry[y, 1:3] ~  dmulti(pm[y, ], radios.main[y])
-    telemetry[y, 4:8] ~ dmulti(py[y, ], radios.yentna[y])
+    tele.S2[y, ] ~  dmulti(p.S2[y, ], Ntele.S2[y])
+    tele.S3[y, ] ~  dmulti(p.S3[y, ], Ntele.S3[y])
+	tele.S4[y, ] ~  dmulti(p.S4[y, ], Ntele.S4[y])
+	tele.S5[y, ] ~  dmulti(p.S5[y, ], Ntele.S5[y])
 }
 
 # AIR SURVEY COUNTS W LOGNORMAL ERRORS
-# px[y,t] ARE FRACTIONS  OF MAIN OR YENTNA RETURNING BY TRIB BY YEAR
-# ASSUME THAT HARVEST ABOVE ALEXANDER CK IS PROPORTIONAL TO RUN, FOR NOW 
-#theta1 ~ dunif(2, 18)
-#theta2 ~ dunif(2, 18)
-theta.mean ~ dunif(0.25, 0.75)#dbeta(1, 1)
-Btheta.scale ~ dunif(0.01,1)
-Btheta.sum <- 1 / (Btheta.scale * Btheta.scale)
-for(trib in 1:11) {
-#  theta.mean[trib] ~ dbeta(theta1,theta2)#dunif(0.1, 0.9)
-  #Btheta.scale[trib] ~ dunif(0.01,1)
-  #Btheta.sum[trib] <- 1 / (Btheta.scale[trib] * Btheta.scale[trib])
-  Bt1[trib] <- Btheta.sum * theta.mean;#Btheta.sum * theta.mean[trib]; 
-  Bt2[trib] <- Btheta.sum - Bt1[trib];
-  theta[trib] ~ dbeta(Bt1[trib],Bt2[trib])
-#  for (y in 1:Y) {
-#	theta[y, trib] ~ dbeta(Bt1[trib],Bt2[trib])
-#   }
-  }
-tau.as ~ dgamma(0.1,0.01)
-sigma.as <- 1 / sqrt(tau.as)  
-for (y in 1:Y) {
-  for (trib in 1:11){
-	log.tppS[y, trib] <- log(theta[trib] * S.yt[y, trib]) 
-	air.surveys[y, trib] ~ dlnorm(log.tppS[y, trib], tau.as)
-  }	
+for (stock in 1:5){
+	theta.mean[stock] ~ dunif(0.1, 0.9) #dbeta(1, 1)
+	Bscale.theta[stock] ~ dunif(0.01,1)
+	Bsum.theta[stock] <- 1 / (Bscale.theta[stock] * Bscale.theta[stock])
+	B1.theta[stock] <- Bsum.theta[stock] * theta.mean[stock]; 
+	B2.theta[stock] <- Bsum.theta[stock] - B1.theta[stock];
+	tau.air[stock] ~ dgamma(0.1,0.01)
+	sigma.air[stock] <- 1 / sqrt(tau.air[stock])
+}
+
+# DESHKA survey data
+# one trib in the stock
+theta.S1 ~ dbeta(B1.theta[1], B2.theta[1])
+for(y in 1:Y){
+	log.t1S1[y] <- log(theta.S1 * S[y, 1])
+	air.S1[y] ~ dlnorm(log.t1S1[y], tau.air[1])
+	}
+	
+for(trib in 1:7) {
+	theta.S2[trib] ~ dbeta(B1.theta[2], B2.theta[2])
+	for(y in 1:Y){
+	log.tpS2[y, trib] <- log(theta.S2[trib] * p.S2[y, trib] * S[y, 2])
+	air.S2[y, trib] ~ dlnorm(log.tpS2[y, trib], tau.air[2])
+	}
+}
+
+for(trib in 1:2) {
+	theta.S3[trib] ~ dbeta(B1.theta[3], B2.theta[3])
+	for(y in 1:Y){
+	log.tpS3[y, trib] <- log(theta.S3[trib] * p.S3[y, trib] * S[y, 3])
+	air.S3[y, trib] ~ dlnorm(log.tpS3[y, trib], tau.air[3])
+	}
+}
+
+for(trib in 1:4) {
+	theta.S4[trib] ~ dbeta(B1.theta[4], B2.theta[4])
+	for(y in 1:Y){
+	log.tpS4[y, trib] <- log(theta.S4[trib] * p.S4[y, trib] * S[y, 4])
+	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[4])
+	}
+}
+
+for(trib in 1:3) {
+	theta.S5[trib] ~ dbeta(B1.theta[5], B2.theta[5])
+	for(y in 1:Y){
+	log.tpS5[y, trib] <- log(theta.S5[trib] * p.S5[y, trib] * S[y, 5])
+	air.S5[y, trib] ~ dlnorm(log.tpS5[y, trib], tau.air[5])
+	}
 }
    
 # DESHKA WEIR COUNTS W (SMALL) LOGNORMAL ERRORS
-# DETECTABILITY IS ONE;
-# pm[y,2] ARE PROPORTIONS OF MAINSTEM RUN RETURNING TO DESHKA BY YEAR
+# DETECTABILITY = 1, one trib in the stock.;
   tau.weir ~ dgamma(0.01,0.1)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
-    log.p1pS[y] <- log(S.yt[y, 2])                  # INDEX 2 = DESHKA
-    weir.deshka[y] ~ dlnorm(log.p1pS[y], tau.weir)
+    log.11S1[y] <- log(S[y, 1])
+    weir.deshka[y] ~ dlnorm(log.11S1[y], tau.weir)
     }
 
 # INRIVER RUN AND HARVESTS ESTIMATED
 for (y in 1:Y) {
   mu.Hmarine[y] ~ dbeta(0.5,0.5)
-  H.marine[y] <- mu.Hmarine[y] * N[y]
-  log.Hm[y] <- log(H.marine[y])
-  tau.log.Hm[y] <- 1 / log(cv.hm[y]*cv.hm[y] + 1)
-  Hm.hat[y] ~ dlnorm(log.Hm[y],tau.log.Hm[y])             
-  IR[y] <- max(N[y] - H.marine[y], 1)                # IR @ RM 0
+  Hmarine[y] <- mu.Hmarine[y] * sum(N[y, ])
+  logHm[y] <- log(Hmarine[y])
+  tau.logHm[y] <- 1 / log(cv.Hm[y]*cv.Hm[y] + 1)
+  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])             
 
-  ps3[y] ~ dbeta(1,1)
-  ps4[y] ~ dbeta(1,1)
-  s3[y, 1] ~ dbinom(ps3[y], s3[y, 2])
-  s4[y, 1] ~ dbinom(ps4[y], s4[y, 2])
-  IR.yentna[y] <- N.yentna[y] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y]) 
-  IR.main[y]   <- N.main[y]   * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * ps3[y]) * (1 - q[y, 2] * ps4[y])
-  log.IRm[y] <- log(IR.main[y])
-  log.IRy[y] <- log(IR.yentna[y])
-  tau.log.mrm[y] <- 1 / log(cv.mrm[y]*cv.mrm[y] + 1)
-  tau.log.mry[y] <- 1 / log(cv.mry[y]*cv.mry[y] + 1)
-  MR.mainstem[y] ~ dlnorm(log.IRm[y],tau.log.mrm[y])    
-  MR.yentna[y]   ~ dlnorm(log.IRy[y],tau.log.mry[y])
-
-  tau.log.Ha[y] <- 1 / log(cv.ha[y]*cv.ha[y] + 1)
-  IR.yt[y, 1] <- Nm[y, 1] * (1 - mu.Hmarine[y])
-  IR.yt[y, 2] <- N.ts[y, 1] * (1 - mu.Hmarine[y])
-  IR.yt[y, 3] <- N.ts[y, 2] * (1 - mu.Hmarine[y])
-  IR.yt[y, 4] <- N.ts[y, 3] * (1 - mu.Hmarine[y])
-  IR.yt[y, 5] <- Nm[y, 2] * (1 - mu.Hmarine[y])
-  IR.yt[y, 6] <- Nm[y, 3] * (1 - mu.Hmarine[y])
-#  for (trib in 1:6){IR.yt[y, trib] <- Nm[y, trib] * (1 - mu.Hmarine[y])}
-  for (trib in 1:5){IR.yt[y, trib + 6] <- Ny[y, trib] * (1 - mu.Hmarine[y])}
-  for (trib in 1:11){
-	mu.Habove[y, trib] ~ dbeta(0.5,0.5)
-	H.above[y, trib] <- mu.Habove[y, trib] * IR.yt[y, trib]
-	log.Ha[y, trib] <- log(H.above[y, trib])
-	Ha.hat[y, trib] ~ dlnorm(log.Ha[y, trib], tau.log.Ha[y])       
-	S.yt[y, trib] <- max(IR.yt[y, trib] - H.above[y, trib], 1)
+  p.small3[y] ~ dbeta(1,1)
+  p.small4[y] ~ dbeta(1,1)
+  small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
+  small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
+  tau.logHa[y] <- 1 / log(cv.Ha[y]*cv.Ha[y] + 1)
+  tau.logMR[y] <- 1 / log(cv.MR[y]*cv.MR[y] + 1)
+  for (stock in 1:5){
+    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y]) 
+    logIR[y, stock] <- log(IR[y, stock])
+    MR[y, stock] ~ dlnorm(logIR[y, stock], tau.logMR[y])    
+	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
+	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
+	logHa[y, stock] <- log(Habove[y, stock])
+	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logHa[y])       
+	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
     }
-  S[y] <- sum(S.yt[y, ])
-  S.ys[y, 1] <- S.yt[y, 2]
-  S.ys[y, 2] <- S.yt[y, 3]
-  S.ys[y, 3] <- S.yt[y, 4]
-  S.ys[y, 4] <- sum(S.yt[y, 7:11])
-  S.ys[y, 5] <- sum(S.yt[y, c(1, 5, 6)])
   }
 } 

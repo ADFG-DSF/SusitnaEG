@@ -11,7 +11,7 @@
 #' plot_state(get_summary(post_er), TRUE)
 #'
 #' @export
-plot_state <- function(stats_dat, S_msr = FALSE){
+plot_state <- function(stats_dat, stock, S_msr = FALSE){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
@@ -20,7 +20,7 @@ plot_state <- function(stats_dat, S_msr = FALSE){
 msy50 <- stats_dat %>%
   dplyr::select_(median = as.name("50%")) %>%
   tibble::rownames_to_column() %>%
-  dplyr::filter(grepl("msy$", rowname)) %>%
+  dplyr::filter(grepl(paste0("msy\\[", stock, "\\]"), rowname)) %>%
   dplyr::mutate(name = factor(stringr::str_sub(rowname, stringr::str_locate(rowname, ".")),
                        levels = c("S", "U"),
                        labels = c("Escapement", "Harvest Rate")))
@@ -28,8 +28,8 @@ msy50 <- stats_dat %>%
 msr50 <- stats_dat %>%
   dplyr::select_(median = as.name("50%")) %>%
   tibble::rownames_to_column() %>%
-  dplyr::filter(rowname == "beta" | rowname == "lnalpha") %>%
-  dplyr::mutate(msr = ifelse(rowname == "beta", 1 / median, 1-1/exp(median)),
+  dplyr::filter(grepl(paste0("beta\\[", stock, "\\]|lnalpha\\[", stock, "\\]"), rowname)) %>%
+  dplyr::mutate(msr = ifelse(rowname == paste0("beta[", stock, "]"), 1 / median, 1-1/exp(median)),
                 name = factor(c("S", "U"),
                               levels = c("S", "U"),
                               labels = c("Escapement", "Harvest Rate")))
@@ -38,9 +38,13 @@ plot <-
   stats_dat %>%
   dplyr::select_(median = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
   tibble::rownames_to_column() %>%
-  dplyr::filter(grepl("^R\\[|S\\[|N\\[|log.resid.vec\\[|mu\\[", rowname)) %>%
+  dplyr::filter(grepl(paste0("^R\\[\\d+,", stock, 
+                             "\\]|S\\[\\d+,", stock, 
+                             "\\]|N\\[\\d+,", stock, 
+                             "\\]|log.resid.vec\\[\\d+,", stock, 
+                             "\\]|mu.Habove\\[\\d+,", stock, "\\]"), rowname)) %>%
   dplyr::mutate(name = factor(stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
-                       levels = c("S", "N", "R", "mu", "log.resid.vec"),
+                       levels = c("S", "N", "R", "mu.Habove", "log.resid.vec"),
                        labels = c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")),
          index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
          year = (name != c("Recruitment")) * (yr0 + index) +
