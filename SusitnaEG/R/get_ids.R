@@ -20,8 +20,12 @@ get_ids <- function(year_range = 1979:2017,
 
   year_id <- as.character(year_range)
   names(year_id) <- 1:length(year_range)
+  
+  stock_id <- c("Deshka", "East Susitna", "Talkeetna", "Yentna", "Other")
+  names(stock_id) <- 1:length(stock_id)
 
   list <- list(year_id = year_id,
+               stock_id = stock_id,
                age_id = age_id,
                age_min = age_min,
                age_max = age_max)

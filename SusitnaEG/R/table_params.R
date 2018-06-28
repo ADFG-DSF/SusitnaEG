@@ -20,8 +20,7 @@ table_params <- function(stats_dat){
                                 paste0("S.msy[", 1:5, "]"),
                                 paste0("U.msy[", 1:5, "]"),
                                 "Dsum.age",
-                                "Bsum.S3",
-                                paste0("Dsum.S", c(2, 4, 5)), 
+                                paste0("Dsum.S", 2:5), 
                                 paste0("Bsum.theta[", 1:5, "]"),
                                 paste0("sigma.air[", 1:5, "]"),
                                 "sigma.weir"),
@@ -34,8 +33,7 @@ table_params <- function(stats_dat){
                                   rep("$S_{MSY}$", 5),
                                   rep("$U_{MSY}$", 5),
                                   "$D_{age}",
-                                  "$D_{comp}",
-                                  rep("$D_{comp}", 3),
+                                  rep("$D_{comp}", 4),
                                   rep("$B_{theta}$", 5),
                                   rep("$\\sigma_{air}$", 5),
                                   "$\\sigma_{weir}$"),
@@ -48,7 +46,7 @@ table_params <- function(stats_dat){
     dplyr::mutate(cv = sqrt(exp(((log(q95)-log(q05))/1.645/2)^2)-1),
                   stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname),
                   stock = ifelse(stock0 %in% 1:5, stock0, 
-                                 ifelse(stock0 %in% c("Bsum.S3", paste0("Dsum.S", c(2, 4, 5))), gsub("^.sum.S(\\d)", "\\1", stock0), "1"))) %>%
+                                 ifelse(grepl("^Dsum.S(\\d)", stock0), gsub("^Dsum.S(\\d)", "\\1", stock0), "1"))) %>%
     dplyr::mutate_at(c("median", "q05", "q95", "cv"), SusitnaEG:::digits) %>%
     dplyr::mutate(print1 = paste0(median, " (", q05, " - ", q95, ")"),
                   print2 = paste0(median, " (", cv, ")")) %>%

@@ -13,9 +13,17 @@
 #' plot_statepairs(post)
 #'
 #' @export
-plot_statepairs <- function(dat_post, pars = c('beta','lnalpha','phi','S.msy','sigma.white'), n = 200, trim = 0.05){
+plot_statepairs <- function(dat_post, 
+                            pars = c(paste0("beta[", 1:5, "]"),
+                                     paste0("lnalpha[", 1:5, "]"),
+                                     'phi',
+                                     paste0('S.msy[', 1:5, "]"),
+                                     'sigma.white'), 
+                            n = 200, 
+                            trim = 0.05){
   postdf <- as.data.frame(as.matrix(dat_post))   
-  bounds <- quantile(postdf$S.msy, probs = c(trim / 2, 1 - trim / 2))
-  subset <- postdf[postdf$S.msy > bounds[1] & postdf$S.msy < bounds[2], pars]
+  bounds <- lapply(postdf[, grepl("S.msy", names(postdf))], quantile, probs = c(trim / 2, 1 - trim / 2))
+  index <- Reduce(intersect, lapply(1:5, function(x) which(postdf[names(temp)][, x] > temp[[x]][1] & postdf[names(temp)][, x] < temp[[x]][2])))
+  subset <- postdf[index, pars]
   pairs(subset[sample(1:dim(subset)[1], n), ], cex=0.6)
 }

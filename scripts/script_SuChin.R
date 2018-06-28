@@ -88,14 +88,14 @@ MR = data.frame(C = mr$mr_mainstem*draw[,1],
                 Y = mr$mr_yentna, 
                 Z = mr$mr_mainstem*draw[,4])
 
-tele.S2 <-round(telemetry$E * MCMCpack::rdirichlet(dim(telemetry)[1], c(10, 5, 7, 15, 23, 10, 30)))
+tele.S2 <-round(telemetry$E * MCMCpack::rdirichlet(dim(telemetry)[1], c(10, 5, 7, 15, 23, 10, 30, 10)))
 Ntele.S2 <- rowSums(tele.S2)
-tele.S3 <- round(telemetry$F * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75)))
+tele.S3 <- round(telemetry$F * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75, 10)))
 Ntele.S3 <- rowSums(tele.S3)
 temp <- MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75))
-tele.S4 <- round(data.frame(telemetry$K * temp[, 1], telemetry$J, telemetry$K * temp[, 2], telemetry$L) * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75)))
+tele.S4 <- round(data.frame(telemetry$K * temp[, 1], telemetry$J, telemetry$K * temp[, 2], telemetry$L, telemetry$M + telemetry$N))
 Ntele.S4 <- rowSums(tele.S4)
-tele.S5 <- round(data.frame(telemetry$H, telemetry$G * MCMCpack::rdirichlet(dim(telemetry)[1], c(33, 67))))
+tele.S5 <- round(data.frame(telemetry$H, telemetry$G * MCMCpack::rdirichlet(dim(telemetry)[1], c(33, 67)), telemetry$H * runif(length(telemetry$H), 0.25)))
 Ntele.S5 <- rowSums(tele.S5)
 
 ####  Bundle data to be passed to JAGS  ####
@@ -106,7 +106,11 @@ dat = list(
   tele.S3 = tele.S3, Ntele.S3 = Ntele.S3,
   tele.S4 = tele.S4, Ntele.S4 = Ntele.S4,
   tele.S5 = tele.S5, Ntele.S5 = Ntele.S5,
-  air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
+  air.S1 = as.vector(as[[1]]), 
+  air.S2 = as[[2]],
+  air.S3 = as[[3]],
+  air.S4 = as[[4]],
+  air.S5 = as[[5]], 
   Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.Hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
   MR = MR, 
@@ -128,7 +132,7 @@ parameters=c(
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star',
-'Dsum.S2', 'Bsum.S3', 'Dsum.S4', 'Dsum.S5',
+'Dsum.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
 'p.S2', 'p.S3', 'p.S4', 'p.S5',
 'theta.mean', 'Bsum.theta', 'theta.S1', 'theta.S2', 'theta.S3', 'theta.S4', 'theta.S5',
 'p.small3', 'p.small4', 
@@ -213,8 +217,8 @@ tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("ML", rowname))
 
 table_params(summary)
 
-plot_fit(summary)
-plot_state(summary, S_msr = TRUE)
+lapply(stock_id, plot_fit, stats_dat = summary)
+lapply(1:5, function(x) plot_state(summary, stock = x, S_msr = TRUE))
 plot_statepairs(post)
 
 #2d age at maturity and age comp arrays
@@ -229,7 +233,8 @@ plot_stock(telemetry, summary)
 
 plot_theta(summary)
 
-plot_horse(post, summary, 325000)
-plot_rickeryear(summary)
-plot_profile(get_profile(post, 200000))
-plot_ey(get_profile(post, 250000))
+lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
+lapply(stock_id, plot_rickeryear, stats_dat = summary)
+profiles <- lapply(stock_id, get_profile, post_dat = post)
+lapply(profiles, plot_profile)
+lapply(profiles, plot_ey)

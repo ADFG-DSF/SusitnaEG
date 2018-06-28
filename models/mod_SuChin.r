@@ -117,25 +117,27 @@ for (y in 1:Y) {
   for (stock in 1:5) {
     N[y, stock] <- sum(N.tas[y,1:A, stock])
   }
-}
+}	
 
 # DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITION BY CALENDAR YEAR- East
   Dscale.S2 ~ dunif(0.01,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
-  pi.S2.1p ~ dbeta(0.14,0.86)T(0.03,)
-  pi.S2.2p ~ dbeta(0.14,0.72)
-  pi.S2.3p ~ dbeta(0.14,0.58)
-  pi.S2.4p ~ dbeta(0.14,0.44)
-  pi.S2.5p ~ dbeta(0.14,0.30)
-  pi.S2.6p ~ dbeta(0.14,0.16)
+  pi.S2.1p ~ dbeta(0.12,0.88)T(0.03,)
+  pi.S2.2p ~ dbeta(0.12,0.76)
+  pi.S2.3p ~ dbeta(0.12,0.64)
+  pi.S2.4p ~ dbeta(0.12,0.52)
+  pi.S2.5p ~ dbeta(0.12,0.40)
+  pi.S2.6p ~ dbeta(0.12,0.28)
+  pi.S2.7p ~ dbeta(0.12,0.16)
   pi.S2[1] <- pi.S2.1p
   pi.S2[2] <- pi.S2.2p * (1 - pi.S2[1])
   pi.S2[3] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2])
   pi.S2[4] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
   pi.S2[5] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
   pi.S2[6] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
-  pi.S2[7] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6]
-for (trib in 1:7) {
+  pi.S2[7] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6])
+  pi.S2[8] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6] - pi.S2[7]
+for (trib in 1:8) {
     gamma.S2[trib] <- Dsum.S2 * pi.S2[trib]
     for (y in 1:Y) {
       g.S2[y,trib] ~ dgamma(gamma.S2[trib],0.1)
@@ -143,28 +145,35 @@ for (trib in 1:7) {
       }
     }
 
-# SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Talketna
-  Bscale.S3 ~ dunif(0.01,1)
-  Bsum.S3 <- 1 / (Bscale.S3 * Bscale.S3)
-  pi.S3 ~ dbeta(1,1)
-  B1.S3 <- Bsum.S3 * pi.S3; 
-  B2.S3 <- Bsum.S3 - B1.S3;
-  for(y in 1:Y){                                                    
-      p.S3[y, 1] ~ dbeta(B1.S3,B2.S3)
-	  p.S3[y, 2] <- 1 - p.S3[y, 1]
-      } 
+# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Talkeetna
+  Dscale.S3 ~ dunif(0.01,1)
+  Dsum.S3 <- 1 / (Dscale.S3 * Dscale.S3)
+  pi.S3.1p ~ dbeta(0.33,0.66)T(0.03,)
+  pi.S3.2p ~ dbeta(0.33,0.33)
+  pi.S3[1] <- pi.S3.1p
+  pi.S3[2] <- pi.S3.2p * (1 - pi.S3[1])
+  pi.S3[3] <- 1 -  pi.S3[1] - pi.S3[2]
+for (trib in 1:3) {
+    gamma.S3[trib] <- Dsum.S3 * pi.S3[trib]
+    for (y in 1:Y) {
+      g.S3[y,trib] ~ dgamma(gamma.S3[trib],0.1)
+      p.S3[y,trib] <- g.S3[y,trib]/sum(g.S3[y,])
+      }
+    }
 	  
 # DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Yentna
   Dscale.S4 ~ dunif(0.01,1)
   Dsum.S4 <- 1 / (Dscale.S4 * Dscale.S4)
-  pi.S4.1p ~ dbeta(0.25,0.75)T(0.03,)
-  pi.S4.2p ~ dbeta(0.25,0.50)
-  pi.S4.3p ~ dbeta(0.25,0.25)
+  pi.S4.1p ~ dbeta(0.20,0.80)T(0.03,)
+  pi.S4.2p ~ dbeta(0.20,0.60)
+  pi.S4.3p ~ dbeta(0.20,0.40)
+  pi.S4.4p ~ dbeta(0.20,0.20)
   pi.S4[1] <- pi.S4.1p
   pi.S4[2] <- pi.S4.2p * (1 - pi.S4[1])
   pi.S4[3] <- pi.S4.3p * (1 - pi.S4[1] - pi.S4[2])
-  pi.S4[4] <- 1 -  pi.S4[1] - pi.S4[2] - pi.S4[3]
-for (trib in 1:4) {
+  pi.S4[4] <- pi.S4.3p * (1 - pi.S4[1] - pi.S4[2] - pi.S4[3])
+  pi.S4[5] <- 1 -  pi.S4[1] - pi.S4[2] - pi.S4[3] - pi.S4[4]
+for (trib in 1:5) {
     gamma.S4[trib] <- Dsum.S4 * pi.S4[trib]
     for (y in 1:Y) {
       g.S4[y,trib] ~ dgamma(gamma.S4[trib],0.1)
@@ -175,12 +184,14 @@ for (trib in 1:4) {
 # DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- other main
   Dscale.S5 ~ dunif(0.01,1)
   Dsum.S5 <- 1 / (Dscale.S5 * Dscale.S5)
-  pi.S5.1p ~ dbeta(0.33,0.67)T(0.03,)
-  pi.S5.2p ~ dbeta(0.33,0.33)
+  pi.S5.1p ~ dbeta(0.25,0.75)T(0.03,)
+  pi.S5.2p ~ dbeta(0.25,0.50)
+  pi.S5.3p ~ dbeta(0.25,0.25)
   pi.S5[1] <- pi.S5.1p
   pi.S5[2] <- pi.S5.2p * (1 - pi.S5[1])
-  pi.S5[3] <- 1 -  pi.S5[1] - pi.S5[2]
-for (trib in 1:3) {
+  pi.S5[3] <- pi.S5.3p * (1 - pi.S5[1] - pi.S5[2])
+  pi.S5[4] <- 1 -  pi.S5[1] - pi.S5[2] - pi.S5[3]
+for (trib in 1:4) {
     gamma.S5[trib] <- Dsum.S5 * pi.S5[trib]
     for (y in 1:Y) {
       g.S5[y,trib] ~ dgamma(gamma.S5[trib],0.1)

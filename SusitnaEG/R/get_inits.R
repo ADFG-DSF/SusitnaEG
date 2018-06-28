@@ -15,7 +15,7 @@ get_inits <- function(){
   list(
     Bscale.theta = runif(5, 0.1, 0.75),
     Dscale.S2 = runif(1, 0.1, 0.5),
-    Bscale.S3 = runif(1, 0.1, 0.5),
+    Dscale.S3 = runif(1, 0.1, 0.5),
     Dscale.S4 = runif(1, 0.1, 0.5),
     Dscale.S5 = runif(1, 0.1, 0.5),
     beta = rlnorm(5, log(2e-5), 0.4),

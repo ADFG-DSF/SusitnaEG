@@ -12,46 +12,34 @@
 #' @export
 table_stock <- function(stats_dat){
   stopifnot(exists("year_id", .GlobalEnv),
+            exists("age_max", .GlobalEnv),
+            exists("stock_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
-  id <- codes[["name"]][-1]
+  yr0 <- as.numeric(min(year_id)) - 1
+  yr0_R <- yr0 - age_max
   
-  fork <- stats_dat %>%
+  id0 <- lapply(1:5, function(x) colnames(as[[x]]))
+  names(id0) <- names(as)
+  id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = stock_id), 
+                   tribn = unlist(sapply(id0, function(x) 1:length(x)), use.names = FALSE), 
+                   trib = unlist(id0, use.names = FALSE),
+                   stringsAsFactors = FALSE)
+
+  est <- stats_dat %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl("pf.main\\[", rowname)) %>%
-    dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
-                  yent = 1 - Mean) %>%
-    dplyr::select(year, main = Mean, yent)
-
-  stock <- function(node){
-    stats_dat %>%
-      tibble::rownames_to_column() %>%
-      dplyr::filter(grepl(paste0(node, "\\["), rowname)) %>%
-      dplyr::mutate(year = year_id[as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname))],
-                    stock0 = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
-                    node = node,
-                    stockn = ifelse(node == "pm", stock0, stock0 + 6),
-                    stock = id[stockn]) %>%
-      dplyr::select(year, stockn, stock, p = Mean, SD)
-  }
-
-  Susitna <- 
-    dplyr::left_join(rbind(stock("pm"), stock("py")), fork, by = "year") %>% # can wrap with suppressWarnings()
-      dplyr::mutate(p = ifelse(stockn <= 6, p * main, p * yent),
-                    print = paste0(SusitnaEG:::digits(p), " (", SusitnaEG:::digits(SD), ")")) %>%
-      dplyr::select(-p, -SD, -stockn, -main, -yent) %>%
-      tidyr::spread(stock, print)
-   
-  Mainstem <-
-     stock("pm") %>%
-       dplyr::mutate(print = paste0(SusitnaEG:::digits(p), " (", SusitnaEG:::digits(SD), ")")) %>%
-       dplyr::select(-p, -SD, -stockn) %>%
-       tidyr::spread(stock, print)
-
-  Yetna <-
-   stock("py") %>%
-     dplyr::mutate(print = paste0(SusitnaEG:::digits(p), " (", SusitnaEG:::digits(SD), ")")) %>%
-     dplyr::select(-p, -SD, -stockn) %>%
-     tidyr::spread(stock, print)
+    dplyr::filter(grepl("p.S", rowname)) %>%
+    dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
+                  stock = factor(unname(stock_id[gsub("p.S(\\d).*", "\\1", rowname)]), levels = stock_id),
+                  tribn = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname))) %>%
+    dplyr::left_join(id, by = c("stock", "tribn")) %>%
+    dplyr::mutate(print = paste0(SusitnaEG:::digits(Mean), " (", SusitnaEG:::digits(SD), ")"),
+                  trib = factor(ifelse(is.na(trib), "Other", trib), levels = c(id$trib, "Other"))) %>%
+    dplyr::select(stock, year, trib, print) 
   
-  list(Susitna, Mainstem, Yetna)
+  list <- lapply(stock_id[2:5], function(x) est[est$stock == x, ] %>%
+                                              dplyr::select(-stock) %>%
+                                              tidyr::spread(trib, print))
+  
+  names(list) <- stock_id[2:5]
+  list
 }

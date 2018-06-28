@@ -1,4 +1,4 @@
-stock <- c(NA, "s5", "s1", "s2", "s3", "s5", "s5", rep("s4", 5))
+stock <- c(NA, 5, 1, 2, 3, 5, 5, rep(4, 5))
 names(stock) <- codes$code
            
 
@@ -8,11 +8,12 @@ readxl::read_excel(".\\SusitnaEG\\data-raw\\Susitna run reconstruction data_Jan1
   dplyr::rename(group = Group, trib = Tributary) %>%
   dplyr::filter(!grepl("weir|Weir", trib),                #drop Deshka Weir counts
                 !grepl("non-hatch", trib),                #drop Deception Creek non-hatchery
-                !grepl("Other WS", trib),                 #drop porrly defined surveys
+                !grepl("Other WS", trib),                 #drop poorly defined surveys
                 !grepl("Other ES", trib)) %>%            
   tidyr::gather(year, count, -group, -trib) %>%
   dplyr::filter(group != "A") %>%
-  dplyr::mutate(stock = stock[group]) %>%
+  dplyr::mutate(stock = factor(stock_id[stock[group]], stock_id),
+                trib = gsub(" Aerial| River| Creek.*", "", trib)) %>%
   dplyr::arrange(stock, year) %>%
   dplyr::select(-group)
 
