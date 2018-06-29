@@ -1,11 +1,12 @@
 #' Susitna River Chinook salmon ages
 #'
-#' Dataframe multinomial age data for Susitna River Chinook salmon
+#' Multinomial age data for Susitna River Chinook salmon
 #'
 #' @docType data
 #'
 #' @format data frame
 #'   \describe{
+#'   \item{year}{year sampled}
 #'   \item{location}{location and type of sample}
 #'   \item{x3-x78}{Number of fish sampled by total age}
 #'   \item{n}{sample size}
@@ -43,7 +44,7 @@
 
 #' Susitna River Chinook Harvest 
 #'
-#' Susitna River Chinook salmon harvest by stock group (see codes.rda) 
+#' Susitna River Chinook salmon harvest by stock 
 #'
 #' @docType data
 #'  

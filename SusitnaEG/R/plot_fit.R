@@ -1,13 +1,17 @@
 #' Model fit plots
 #'
-#' Produces a faceted plot of Escapement and inriver run with the appropriately scaled indices of abundance that were used as inputs to the model.
+#' Produces a faceted plot of Escapement and Inriver Run with the appropriately scaled indices of abundance that were used as inputs to the model.
 #'
 #' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_fit(get_summary(post))
+#' get_ids()
+#' plot_fit(get_summary(post), stock_id[1])
+#' plot_fit(get_summary(post), "East Susitna")
+#' lapply(stock_id, plot_fit, stats_dat = get_summary(post))
 #'
 #' @export
 plot_fit <- function(stats_dat, stock_name){

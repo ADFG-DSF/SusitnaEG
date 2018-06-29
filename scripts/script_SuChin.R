@@ -61,15 +61,7 @@ get_ids()
 
 weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 
-Ha.hat0 <- 
-  data.frame(C = Ha$C, 
-             E = Ha$E, 
-             F = Ha$F, 
-             Y = rowSums(Ha[, names(Ha) %in% c("J", "K", "L", "N")], na.rm = TRUE), 
-             R = rowSums(Ha[, names(Ha) %in% c("B", "G", "H")], na.rm = TRUE)) %>%
-  dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
-  as.matrix()
-Ha.hat <- Ha.hat0 %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat0)[1], ncol = dim(Ha.hat0)[2]))
+Ha.hat <- Ha %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat0)[1], ncol = dim(Ha.hat0)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%

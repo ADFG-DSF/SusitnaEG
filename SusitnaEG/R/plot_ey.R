@@ -9,7 +9,10 @@
 #' @return A figure
 #'
 #' @examples
-#' plot_ey(get_profile(post, 125000), get_BEGbounds(3297), c(2835, 6330))
+#' get_ids()
+#' plot_ey(get_profile(post, stock_id[1]), c(5000, 9000))
+#' profiles <- lapply(stock_id, get_profile, post_dat = post)
+#' lapply(profiles, plot_ey)
 #'
 #' @export
 plot_ey <- function(profile_dat, rug = TRUE, goal_range = NA){

@@ -4,12 +4,15 @@
 #'
 #' @param post_dat SRA model mcmc.list output
 #' @param stat_dat The output from get_summary() for the SRA model mcmc.list output
-#' @param upper The upper bound of the plot
+#' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_horse(post, get_summary(post), 35000)
+#' get_ids()
+#' plot_horse(post, get_summary(post), stock_id[1])
+#' plot_horse(post, get_summary(post), "East Susitna")
+#' lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
 #'
 #' @export
 plot_horse <- function(post_dat, stats_dat, stock_name){

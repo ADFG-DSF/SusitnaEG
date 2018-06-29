@@ -3,10 +3,15 @@
 #' This function creates a dataframe that can be used by plot_OYP_ORP()
 #'
 #' @param data An mcmc object with nodes "lnalpha", "beta", "S.msy", "lnalpha.c", "lnalpha.c.recent" from which you want to simulate SR relationships.
-#' @param s_ub the largest value of S for which you want to simulate R.
+#' @param stock_name A character element specifying the stock to plot.
+#'
+#' @return A data.frame
 #'
 #' @examples
-#' get_profile(post, 250000)
+#' get_ids()
+#' get_profile(post, stock_id[1])
+#' get_profile(post, "East Susitna")
+#' lapply(stock_id, get_profile, post_dat = post)
 #'
 #' @export
 get_profile <- function(post_dat, stock_name){

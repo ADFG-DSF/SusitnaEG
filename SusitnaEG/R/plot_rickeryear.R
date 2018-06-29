@@ -3,13 +3,17 @@
 #' logRhat.y <- log(S.y) + lnalpha - beta * S.y 
 #' logresid.y <- log(R.y) - logRhat.y
 #' lnalpha.y <- lnalpha + logresid.y
-#'
+#' 
 #' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_rickeryear(get_summary(post_er))
+#' get_ids()
+#' plot_rickeryear(get_summary(post), stock_id[1])
+#' plot_rickeryear(get_summary(post), "East Susitna")
+#' lapply(stock_id, plot_rickeryear, stats_dat = get_summary(post))
 #'
 #' @export
 plot_rickeryear <- function(stats_dat, stock_name){
