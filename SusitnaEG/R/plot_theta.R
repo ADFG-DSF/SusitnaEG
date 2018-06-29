@@ -30,9 +30,12 @@ theta_est <- stats_dat %>%
   dplyr::select(stock, tribn, theta = Mean) %>%
   dplyr::left_join(id, by = c("stock", "tribn"))
 
-theta_obs1 <- data.frame(stock = stock_id[1], trib = "Deshka", theta = as_complete$C / weir$count[weir$group == "C"])
-theta_obs2 <- data.frame(stock = stock_id[2], trib = "Montana", theta = c(1304, 953) / weir$count[weir$group == "E"])
-theta_obs <- rbind(theta_obs1, theta_obs2)
+theta_obs1 <- data.frame(stock = unname(stock_id[1]), trib = "Deshka", theta = as[["Deshka"]][, "Deshka"] / weir[, "Deshka"])
+theta_obs2 <- data.frame(stock = unname(stock_id[2]), trib = "Montana", theta = as[["East Susitna"]][, "Montana"] / weir[, "Montana"])
+theta_obs3 <- data.frame(stock = unname(stock_id[2]), trib = "Willow", theta = as[["East Susitna"]][, "Willow"] / weir[, "Willow"])
+theta_obs <- 
+  rbind(theta_obs1, theta_obs2, theta_obs3) %>%
+  dplyr::filter(!is.na(theta))
 
 ggplot2::ggplot(theta_est, ggplot2::aes(x = trib, y = theta)) +
     ggplot2::geom_col() +

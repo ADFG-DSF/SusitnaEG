@@ -1,43 +1,3 @@
-################################################################
-
-####  v0.01 simdat
-   #  R code from YukCanChin 7.06 
-   #  TAM trending age at maturity
-   #  allocation among tributaries dirichlet distributed
-   #  data from Susitna Chinook simdata ddmmmyy.xlsx
-   #
-####  v1.01 hierarchical     FAIL
-   #  Feb 2018 Susitna data
-   #  Theta hierarchical to provide inference about Alexander Creek air counts
-   #  Error in node mu.Halex[5]  Slicer stuck at value with infinite density
-   #  
-####  v1.02 fake AlexCk weir data  FAIL
-   #  Added 3 years of data from a fake weir on Alex Ck
-   #  Error in node mu.Halex[21]  Slicer stuck at value with infinite density
-   #  
-####  v1.03 omit AlexCk from model
-   #  p.main[1] <<< 1% - should be ~5%
-   #  note that harvest still contains some Alex Ck fish
-   #  
-####  v1.04 
-   #  truncating pi.main[1]T(0.03,) solved mixing problem
-   #  telemetry data are wrong (faked)
-   #  
-####  v2.01 
-   #  complete telemetry data from David 23 Feb
-   #  MR CVs too large
-   #  
-####  v2.02 
-   #  
-   #  better MR CVs
-   #  
-####  v2.03 forecast for Tim
-   #  
-####  v2.04 
-   #  
-   #  ML1[A]=0
-   # 
-
 packs <- c("SusitnaEG", "rjags", "coda", "ggplot2")
 lapply(packs, require, character.only = TRUE)
 
@@ -58,8 +18,6 @@ age[, 3:7] %>%
 rm(list=ls(all=TRUE))
 
 get_ids()
-
-weir.deshka <- weir[grepl("Deshka", weir$trib), "count"] %>% unlist()
 
 Ha.hat0 <- 
   data.frame(C = Ha$C, 
@@ -88,7 +46,7 @@ MR = data.frame(C = mr$mr_mainstem*draw[,1],
                 Y = mr$mr_yentna, 
                 Z = mr$mr_mainstem*draw[,4])
 
-tele.S2 <-round(telemetry$E * MCMCpack::rdirichlet(dim(telemetry)[1], c(10, 5, 7, 15, 23, 10, 30, 10)))
+tele.S2 <-round(telemetry$E * MCMCpack::rdirichlet(dim(telemetry)[1], c(5, 7, 15, 23, 10, 40, 10)))
 Ntele.S2 <- rowSums(tele.S2)
 tele.S3 <- round(telemetry$F * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75, 10)))
 Ntele.S3 <- rowSums(tele.S3)
@@ -115,7 +73,7 @@ dat = list(
   Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
   MR = MR, 
   cv.MR = mr$cv_mainstem,
-  weir.deshka = weir.deshka,
+  weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
 )
@@ -160,15 +118,6 @@ endtime[3]/60/60
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
-lapply(1:5,
-       function(x){plot(as.numeric(summary[grepl(paste0("S\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]]), 
-                        as.numeric(summary[grepl(paste0("R\\[\\d+,", x, "\\]"), rownames(summary)), "Mean"][[1]][4:42]))}
-       )
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^S.msy\\[", rowname)) %>% print(n = 210)
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^beta\\[", rowname)) %>% print(n = 210)
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^lnalpha.c\\[", rowname)) %>% print(n = 210)
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^sigma.white", rowname)) %>% print(n = 210)
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("^phi", rowname)) %>% print(n = 210)
 
 lapply(1:5, function(x){
   tibble::rownames_to_column(summary) %>% 
@@ -177,21 +126,6 @@ lapply(1:5, function(x){
     unlist() %>% 
     hist()}
   )
-
-#deshka observed theta and estimated theta track
-plot(1979:2017, summary[grepl("theta\\[\\d+,2\\]", rownames(summary)), "Mean"]$Mean, type = "l")
-points(1979:2017, air.surveys[,"C"]/weir.deshka)
-
-#Similar mean for each stock to old version
-tibble::rownames_to_column(summary) %>% 
-  dplyr::filter(grepl("^theta\\[", rowname)) %>%
-  dplyr::mutate(year = as.numeric(gsub("theta\\[(\\d+),\\d+\\]", "\\1", rowname)),
-                stock = factor(as.numeric(gsub("theta\\[\\d+,(\\d+)\\]", "\\1", rowname)), labels = codes$name[-1])) %>%
-  ggplot(aes(x = year, y = Mean)) +
-    geom_line() +
-    facet_grid(. ~ stock)
-
-plot_theta(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds")))
 
 ##changes in q##
 new <- get_array(summary, "q") %>%

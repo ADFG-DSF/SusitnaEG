@@ -58,13 +58,17 @@ expand <-
   dplyr::left_join(id, by = c("stock", "tribn")) %>%
   dplyr::select(year, stock, trib, ex_weir, ex_as)
 
-weirs <- weir[, c("year", "trib", "count")] %>%
-  dplyr::mutate(trib = gsub(" Weir| weir", "", trib)) %>%
+weirs <- weir %>%
+  as.data.frame() %>%
+  tibble::rownames_to_column(var = "year") %>%
+  dplyr::mutate(year = year_id[year]) %>%
+  tidyr::gather(trib, count, -year) %>%
   dplyr::left_join(expand, by = c("year", "trib")) %>% 
   dplyr::mutate(value = count / ex_weir,
-                name = paste0(trib, " weir"),
+                name = trib,
+                type = "weir",
                 name_f = "S") %>%
-  dplyr::select(year, name, stock,  name_f, value)
+  dplyr::select(year, name, stock, type, name_f, value)
 
 surveys <- lapply(1:5, function(x) data.frame(stock = factor(unname(stock_id[x]), levels = stock_id),
                                               year = rep(unname(year_id), times = dim(as[[stock_id[x]]])[2]),
@@ -74,9 +78,10 @@ surveys <- lapply(1:5, function(x) data.frame(stock = factor(unname(stock_id[x])
   do.call(rbind, .) %>%
   dplyr::left_join(expand, by = c("year", "stock", "trib")) %>%
   dplyr::mutate(value = count / ex_as,
-                name = paste0(trib, " survey"),
+                name = trib,
+                type ="survey",
                 name_f = "S") %>%
-  dplyr::select(year, stock, name, name_f, value)
+  dplyr::select(year, stock, name, type, name_f, value)
 
 draw <- MCMCpack::rdirichlet(dim(mr)[[1]], c(15,15,10,5))
 markrecap <- 
@@ -89,29 +94,32 @@ markrecap <-
   dplyr::mutate(year = year_id) %>%
   tidyr::gather(stock, value, -year) %>%
   dplyr::mutate(name = "Mark-Recapture",
+                type = "Mark-Recapture",
                 name_f = "IR") %>%
-  dplyr::select(year, stock, name, name_f, value)
+  dplyr::select(year, stock, name, type, name_f, value)
 
 indicies <- 
   rbind(weirs, surveys, markrecap) %>%
     dplyr::mutate(name_f = factor(name_f,
                                 levels = c("S", "IR"),
                                 labels = c("Escapement", "Inriver Run")),
+                  type = factor(type, levels = c("survey", "weir", "Mark-Recapture")),
                   year = as.numeric(year)) %>%
     dplyr::filter(!is.na(value))
 
-pal <- RColorBrewer::brewer.pal(7, "Paired")
+pal <- RColorBrewer::brewer.pal(6, "Paired")
 breaks <- id %>% 
-  dplyr::mutate(name = paste0(trib, " survey"),
-                color = unlist(lapply(sapply(1:5, function(x) sum(stock == stock_id[x])), function(x) pal[1:x])),
-                shape = 17) %>%
+  dplyr::mutate(name = factor(trib, levels = c(trib, "Mark-Recapture")),
+                color = unlist(lapply(sapply(1:5, function(x) sum(stock == stock_id[x])), function(x) pal[1:x]))) %>%
   dplyr::select(-tribn, - trib) %>%
-  dplyr::arrange(stock, name, color, shape) %>%
-  rbind(data.frame(name = c("Deshka weir", "Montana weir", rep("Mark-Recapture", 5)),
-                   stock = c("Deshka", "East Susitna", stock_id),
-                   color = rep("black", 7),
-                   shape = c(18, 18, rep(19, 5)))) %>%
-  dplyr::arrange(stock, name)
+  dplyr::filter(stock == stock_name) %>%
+  rbind(data.frame(name = "Mark-Recapture",
+                   stock = stock_name,
+                   color = "black",
+                   stringsAsFactors = FALSE)) %>%
+  dplyr::arrange(stock, name, color)
+col <-setNames(breaks$color, breaks$name)
+sha <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
 
 stats_dat %>%
   dplyr::select_(value = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
@@ -128,14 +136,14 @@ stats_dat %>%
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
     ggplot2::facet_grid(name_f ~ ., scales = "free_y", switch = "y") +
     ggplot2::labs(x = NULL, y = NULL) +
-    ggplot2::geom_jitter(data = indicies[indicies$stock == stock_name, ], ggplot2::aes(color = name, shape = name), size = 3, width = .3) +
+    ggplot2::geom_jitter(data = indicies[indicies$stock == stock_name, ], ggplot2::aes(color = name, shape = type), size = 3, width = .3) +
     #ggplot2::geom_pointrange(data = indicies2, ggplot2::aes(ymin = lb, ymax = ub, color = "IR.hat", shape = "IR.hat")) +
     ggplot2::scale_color_manual(name ="Index",
-                                breaks = breaks$name[breaks$stock == stock_name],
-                                values = breaks$color[breaks$stock == stock_name]) +
+                                breaks = breaks$name,
+                                values = col) +
     ggplot2::scale_shape_manual(name ="Index",
-                                breaks = breaks$name[breaks$stock == stock_name],
-                                values = breaks$shape[breaks$stock == stock_name]) +
+                                breaks = names(sha),
+                                values = sha) +
     ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::theme_bw() +

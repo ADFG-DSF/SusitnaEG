@@ -122,22 +122,20 @@ for (y in 1:Y) {
 # DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITION BY CALENDAR YEAR- East
   Dscale.S2 ~ dunif(0.01,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
-  pi.S2.1p ~ dbeta(0.12,0.88)T(0.03,)
-  pi.S2.2p ~ dbeta(0.12,0.76)
-  pi.S2.3p ~ dbeta(0.12,0.64)
-  pi.S2.4p ~ dbeta(0.12,0.52)
-  pi.S2.5p ~ dbeta(0.12,0.40)
-  pi.S2.6p ~ dbeta(0.12,0.28)
-  pi.S2.7p ~ dbeta(0.12,0.16)
+  pi.S2.1p ~ dbeta(0.14,0.86)T(0.03,)
+  pi.S2.2p ~ dbeta(0.14,0.72)
+  pi.S2.3p ~ dbeta(0.14,0.58)
+  pi.S2.4p ~ dbeta(0.14,0.44)
+  pi.S2.5p ~ dbeta(0.14,0.30)
+  pi.S2.6p ~ dbeta(0.14,0.16)
   pi.S2[1] <- pi.S2.1p
   pi.S2[2] <- pi.S2.2p * (1 - pi.S2[1])
   pi.S2[3] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2])
   pi.S2[4] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
   pi.S2[5] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
   pi.S2[6] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
-  pi.S2[7] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6])
-  pi.S2[8] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6] - pi.S2[7]
-for (trib in 1:8) {
+  pi.S2[7] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6]
+for (trib in 1:7) {
     gamma.S2[trib] <- Dsum.S2 * pi.S2[trib]
     for (y in 1:Y) {
       g.S2[y,trib] ~ dgamma(gamma.S2[trib],0.1)
@@ -226,7 +224,7 @@ for(y in 1:Y){
 	air.S1[y] ~ dlnorm(log.t1S1[y], tau.air[1])
 	}
 	
-for(trib in 1:7) {
+for(trib in 1:6) {
 	theta.S2[trib] ~ dbeta(B1.theta[2], B2.theta[2])
 	for(y in 1:Y){
 	log.tpS2[y, trib] <- log(theta.S2[trib] * p.S2[y, trib] * S[y, 2])
@@ -258,13 +256,16 @@ for(trib in 1:3) {
 	}
 }
    
-# DESHKA WEIR COUNTS W (SMALL) LOGNORMAL ERRORS
-# DETECTABILITY = 1, one trib in the stock.;
-  tau.weir ~ dgamma(0.01,0.1)
+# WEIR COUNTS W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1
+  tau.weir ~ dgamma(20,2)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
-    log.11S1[y] <- log(S[y, 1])
-    weir.deshka[y] ~ dlnorm(log.11S1[y], tau.weir)
+    log.11S1[y] <- log(S[y, 1])						#Deshka one trib in stock
+	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir) 
+	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])		#Montana
+      weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)
+	log.1p6S2[y] <- log(p.S2[y, 6] * S[y, 2])		#Willow/Deception total
+      weir[y, 3] ~ dlnorm(log.1p6S2[y], tau.weir)
     }
 
 # INRIVER RUN AND HARVESTS ESTIMATED
