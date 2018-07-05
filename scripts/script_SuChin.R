@@ -39,31 +39,14 @@ a <-
   dplyr::filter(!is.na(x4))
 x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
-draw <- MCMCpack::rdirichlet(dim(mr)[[1]], c(15,15,10,5))
-MR = data.frame(C = mr$mr_mainstem*draw[,1], 
-                E = mr$mr_mainstem*draw[,2], 
-                F = mr$mr_mainstem*draw[,3], 
-                Y = mr$mr_yentna, 
-                Z = mr$mr_mainstem*draw[,4])
-
-tele.S2 <-round(telemetry$E * MCMCpack::rdirichlet(dim(telemetry)[1], c(5, 7, 15, 23, 10, 40, 10)))
-Ntele.S2 <- rowSums(tele.S2)
-tele.S3 <- round(telemetry$F * MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75, 10)))
-Ntele.S3 <- rowSums(tele.S3)
-temp <- MCMCpack::rdirichlet(dim(telemetry)[1], c(25, 75))
-tele.S4 <- round(data.frame(telemetry$K * temp[, 1], telemetry$J, telemetry$K * temp[, 2], telemetry$L, telemetry$M + telemetry$N))
-Ntele.S4 <- rowSums(tele.S4)
-tele.S5 <- round(data.frame(telemetry$H, telemetry$G * MCMCpack::rdirichlet(dim(telemetry)[1], c(33, 67)), telemetry$H * runif(length(telemetry$H), 0.25)))
-Ntele.S5 <- rowSums(tele.S5)
-
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
   x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp,  
-  tele.S2 = tele.S2, Ntele.S2 = Ntele.S2,
-  tele.S3 = tele.S3, Ntele.S3 = Ntele.S3,
-  tele.S4 = tele.S4, Ntele.S4 = Ntele.S4,
-  tele.S5 = tele.S5, Ntele.S5 = Ntele.S5,
+  tele.S2 = telemetry$'East Susitna', Ntele.S2 = telemetry$'N_East Susitna',
+  tele.S3 = telemetry$Talkeetna, Ntele.S3 = telemetry$N_Talkeetna,
+  tele.S4 = telemetry$Yentna, Ntele.S4 = telemetry$N_Yentna,
+  tele.S5 = telemetry$Other, Ntele.S5 = telemetry$N_Other,
   air.S1 = as.vector(as[[1]]), 
   air.S2 = as[[2]],
   air.S3 = as[[3]],
@@ -71,8 +54,8 @@ dat = list(
   air.S5 = as[[5]], 
   Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.Hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
-  MR = MR, 
-  cv.MR = mr$cv_mainstem,
+  MR = mr, 
+  cv.MR = rep(0.15, dim(mr)[1]),
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))

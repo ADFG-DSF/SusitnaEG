@@ -23,7 +23,7 @@ plot_statepairs <- function(dat_post,
                             trim = 0.05){
   postdf <- as.data.frame(as.matrix(dat_post))   
   bounds <- lapply(postdf[, grepl("S.msy", names(postdf))], quantile, probs = c(trim / 2, 1 - trim / 2))
-  index <- Reduce(intersect, lapply(1:5, function(x) which(postdf[names(temp)][, x] > temp[[x]][1] & postdf[names(temp)][, x] < temp[[x]][2])))
+  index <- Reduce(intersect, lapply(1:5, function(x) which(postdf[names(bounds)][, x] > bounds[[x]][1] & postdf[names(bounds)][, x] < bounds[[x]][2])))
   subset <- postdf[index, pars]
   pairs(subset[sample(1:dim(subset)[1], n), ], cex=0.6)
 }

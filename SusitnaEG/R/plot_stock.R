@@ -28,26 +28,28 @@ plot_stock <- function(input_dat, stats_dat){
         dplyr::mutate(trib = factor(trib0, levels = trib0)) %>%
         dplyr::select(-trib0) %>%
     dplyr::arrange(stock, tribn)
-  
-# obs_f <- function(drain){
-#   input_dat[, id$code[id$drainage == drain]] %>%
-#     dplyr::mutate_all(function(x) ifelse(x == 0, NA, round(x))) %>%
-#     (function(x) {x/rowSums(x)}) %>%
-#     tibble::rownames_to_column() %>%
-#     tidyr::gather(code, p00, -rowname) %>%
-#     dplyr::left_join(id, by = "code") %>%
-#     dplyr::group_by(rowname, drainage) %>%
-#     dplyr::arrange(rowname, drainage, dplyr::desc(name)) %>%
-#     dplyr::mutate(year = unname(year_id[rowname]),
-#                   p0 = cumsum(p00)) %>%
-#     dplyr::ungroup() %>%
-#     dplyr::left_join(fork, "year") %>% 
-#     dplyr::mutate(p = if(drain == "Susitna R.") {p0 * main} else(p0 * yent)) %>%
-#     dplyr::select(year, stock = name, drainage, p) %>%
-#     dplyr::filter(!is.na(p))
-# }
-# 
-# obs <- rbind(obs_f("Susitna R."), obs_f("Yentna R."))
+
+obs_f <- function(stock){
+  input_dat[[stock]] %>%
+    (function(x) {x/rowSums(x)}) %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>%
+    tidyr::gather(trib0, p0, -rowname) %>%
+    dplyr::mutate(trib = factor(ifelse(trib0 == "Other", paste0(trib0, " ", stock), trib0), 
+                                levels = id$trib[id$stock == stock]),
+                  year = unname(year_id[rowname]),
+                  stock = stock) %>%
+    dplyr::filter(!is.na(p0)) %>%
+    dplyr::arrange(year, dplyr::desc(trib)) %>%
+    dplyr::group_by(year) %>%
+    dplyr::mutate(p = cumsum(p0)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(year, stock, trib, Mean = p)
+}
+
+obs <- 
+  lapply(stock_id[-1], obs_f) %>% do.call(rbind, .) %>%
+  dplyr::mutate(stock = factor(stock, levels = stock_id))
 
 est <- stats_dat %>%
   tibble::rownames_to_column() %>%
@@ -75,7 +77,7 @@ alp <-setNames(breaks$alpha, breaks$trib)
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::percent) +
     ggplot2::scale_fill_manual(breaks = breaks$trib, values = col) +
     ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp) +
-    #ggplot2::geom_point(data = obs, ggplot2::aes(color = stock), size = 3) +
+    ggplot2::geom_point(data = obs, ggplot2::aes(fill = trib), size = 3, shape = 21, color = "white") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
 

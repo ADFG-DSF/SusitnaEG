@@ -83,14 +83,9 @@ surveys <- lapply(1:5, function(x) data.frame(stock = factor(unname(stock_id[x])
                 name_f = "S") %>%
   dplyr::select(year, stock, name, type, name_f, value)
 
-draw <- MCMCpack::rdirichlet(dim(mr)[[1]], c(15,15,10,5))
 markrecap <- 
-  data.frame(mr$mr_mainstem*draw[,1], 
-                mr$mr_mainstem*draw[,2], 
-                mr$mr_mainstem*draw[,3], 
-                mr$mr_yentna, 
-                mr$mr_mainstem*draw[,4]) %>%
-  setNames(stock_id) %>%
+  mr %>%
+  as.data.frame() %>%
   dplyr::mutate(year = year_id) %>%
   tidyr::gather(stock, value, -year) %>%
   dplyr::mutate(name = "Mark-Recapture",
