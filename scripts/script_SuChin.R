@@ -75,7 +75,7 @@ parameters=c(
 'N.ta','q', 'b', 'q.star',
 'Dsum.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
 'p.S2', 'p.S3', 'p.S4', 'p.S5',
-'theta.mean', 'Bsum.theta', 'theta.S1', 'theta.S2', 'theta.S3', 'theta.S4', 'theta.S5',
+'theta', 'Dsum.theta', 'ML1.theta', 'ML2.theta', "mu_ML1t", "mu_ML2t",
 'p.small3', 'p.small4', 
 'mu.Hmarine', 'mu.Habove'
 )
@@ -101,6 +101,19 @@ endtime[3]/60/60
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
+
+sapply(1:17, function(x){
+  tibble::rownames_to_column(summary) %>% 
+    dplyr::filter(grepl(paste0("^theta\\[", x, ",\\d+\\]"), rowname)) %>% 
+    dplyr::select(Mean) %>% unlist()}
+)
+
+tibble::rownames_to_column(summary) %>% 
+  dplyr::filter(grepl(paste0("^theta\\["), rowname)) %>% 
+  dplyr::mutate(year = gsub("theta\\[\\d+,(\\d+)\\]", "\\1", rowname),
+                trib = gsub("theta\\[(\\d+),\\d+\\]", "\\1", rowname)) %>%
+  ggplot(aes(x = as.numeric(year), y = Mean, color = trib)) +
+    geom_line()
 
 lapply(1:5, function(x){
   tibble::rownames_to_column(summary) %>% 
