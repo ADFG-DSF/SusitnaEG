@@ -212,17 +212,13 @@ for (y in 1:Y) {
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
 # GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
-b0.theta ~ dnorm(0, 0.0001)
 for (trib in 1:16) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}  #trib glm param
-for (y in 1:Y) {b2.theta[y] ~ dnorm(mu_b2t, tau_b2t)} 		#year glm param
 mu_b1t ~ dnorm(0, 0.0001)
-mu_b2t ~ dnorm(0, 0.0001)
 tau_b1t ~ dgamma(0.001,0.001)
-tau_b2t ~ dgamma(0.001,0.001)
 
 for (trib in 1:16){
   for (y in 1:Y){
-    logit(theta[trib, y]) <- b0.theta + b1.theta[trib] + b2.theta[y]
+    logit(theta[trib, y]) <- b1.theta[trib]
     }
   }
 
