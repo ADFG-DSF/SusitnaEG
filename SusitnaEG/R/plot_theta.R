@@ -25,7 +25,7 @@ id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = s
                  trib = unlist(id0, use.names = FALSE))
 
 theta_est <- 
-  tibble::rownames_to_column(summary) %>% 
+  tibble::rownames_to_column(stats_dat) %>% 
   dplyr::filter(grepl(paste0("^theta\\["), rowname)) %>% 
   dplyr::mutate(year = as.numeric(gsub("theta\\[\\d+,(\\d+)\\]", "\\1", rowname)) + yr0,
                 tribn2 = as.numeric(gsub("theta\\[(\\d+),\\d+\\]", "\\1", rowname))) %>%
