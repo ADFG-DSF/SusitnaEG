@@ -208,47 +208,34 @@ for (y in 1:Y) {
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
 # GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
-  Dscale.theta ~ dunif(0.01,1)
-  Dsum.theta <- 1 / (Dscale.theta * Dscale.theta)  
-  ML1.theta[1] <- 0  
-  ML2.theta[1] <- 0
-for (trib in 2:17) {ML1.theta[trib] ~ dnorm(mu_ML1t, tau_ML1t)}  #trib glm param
-for (y in 2:Y) {ML2.theta[y] ~ dnorm(mu_ML2t, tau_ML2t)} 		#year glm param
-mu_ML1t ~ dnorm(0, 0.0001)
-mu_ML2t ~ dnorm(0, 0.0001)
-tau_ML1t ~ dgamma(0.001,0.001)
-tau_ML2t ~ dgamma(0.001,0.001)
+b0.theta ~ dnorm(0, 0.0001)
+for (trib in 1:16) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}  #trib glm param
+for (y in 1:Y) {b2.theta[y] ~ dnorm(mu_b2t, tau_b2t)} 		#year glm param
+mu_b1t ~ dnorm(0, 0.0001)
+mu_b2t ~ dnorm(0, 0.0001)
+tau_b1t ~ dgamma(0.001,0.001)
+tau_b2t ~ dgamma(0.001,0.001)
 
-for (trib in 1:17){
+for (trib in 1:16){
   for (y in 1:Y){
-    logit(theta[trib, y]) <- ML1.theta[trib] + ML2.theta[y]
-    # gamma.theta[trib, y] <- Dsum.theta * pi.theta[trib, y]
-    # g.theta[trib, y] ~ dgamma(gamma.theta[trib, y],0.1)
-    # theta[trib, y] <- g.theta[trib, y] / sum(g.theta[trib, ])
+    logit(theta[trib, y]) <- b0.theta + b1.theta[trib] + b2.theta[y]
     }
   }
 
 # AIR SURVEY COUNTS W LOGNORMAL ERRORS
 for (stock in 1:5){
-	# theta.mean[stock] ~ dunif(0.1, 0.9) #dbeta(1, 1)
-	# Bscale.theta[stock] ~ dunif(0.01,1)
-	# Bsum.theta[stock] <- 1 / (Bscale.theta[stock] * Bscale.theta[stock])
-	# B1.theta[stock] <- Bsum.theta[stock] * theta.mean[stock]; 
-	# B2.theta[stock] <- Bsum.theta[stock] - B1.theta[stock];
 	tau.air[stock] ~ dgamma(0.1,0.01)
 	sigma.air[stock] <- 1 / sqrt(tau.air[stock])
 }
 
 # DESHKA survey data
 # one trib in the stock
-#theta.S1 ~ dbeta(B1.theta[1], B2.theta[1])
 for(y in 1:Y){
 	log.t1S1[y] <- log(theta[1, y] * S[y, 1])
 	air.S1[y] ~ dlnorm(log.t1S1[y], tau.air[1])
 	}
 	
 for(trib in 1:6) {
-#	theta.S2[trib] ~ dbeta(B1.theta[2], B2.theta[2])
 	for(y in 1:Y){
 	log.tpS2[y, trib] <- log(theta[(trib + 1), y] * p.S2[y, trib] * S[y, 2])
 	air.S2[y, trib] ~ dlnorm(log.tpS2[y, trib], tau.air[2])
@@ -256,39 +243,36 @@ for(trib in 1:6) {
 }
 
 for(trib in 1:2) {
-#	theta.S3[trib] ~ dbeta(B1.theta[3], B2.theta[3])
 	for(y in 1:Y){
-	log.tpS3[y, trib] <- log(theta[(trib + 8), y] * p.S3[y, trib] * S[y, 3])
+	log.tpS3[y, trib] <- log(theta[(trib + 7), y] * p.S3[y, trib] * S[y, 3])
 	air.S3[y, trib] ~ dlnorm(log.tpS3[y, trib], tau.air[3])
 	}
 }
 
 for(trib in 1:4) {
-#	theta.S4[trib] ~ dbeta(B1.theta[4], B2.theta[4])
 	for(y in 1:Y){
-	log.tpS4[y, trib] <- log(theta[(trib + 10), y] * p.S4[y, trib] * S[y, 4])
+	log.tpS4[y, trib] <- log(theta[(trib + 9), y] * p.S4[y, trib] * S[y, 4])
 	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[4])
 	}
 }
 
 for(trib in 1:3) {
-#	theta.S5[trib] ~ dbeta(B1.theta[5], B2.theta[5])
 	for(y in 1:Y){
-	log.tpS5[y, trib] <- log(theta[(trib + 14), y] * p.S5[y, trib] * S[y, 5])
+	log.tpS5[y, trib] <- log(theta[(trib + 13), y] * p.S5[y, trib] * S[y, 5])
 	air.S5[y, trib] ~ dlnorm(log.tpS5[y, trib], tau.air[5])
 	}
 }
    
 # WEIR COUNTS W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1
-  tau.weir ~ dgamma(20,2)
+  tau.weir ~ dgamma(50, 0.5)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
     log.11S1[y] <- log(S[y, 1])						#Deshka one trib in stock
-	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir) 
+	  weir[y, 1] ~ dlnorm(log.11S1[y], 400) 
 	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])		#Montana
-      weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)
+      weir[y, 2] ~ dlnorm(log.1p4S2[y], 100)
 	log.1p6S2[y] <- log(p.S2[y, 6] * S[y, 2])		#Willow/Deception total
-      weir[y, 3] ~ dlnorm(log.1p6S2[y], tau.weir)
+      weir[y, 3] ~ dlnorm(log.1p6S2[y], 400)
     }
 
 # INRIVER RUN AND HARVESTS ESTIMATED

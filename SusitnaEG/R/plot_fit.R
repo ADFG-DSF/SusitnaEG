@@ -22,6 +22,7 @@ id0 <- lapply(1:5, function(x) colnames(as[[x]]))
 names(id0) <- names(as)
 id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = stock_id), 
                  tribn = unlist(sapply(id0, function(x) 1:length(x)), use.names = FALSE), 
+                 tribn2 = 1:length(unlist(id0)),
                  trib = unlist(id0, use.names = FALSE),
                  stringsAsFactors = FALSE) %>%
       dplyr::arrange(stock, tribn, trib)
@@ -32,26 +33,26 @@ trib <- function(node){
       dplyr::filter(grepl(paste0("p.S", node, "\\["), rowname)) %>%
       dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
                     tribn = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
+                    stock = stock_id[[node]],
                     node = node) %>%
       dplyr::filter(tribn != dim(as[[stock_name]])[2] + 1) %>%
-      dplyr::select(year, tribn, ps = Mean)
-    if(node == 1) data.frame(year = as.numeric(year_id), tribn = 1, ps = 1) else temp
+      dplyr::select(year, stock, tribn, ps = Mean)
+    if(node == 1) data.frame(year = as.numeric(year_id), stock = stock_id[[node]], tribn = 1, ps = 1) else temp
 } 
 
-theta <- function(node){
+theta <- 
   stats_dat %>%
     tibble::rownames_to_column() %>%
-    dplyr::mutate(rowname = ifelse(rowname == "theta.S1", "theta.S1[1]", rowname)) %>%
-    dplyr::filter(grepl(paste0("theta.S", node, "\\["), rowname)) %>%
-    dplyr::mutate(tribn = as.numeric(gsub("^.*\\[(\\d)\\]$", "\\1", rowname))) %>%
-    dplyr::select(tribn, theta = Mean)
-}
+    dplyr::filter(grepl("^theta\\[", rowname)) %>%
+    dplyr::mutate(tribn2 = as.numeric(gsub("theta\\[(\\d+),\\d+\\]$", "\\1", rowname)),
+                  year = as.numeric(gsub("theta\\[\\d+,(\\d+)\\]$", "\\1", rowname)) + yr0) %>%
+    dplyr::left_join(id, by = "tribn2") %>%
+    dplyr::select(year, stock, tribn, theta = Mean)
 
 expand <- 
-  lapply(1:5, function(x) trib(x) %>% 
-                          dplyr::left_join(theta(x), by = "tribn") %>% 
-                          dplyr::mutate(stock = factor(unname(stock_id[x]), levels = stock_id))) %>% 
+  lapply(1:5, function(x) trib(x)) %>% 
   do.call(rbind, .) %>%
+  dplyr::left_join(theta, by = c("year", "stock", "tribn")) %>% 
   dplyr::mutate(ex_weir = ps,
                 ex_as = ex_weir * theta, 
                 year = as.character(year)) %>%
@@ -103,7 +104,9 @@ indicies <-
     dplyr::filter(!is.na(value))
 
 pal <- RColorBrewer::brewer.pal(6, "Paired")
-breaks <- id %>% 
+breaks <- 
+  id %>% 
+  dplyr::select(-tribn2) %>%
   dplyr::mutate(name = factor(trib, levels = c(trib, "Mark-Recapture")),
                 color = unlist(lapply(sapply(1:5, function(x) sum(stock == stock_id[x])), function(x) pal[1:x]))) %>%
   dplyr::select(-tribn, - trib) %>%

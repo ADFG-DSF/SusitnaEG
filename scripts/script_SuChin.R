@@ -75,16 +75,16 @@ parameters=c(
 'N.ta','q', 'b', 'q.star',
 'Dsum.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
 'p.S2', 'p.S3', 'p.S4', 'p.S5',
-'theta', 'Dsum.theta', 'ML1.theta', 'ML2.theta', "mu_ML1t", "mu_ML2t",
+'theta', 'b0.theta', 'b1.theta', 'b2.theta',
 'p.small3', 'p.small4', 
 'mu.Hmarine', 'mu.Habove'
 )
 
 #### run JAGS ####
-ptm = proc.time()
+#ptm = proc.time()
 jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
 update(jmod, n.iter=1000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=3000, thin=1)        # 10 min
+post = coda.samples(jmod, parameters, n.iter=1000, thin=1)        # 10 min
 update(jmod, n.iter=15000, by=1, progress.bar='text')               
 post = coda.samples(jmod, parameters, n.iter=10000, thin=10)         
 update(jmod, n.iter=100000, by=1, progress.bar='text')               
@@ -102,7 +102,7 @@ shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
 
-sapply(1:17, function(x){
+sapply(1:16, function(x){
   tibble::rownames_to_column(summary) %>% 
     dplyr::filter(grepl(paste0("^theta\\[", x, ",\\d+\\]"), rowname)) %>% 
     dplyr::select(Mean) %>% unlist()}

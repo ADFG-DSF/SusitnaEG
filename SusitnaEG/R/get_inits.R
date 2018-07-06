@@ -13,7 +13,6 @@ get_inits <- function(){
   stopifnot(exists("age_id", .GlobalEnv))
   
   list(
-    Bscale.theta = runif(5, 0.1, 0.75),
     Dscale.S2 = runif(1, 0.1, 0.5),
     Dscale.S3 = runif(1, 0.1, 0.5),
     Dscale.S4 = runif(1, 0.1, 0.5),
