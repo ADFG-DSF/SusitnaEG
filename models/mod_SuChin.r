@@ -268,11 +268,11 @@ for(trib in 1:3) {
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
     log.11S1[y] <- log(S[y, 1])						#Deshka one trib in stock
-	  weir[y, 1] ~ dlnorm(log.11S1[y], 400) 
+	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir) 
 	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])		#Montana
-      weir[y, 2] ~ dlnorm(log.1p4S2[y], 100)
+      weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)
 	log.1p6S2[y] <- log(p.S2[y, 6] * S[y, 2])		#Willow/Deception total
-      weir[y, 3] ~ dlnorm(log.1p6S2[y], 400)
+      weir[y, 3] ~ dlnorm(log.1p6S2[y], tau.weir)
     }
 
 # INRIVER RUN AND HARVESTS ESTIMATED
