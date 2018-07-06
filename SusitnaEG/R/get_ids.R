@@ -3,9 +3,10 @@
 #' Creates lookup tables to switch between informative names and jags array locations.
 #'
 #' @param year_range character vector with the indices of abundance included in the analysis.
-#' @param age_id named vector of beta names and beta column position.
+#' @param age_id named vector of age names and age column position.
 #'
-#' @return writes 3 objects to R's Global Environment; year_id and age_id where each object is a named vector where the names are informative
+#' @return writes 5 objects to R's Global Environment; year_id and stock_id where each object is a named vector where the names are jags array 
+#' locations and the elements are informative. age_id where each object is a named vector where the names are informative
 #' and the elements are jags array locations. Also, age_min and age_max the number of years between spawning and recruitment for the youngest and
 #' oldest non-negligible age classes.
 #'
@@ -20,8 +21,12 @@ get_ids <- function(year_range = 1979:2017,
 
   year_id <- as.character(year_range)
   names(year_id) <- 1:length(year_range)
+  
+  stock_id <- c("Deshka", "East Susitna", "Talkeetna", "Yentna", "Other")
+  names(stock_id) <- 1:length(stock_id)
 
   list <- list(year_id = year_id,
+               stock_id = stock_id,
                age_id = age_id,
                age_min = age_min,
                age_max = age_max)

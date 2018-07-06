@@ -1,7 +1,6 @@
-mr <- data.frame(mr_yentna =   c(rep(NA, 35), 22267, 48400, 31310, 17804), 
-                 mr_mainstem = c(rep(NA, 34), 89463, 68225, 88600, 66116, 45471))
-
-mr$cv_yentna <- rep(0.25, dim(mr)[1])
-mr$cv_mainstem <- rep(0.15, dim(mr)[1])
+mr <-
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of Susitna run reconstruction by stock.xlsx",
+                     range = "MR!B1:F40") %>%
+  as.matrix()
 
 devtools::use_data(mr, pkg = ".\\SusitnaEG", overwrite = TRUE)

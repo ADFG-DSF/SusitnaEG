@@ -13,7 +13,7 @@
 #'
 #' @export
 get_array <- function(stats_dat, node, statistic = "Mean"){
-  pattern <- paste0(node, "\\[")
+  pattern <- paste0("^", node, "\\[")
   df <- tibble::rownames_to_column(stats_dat) %>%
     dplyr::filter(grepl(pattern, rowname)) %>%
     tidyr::separate(rowname, into = c("year", "age"), ",") %>%

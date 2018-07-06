@@ -18,8 +18,8 @@ plot_profile <- function(profile_dat, rug = TRUE, goal_range = NA, profiles = c(
   profile_label <- ggplot2::as_labeller(c('OYP' = "Optimum Yield Profile",
                                           'OFP' = "Overfishing Profile",
                                           'ORP' = "Optimum Recruitment Profile"))
-  
-  rug_dat <- SusitnaEG:::get_BEGbounds(median(profile_dat$S.msy))
+  S.msy50 <- median(profile_dat$S.msy) 
+  rug_dat <- SusitnaEG:::get_BEGbounds(S.msy50)
   
   plot <- profile_dat %>%
     dplyr::select_("s", .dots = temp) %>%
@@ -31,7 +31,7 @@ plot_profile <- function(profile_dat, rug = TRUE, goal_range = NA, profiles = c(
                   max_pct = stringr::str_extract(key, "[0-9]+")) %>%
     ggplot2::ggplot(ggplot2::aes(x = s, y = prob, linetype = max_pct)) +
     ggplot2::geom_line() +
-    ggplot2::scale_x_continuous("Spawners", labels = scales::comma) +
+    ggplot2::scale_x_continuous("Spawners", limits = c(0, S.msy50 * 2.25), labels = scales::comma) +
     ggplot2::scale_y_continuous("Probability", breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
     ggplot2::scale_linetype_discrete(name = "Percent of Max.")+
     ggplot2::facet_grid(profile ~ ., labeller = profile_label) +

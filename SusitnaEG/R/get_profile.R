@@ -3,26 +3,41 @@
 #' This function creates a dataframe that can be used by plot_OYP_ORP()
 #'
 #' @param data An mcmc object with nodes "lnalpha", "beta", "S.msy", "lnalpha.c", "lnalpha.c.recent" from which you want to simulate SR relationships.
-#' @param s_ub the largest value of S for which you want to simulate R.
+#' @param stock_name A character element specifying the stock to plot.
+#'
+#' @return A data.frame
 #'
 #' @examples
-#' get_profile(post, 250000)
+#' get_ids()
+#' get_profile(post, stock_id[1])
+#' get_profile(post, "East Susitna")
+#' lapply(stock_id, get_profile, post_dat = post)
 #'
 #' @export
-get_profile <- function(data, s_ub){
+get_profile <- function(post_dat, stock_name){
+stopifnot(exists("stock_id", .GlobalEnv))
 
-selectnodes <-  c("lnalpha", "beta", "S.msy", "lnalpha.c")#, "lnalpha.c.recent")
-s <- seq(0, s_ub, by = s_ub / 1000)
-samples <- coda::nchain(data) * coda::niter(data)
+stock_n <- which(stock_id == stock_name)
+selectnodes <-  paste0(c("lnalpha[", "beta[", "S.msy[", "lnalpha.c["), stock_n, "]")
 
-sapply(selectnodes, function(x){get_post(data, var = x)}) %>% 
+samples <- coda::nchain(post_dat) * coda::niter(post_dat)
+
+temp <-
+  sapply(selectnodes, function(x){get_post(post_dat, var = x)}) %>% 
   as.data.frame() %>%
+  setNames(gsub("(^.*)\\[\\d\\]", "\\1", selectnodes)) %>%
   dplyr::mutate(R.msy = S.msy * exp(lnalpha.c - beta * S.msy),
                 R.max = 1/beta * exp(lnalpha.c - 1),
                 MSY = R.msy - S.msy) %>%
   dplyr::as.tbl() %>%
-  tibble::rownames_to_column(var = "id_var") %>%
-  dplyr::inner_join(data.frame(id_var = as.character(rep(1:samples, each = length(s))), s = rep(s, samples), stringsAsFactors = FALSE), by = "id_var") %>%
+  tibble::rownames_to_column(var = "id_var")
+
+s <- seq(0, median(temp$S.msy) * 4, by = median(temp$S.msy) * 4 / 1000)
+  
+dplyr::inner_join(temp,
+                  data.frame(id_var = as.character(rep(1:samples, each = length(s))), 
+                             s = rep(s, samples), stringsAsFactors = FALSE),
+                  by = "id_var") %>%
   dplyr::mutate(Rs = s  * exp(lnalpha.c  - beta * s),
                 #Rsr = s * exp(lnalpha.c.recent - beta * s),
                 SY = Rs - s,

@@ -4,21 +4,26 @@
 #'
 #' @param post_dat SRA model mcmc.list output
 #' @param stat_dat The output from get_summary() for the SRA model mcmc.list output
-#' @param upper The upper bound of the plot
+#' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_horse(post, get_summary(post), 35000)
+#' get_ids()
+#' plot_horse(post, get_summary(post), stock_id[1])
+#' plot_horse(post, get_summary(post), "East Susitna")
+#' lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
 #'
 #' @export
-plot_horse <- function(post_dat, stats_dat, upper){
+plot_horse <- function(post_dat, stats_dat, stock_name){
   stopifnot(exists("year_id", .GlobalEnv),
+            exists("stock_id", .GlobalEnv),
             exists("age_max", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
   
-  coeflines <- sapply(c("beta", "lnalpha"), function(x){get_post(post, var = x)}) %>% 
+  stock_n <- which(stock_id == stock_name)
+  coeflines <- sapply(paste0(c("beta", "lnalpha"), "[", stock_n, "]"), function(x){get_post(post_dat, var = x)}) %>% 
     as.data.frame() %>%
     dplyr::sample_n(40) %>%
     as.matrix() %>%
@@ -26,20 +31,21 @@ plot_horse <- function(post_dat, stats_dat, upper){
 
   param_50 <- stats_dat %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(rowname == "lnalpha" | rowname == "beta") %>%
+    dplyr::filter(rowname %in% paste0(c("beta", "lnalpha"), "[", stock_n, "]")) %>%
     dplyr::select_(as.name("50%")) %>%
     unlist()
 
   temp <- stats_dat %>%
     dplyr::select_(median =as.name("50%"), lb = as.name("5%"), ub = as.name("95%")) %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl("^R\\[|S\\[", rowname)) %>%
+    dplyr::filter(grepl(paste0("^R\\[\\d+,", stock_n, "\\]|S\\[\\d+,", stock_n, "\\]"), rowname)) %>%
     dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
            index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
            year = (name != "R") * (yr0 + index) + (name == "R") * (yr0_R + index))
 
   v_dat <-  temp %>% dplyr::filter(name == "R") %>% dplyr::select(vlb = lb, vub = ub, year)
   h_dat <-  temp %>% dplyr::filter(name == "S") %>% dplyr::select(hlb = lb, hub = ub, year)
+  upper = max(quantile(c(v_dat$vub, h_dat$hub), 0.95), temp$median)
   text_dat <-  temp %>%
     dplyr::select(median, name, year) %>%
     tidyr::spread(name, median) %>%

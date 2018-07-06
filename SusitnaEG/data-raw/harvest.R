@@ -24,8 +24,15 @@ Ha <- plot %>%
   dplyr::select(-counts, -n, -pct) %>%
   tidyr::spread(group, sum) %>%
   dplyr::ungroup() %>%
-#  dplyr::mutate_all(function(x) ifelse(is.na(x) | x == 0, 1, x)) %>%
-    print(n = 100)
+  dplyr::mutate_all(function(x) ifelse(is.na(x), 0, x)) %>%
+  dplyr::mutate(Deshka = C,
+                'East Susitna' = E,
+                Talkeetna = F,
+                Yentna = J + K + L + N,
+                Other = B) %>%
+  dplyr::select(Deshka, 'East Susitna', Talkeetna, Yentna, Other) %>%
+  dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
+  as.matrix()
 
 devtools::use_data(Ha, pkg = ".\\SusitnaEG", overwrite = TRUE)
 

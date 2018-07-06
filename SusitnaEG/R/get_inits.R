@@ -13,19 +13,18 @@ get_inits <- function(){
   stopifnot(exists("age_id", .GlobalEnv))
   
   list(
-    Bfork.scale = runif(1, 0.1, 0.75),
-    Btheta.scale = runif(11, 0.1, 0.75),
-    D.scale = runif(1, 0.1, 0.5),
-    Dtrib.scale = runif(1, 0.1, 0.5),
-    beta = rlnorm(1, log(2e-5), 0.4),
-    lnalpha = rlnorm(1, log(1.6), 0.4),
-    log.resid.0 = rnorm(1, 0, 1),
-    mean.log.R = rnorm(1, 11.3, 0.5),
+    Dscale.S2 = runif(1, 0.1, 0.5),
+    Dscale.S3 = runif(1, 0.1, 0.5),
+    Dscale.S4 = runif(1, 0.1, 0.5),
+    Dscale.S5 = runif(1, 0.1, 0.5),
+    beta = rlnorm(5, log(2e-5), 0.4),
+    lnalpha = rlnorm(5, log(1.6), 0.4),
+    log.resid.0 = rnorm(5, 0, 1),
+    mean.log.R = rnorm(5, 11.3, 0.5),
     phi = runif(1, 0.25, 0.75),
     tau.R = runif(1, 1, 25),
     tau.white = runif(1, 1, 25),
-    tau.asmain = runif(1, 1, 25),
-    tau.asyent = runif(1, 1, 25),
+    tau.air = runif(5, 1, 25),
     tau.weir = runif(1, 1, 25),
     ML1 = c(runif(length(age_id) - 1, -1, 1), NA),
     ML2 = c(runif(length(age_id) - 1, -0.1, 0.1), NA)
