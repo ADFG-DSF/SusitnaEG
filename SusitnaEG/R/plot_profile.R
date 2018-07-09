@@ -24,6 +24,7 @@ plot_profile <- function(profile_dat, rug = TRUE, goal_range = NA, profiles = c(
   plot <- profile_dat %>%
     dplyr::select_("s", .dots = temp) %>%
     dplyr::group_by(s) %>%
+    dplyr::filter(s <= S.msy50 * 2.25) %>%
     dplyr::summarise_all(mean, na.rm = TRUE) %>%
     tidyr::gather("key", "prob", -s, factor_key = TRUE) %>%
     dplyr::mutate(profile = factor(stringr::str_extract(key, "[A-Z]+"),

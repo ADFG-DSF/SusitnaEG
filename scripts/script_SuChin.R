@@ -19,7 +19,7 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Ha.hat <- Ha %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha.hat0)[1], ncol = dim(Ha.hat0)[2]))
+Ha.hat <- Ha %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha)[1], ncol = dim(Ha)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%
@@ -34,20 +34,13 @@ x.a <- as.matrix(a[, grepl("x", names(a))])
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp,  
-  tele.S2 = telemetry$'East Susitna', Ntele.S2 = telemetry$'N_East Susitna',
-  tele.S3 = telemetry$Talkeetna, Ntele.S3 = telemetry$N_Talkeetna,
-  tele.S4 = telemetry$Yentna, Ntele.S4 = telemetry$N_Yentna,
-  tele.S5 = telemetry$Other, Ntele.S5 = telemetry$N_Other,
-  air.S1 = as.vector(as[[1]]), 
-  air.S2 = as[[2]],
-  air.S3 = as[[3]],
-  air.S4 = as[[4]],
-  air.S5 = as[[5]], 
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, 
+  tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna, tele.S5 = telemetry$Other,
+  Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna, Ntele.S5 = telemetry$N_Other,
+  air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
   Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.Hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
-  MR = mr, 
-  cv.MR = rep(0.15, dim(mr)[1]),
+  MR = mr, cv.MR = rep(0.15, dim(mr)[1]),
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
@@ -67,7 +60,7 @@ parameters=c(
 'N.ta','q', 'b', 'q.star',
 'Dsum.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
 'p.S2', 'p.S3', 'p.S4', 'p.S5',
-'theta', 'b0.theta', 'b1.theta', 'b2.theta',
+'theta', 'b1.theta',
 'p.small3', 'p.small4', 
 'mu.Hmarine', 'mu.Habove'
 )
@@ -93,27 +86,6 @@ endtime[3]/60/60
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
-
-sapply(1:16, function(x){
-  tibble::rownames_to_column(summary) %>% 
-    dplyr::filter(grepl(paste0("^theta\\[", x, ",\\d+\\]"), rowname)) %>% 
-    dplyr::select(Mean) %>% unlist()}
-)
-
-tibble::rownames_to_column(summary) %>% 
-  dplyr::filter(grepl(paste0("^theta\\["), rowname)) %>% 
-  dplyr::mutate(year = gsub("theta\\[\\d+,(\\d+)\\]", "\\1", rowname),
-                trib = gsub("theta\\[(\\d+),\\d+\\]", "\\1", rowname)) %>%
-  ggplot(aes(x = as.numeric(year), y = Mean, color = trib)) +
-    geom_line()
-
-lapply(1:5, function(x){
-  tibble::rownames_to_column(summary) %>% 
-    dplyr::filter(grepl(paste0("^mu.Habove\\[\\d+,", x, "\\]"), rowname)) %>% 
-    dplyr::select(Mean) %>% 
-    unlist() %>% 
-    hist()}
-  )
 
 ##changes in q##
 new <- get_array(summary, "q") %>%
@@ -144,6 +116,7 @@ lapply(1:5, function(x) plot_state(summary, stock = x, S_msr = TRUE))
 plot_statepairs(post)
 
 #2d age at maturity and age comp arrays
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("b", rowname))
 table_age(summary, "p") #age-at-maturity
 table_age(summary, "q") #age comp
 table_age(summary, "N.ta") #total run by age
