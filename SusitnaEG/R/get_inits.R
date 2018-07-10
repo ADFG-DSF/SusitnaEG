@@ -24,7 +24,8 @@ get_inits <- function(){
     phi = runif(1, 0.25, 0.75),
     tau.R = runif(1, 1, 25),
     tau.white = runif(1, 1, 25),
-    tau.air = runif(5, 1, 25),
+    z.air = runif(16, 0, 0.5),
+    g.air = runif(16, 0, 0.5),
     tau.weir = runif(1, 1, 25),
     ML1 = c(runif(length(age_id) - 1, -1, 1), NA),
     ML2 = c(runif(length(age_id) - 1, -0.1, 0.1), NA)

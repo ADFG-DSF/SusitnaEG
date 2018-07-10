@@ -131,9 +131,9 @@ for (y in 1:Y) {
   # pi.S2[1] <- pi.S2.1p
   # pi.S2[2] <- pi.S2.2p * (1 - pi.S2[1])
   # pi.S2[3] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2])
-  # pi.S2[4] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
-  # pi.S2[5] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
-  # pi.S2[6] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
+  # pi.S2[4] <- pi.S2.4p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
+  # pi.S2[5] <- pi.S2.5p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
+  # pi.S2[6] <- pi.S2.6p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
   # pi.S2[7] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6]
   pi.S2 ~ ddirch(c(1, 1, 1, 1, 1, 1, 1))
 for (trib in 1:7) {
@@ -171,7 +171,7 @@ for (trib in 1:3) {
   # pi.S4[1] <- pi.S4.1p
   # pi.S4[2] <- pi.S4.2p * (1 - pi.S4[1])
   # pi.S4[3] <- pi.S4.3p * (1 - pi.S4[1] - pi.S4[2])
-  # pi.S4[4] <- pi.S4.3p * (1 - pi.S4[1] - pi.S4[2] - pi.S4[3])
+  # pi.S4[4] <- pi.S4.4p * (1 - pi.S4[1] - pi.S4[2] - pi.S4[3])
   # pi.S4[5] <- 1 -  pi.S4[1] - pi.S4[2] - pi.S4[3] - pi.S4[4]
   pi.S4 ~ ddirch(c(1, 1, 1, 1, 1))
 for (trib in 1:5) {
@@ -223,10 +223,15 @@ for (trib in 1:16){
   }
 
 # AIR SURVEY COUNTS W LOGNORMAL ERRORS
-for (stock in 1:5){
-	tau.air[stock] ~ dgamma(0.1,0.01)
-	sigma.air[stock] <- 1 / sqrt(tau.air[stock])
+for (trib in 1:16){
+	sigma.air[trib] <- abs(z.air[trib]) / sqrt(g.air[trib]) 
+	z.air[trib] ~ dnorm(0, invBsq)
+	g.air[trib] ~ dgamma(0.5, 0.5)
+	tau.air[trib] <- 1 / sigma.air[trib] / sigma.air[trib]
 }
+B ~ dunif(0,1)
+invBsq <- 1 / B / B
+
 
 # DESHKA survey data
 # one trib in the stock
@@ -238,28 +243,28 @@ for(y in 1:Y){
 for(trib in 1:6) {
 	for(y in 1:Y){
 	log.tpS2[y, trib] <- log(theta[(trib + 1), y] * p.S2[y, trib] * S[y, 2])
-	air.S2[y, trib] ~ dlnorm(log.tpS2[y, trib], tau.air[2])
+	air.S2[y, trib] ~ dlnorm(log.tpS2[y, trib], tau.air[trib + 1])
 	}
 }
 
 for(trib in 1:2) {
 	for(y in 1:Y){
 	log.tpS3[y, trib] <- log(theta[(trib + 7), y] * p.S3[y, trib] * S[y, 3])
-	air.S3[y, trib] ~ dlnorm(log.tpS3[y, trib], tau.air[3])
+	air.S3[y, trib] ~ dlnorm(log.tpS3[y, trib], tau.air[trib + 7])
 	}
 }
 
 for(trib in 1:4) {
 	for(y in 1:Y){
 	log.tpS4[y, trib] <- log(theta[(trib + 9), y] * p.S4[y, trib] * S[y, 4])
-	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[4])
+	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[trib + 9])
 	}
 }
 
 for(trib in 1:3) {
 	for(y in 1:Y){
 	log.tpS5[y, trib] <- log(theta[(trib + 13), y] * p.S5[y, trib] * S[y, 5])
-	air.S5[y, trib] ~ dlnorm(log.tpS5[y, trib], tau.air[5])
+	air.S5[y, trib] ~ dlnorm(log.tpS5[y, trib], tau.air[trib + 13])
 	}
 }
    

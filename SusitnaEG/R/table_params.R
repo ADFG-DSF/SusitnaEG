@@ -22,7 +22,6 @@ table_params <- function(stats_dat){
                                 "Dsum.age",
                                 paste0("Dsum.S", 2:5), 
                                 paste0("Bsum.theta[", 1:5, "]"),
-                                paste0("sigma.air[", 1:5, "]"),
                                 "sigma.weir"),
                     Parameter = c(rep("ln($\\alpha$)", 5),
                                   rep("$\\beta$", 5),
@@ -35,7 +34,6 @@ table_params <- function(stats_dat){
                                   "$D_{age}",
                                   rep("$D_{comp}", 4),
                                   rep("$B_{theta}$", 5),
-                                  rep("$\\sigma_{air}$", 5),
                                   "$\\sigma_{weir}$"),
                     stringsAsFactors = FALSE)
 
