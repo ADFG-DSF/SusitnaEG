@@ -13,37 +13,37 @@
 table_params <- function(stats_dat){
   lut <- data.frame(rowname = c(paste0("lnalpha[", 1:5, "]"),
                                 paste0("beta[", 1:5, "]"),
-                                "phi",
-                                "sigma.white",
+                                paste0("phi[", 1:5, "]"),
+                                paste0("sigma.white[", 1:5, "]"),
                                 paste0("S.max[", 1:5, "]"),
                                 paste0("S.eq[", 1:5, "]"),
                                 paste0("S.msy[", 1:5, "]"),
                                 paste0("U.msy[", 1:5, "]"),
                                 "Dsum.age",
                                 paste0("Dsum.S", 2:5), 
-                                paste0("Bsum.theta[", 1:5, "]"),
                                 paste0("sigma.air[", 1:5, "]"),
                                 "sigma.weir"),
                     Parameter = c(rep("ln($\\alpha$)", 5),
                                   rep("$\\beta$", 5),
-                                  "$\\phi$",
-                                  "$\\sigma_{w}$",
+                                  rep("$\\phi$", 5),
+                                  rep("$\\sigma_{w}$", 5),
                                   rep("$S_{MSR}$", 5),
                                   rep("$S_{EQ}$", 5),
                                   rep("$S_{MSY}$", 5),
                                   rep("$U_{MSY}$", 5),
                                   "$D_{age}",
                                   rep("$D_{comp}", 4),
-                                  rep("$B_{theta}$", 5),
                                   rep("$\\sigma_{air}$", 5),
                                   "$\\sigma_{weir}$"),
                     stringsAsFactors = FALSE)
 
   stats_dat %>%
-    dplyr::select_(median = as.name("50%"), q05 = as.name("5%"), q95 = as.name("95%")) %>%
+    dplyr::select_(median = as.name("50%"), sd = "SD", q05 = as.name("5%"), q95 = as.name("95%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::right_join(lut, by = "rowname") %>%
-    dplyr::mutate(cv = sqrt(exp(((log(q95)-log(q05))/1.645/2)^2)-1),
+    dplyr::mutate(cv = ifelse(grepl("^S.", rowname),
+                              sqrt(exp(((log(q95)-log(abs(q05)))/1.645/2)^2)-1), #Geometric CV for lognormals, abs(q05) to suppresses NaN warning on phi
+                              sd / abs(median)),
                   stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname),
                   stock = ifelse(stock0 %in% 1:5, stock0, 
                                  ifelse(grepl("^Dsum.S(\\d)", stock0), gsub("^Dsum.S(\\d)", "\\1", stock0), "1"))) %>%
