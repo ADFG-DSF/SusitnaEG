@@ -5,28 +5,29 @@
 ################################################################################
 model{
   for (stock in 1:5){
-#  	tau.white[stock] ~ dgamma(0.001,0.001)
-#	tau.red[stock] <- tau.white[stock] * (1-phi*phi)
-#	sigma.white[stock] <- 1 / sqrt(tau.white[stock])
-#	sigma.red[stock] <- 1 / sqrt(tau.red[stock])
+ 	tau.white[stock] ~ dgamma(0.001,0.001)
+	tau.red[stock] <- tau.white[stock] * (1-phi[stock]*phi[stock])
+	sigma.white[stock] <- 1 / sqrt(tau.white[stock])
+	sigma.red[stock] <- 1 / sqrt(tau.red[stock])
 	log.resid.vec[1:(Y - a.min), stock] <- log.resid[(A+a.min):(Y+A-1), stock]
 	lnalpha.vec[1:(Y - a.min), stock] <- lnalpha.y[(A+a.min):(Y+A-1), stock]
 	  for (c in (A+a.min):(Y+A-1)) {
-		log.R[c, stock] ~ dt(log.R.mean2[c, stock],tau.white,500)
+		log.R[c, stock] ~ dt(log.R.mean2[c, stock],tau.white[stock],500)
 		R[c, stock] <- exp(log.R[c, stock])
 		log.R.mean1[c, stock] <- log(S[c-a.max, stock]) + lnalpha[stock] - beta[stock] * S[c-a.max, stock] 
 		log.resid[c, stock] <- log(R[c, stock]) - log.R.mean1[c, stock]
 		lnalpha.y[c, stock] <- lnalpha[stock] + log.resid[c, stock] 
 		}
-	  log.R.mean2[A+a.min, stock] <- log.R.mean1[A+a.min, stock] + phi * log.resid.0[stock]
+	  log.R.mean2[A+a.min, stock] <- log.R.mean1[A+a.min, stock] + phi[stock] * log.resid.0[stock]
 	  for (c in (A+a.min+1):(Y+A-1)) {
-		log.R.mean2[c, stock] <- log.R.mean1[c, stock] + phi * log.resid[c-1, stock]
+		log.R.mean2[c, stock] <- log.R.mean1[c, stock] + phi[stock] * log.resid[c-1, stock]
 		}
-	  lnalpha[stock] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,) #dnorm(0,1.0E-6)T(0,)
-	  beta[stock] ~ dnorm(mu.beta, tau.beta)T(0, ) #dnorm(0,1.0E-2)T(0,)                                                             
-	  log.resid.0[stock] ~ dnorm(0,tau.red)T(-3,3) 
+	  lnalpha[stock] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,) #dnorm(0,1.0E-6)T(0,)  
+	  beta[stock] ~ dnorm(0,1.0E-2)T(0,)
+	  log.resid.0[stock] ~ dnorm(0,tau.red[stock])T(-3,3) 
 	  alpha[stock] <- exp(lnalpha[stock])
-	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white * sigma.white / 2 / (1-phi*phi) )
+	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white[stock] * sigma.white[stock] / 2 / (1-phi[stock]*phi[stock]) )
+	  phi[stock] ~ dnorm(mu.phi, tau.phi)
 	  S.max[stock] <- 1 / beta[stock]
 	  S.eq[stock] <- lnalpha.c[stock] * S.max[stock]
 	  S.msy[stock] <- S.eq[stock] * (0.5 - 0.07*lnalpha.c[stock])
@@ -40,17 +41,16 @@ model{
 		R[c, stock] <- exp(log.R[c, stock])
 		}
 	}
-	phi ~ dnorm(0,1.0E-4)T(-1,1)
+	mu.phi ~ dunif(-1, 1)
+	tau.phi ~ dgamma(0.001,0.001)
+	sigma.phi <- 1 / sqrt(tau.phi)
 	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
-	mu.beta ~ dnorm(0, 1E-6)T(0,)
 	tau.lnalpha ~ dgamma(0.001,0.001)
-	tau.beta ~ dgamma(0.001,0.001)
 	sigma.lnalpha <- 1 / sqrt(tau.lnalpha)
-	sigma.beta <- 1 / sqrt(tau.beta)
-	tau.white ~ dgamma(0.001,0.001)
-	tau.red <- tau.white * (1-phi*phi)
-	sigma.white <- 1 / sqrt(tau.white)
-	sigma.red <- 1 / sqrt(tau.red)
+	# tau.white ~ dgamma(0.001,0.001)
+	# tau.red <- tau.white * (1-phi*phi)
+	# sigma.white <- 1 / sqrt(tau.white)
+	# sigma.red <- 1 / sqrt(tau.red)
 	tau.R ~ dgamma(0.001,0.001)      
 	sigma.R0 <- 1 / sqrt(tau.R)
        

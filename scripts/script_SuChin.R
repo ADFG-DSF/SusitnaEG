@@ -52,8 +52,8 @@ inits <- list(get_inits(), get_inits())
 ####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
 'sigma.white', 'sigma.R0', 'sigma.air', 'B', 'sigma.weir',
-'beta', 'mu.beta', 'sigma.beta', 'lnalpha', 'mu.lnalpha', 'sigma.lnalpha', 'lnalpha.c', 'alpha', 'lnalpha.vec', 
-'phi', 'log.resid.0', 'log.resid.vec',
+'beta', 'lnalpha', 'mu.lnalpha', 'sigma.lnalpha', 'lnalpha.c', 'alpha', 'lnalpha.vec', 
+'phi', 'mu.phi', 'sigma.phi', 'log.resid.0', 'log.resid.vec',
 'S.eq', 'S.max', 'S.msy', 'U.msy',
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
@@ -102,7 +102,7 @@ old <- get_array(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds"
 #estimates unchanged late in time series (only weir data)
 #early estimates generaly smaller percentages of age4 and larger percentages of age1 & age2
 rbind(new, old) %>%
-  ggplot(aes(x = year, y = prop, color = model)) +
+  ggplot(aes(x = year, y = propln, color = model)) +
   geom_line() +
   facet_grid(age ~ .)
 
