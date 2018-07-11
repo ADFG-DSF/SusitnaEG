@@ -58,7 +58,7 @@ parameters=c(
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star',
-'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
+'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
 'p.S2', 'p.S3', 'p.S4', 'p.S5',
 'theta', 'b1.theta',
 'p.small3', 'p.small4', 
