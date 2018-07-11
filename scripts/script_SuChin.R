@@ -51,7 +51,7 @@ inits <- list(get_inits(), get_inits())
 
 ####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
-'sigma.white', 'sigma.R0', 'sigma.air', 'sigma.weir',
+'sigma.white', 'sigma.R0', 'sigma.air', 'B', 'sigma.weir',
 'beta', 'mu.beta', 'sigma.beta', 'lnalpha', 'mu.lnalpha', 'sigma.lnalpha', 'lnalpha.c', 'alpha', 'lnalpha.vec', 
 'phi', 'log.resid.0', 'log.resid.vec',
 'S.eq', 'S.max', 'S.msy', 'U.msy',
