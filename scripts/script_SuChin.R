@@ -58,7 +58,7 @@ parameters=c(
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star',
-'Dsum.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
+'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'Dsum.S4', 'Dsum.S5',
 'p.S2', 'p.S3', 'p.S4', 'p.S5',
 'theta', 'b1.theta',
 'p.small3', 'p.small4', 
@@ -127,6 +127,7 @@ table_stock(summary)
 plot_stock(telemetry, summary)
 
 plot_theta(summary)
+plot_airerror(summary)
 
 lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
 lapply(stock_id, plot_rickeryear, stats_dat = summary)

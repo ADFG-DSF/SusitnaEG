@@ -119,28 +119,25 @@ for (y in 1:Y) {
   }
 }	
 
-# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITION BY CALENDAR YEAR- East
+# East
+# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
+# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S2 ~ dunif(0.01,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
-  # pi.S2.1p ~ dbeta(0.14,0.86)T(0.03,)
-  # pi.S2.2p ~ dbeta(0.14,0.72)
-  # pi.S2.3p ~ dbeta(0.14,0.58)
-  # pi.S2.4p ~ dbeta(0.14,0.44)
-  # pi.S2.5p ~ dbeta(0.14,0.30)
-  # pi.S2.6p ~ dbeta(0.14,0.16)
-  # pi.S2[1] <- pi.S2.1p
-  # pi.S2[2] <- pi.S2.2p * (1 - pi.S2[1])
-  # pi.S2[3] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2])
-  # pi.S2[4] <- pi.S2.4p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
-  # pi.S2[5] <- pi.S2.5p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
-  # pi.S2[6] <- pi.S2.6p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
-  # pi.S2[7] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6]
-  pi.S2 ~ ddirch(c(1, 1, 1, 1, 1, 1, 1))
-for (trib in 1:7) {
-    gamma.S2[trib] <- Dsum.S2 * pi.S2[trib]
-    for (y in 1:Y) {
-      g.S2[y,trib] ~ dgamma(gamma.S2[trib],0.1)
-      p.S2[y,trib] <- g.S2[y,trib]/sum(g.S2[y,])
+  ML1.S2[7] <- 0  
+  ML2.S2[7] <- 0
+for (trib in 1:6) { 
+  ML1.S2[trib] ~ dnorm(0,0.0001) 
+  ML2.S2[trib] ~ dnorm(0,0.0001) 
+  }
+
+for (y in 1:Y) {
+	for (trib in 1:7) {
+	  logistic.S2[y, trib] <- exp(ML1.S2[trib] + ML2.S2[trib] * y)
+      pi.S2[y, trib] <- logistic.S2[y, trib] / sum(logistic.S2[y, ])
+      gamma.S2[y, trib] <- Dsum.S2 * pi.S2[y, trib]
+      g.S2[y, trib] ~ dgamma(gamma.S2[y, trib], 0.1)
+      p.S2[y, trib] <- g.S2[y, trib]/sum(g.S2[y, ])
       }
     }
 
