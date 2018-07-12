@@ -59,7 +59,7 @@ parameters=c(
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star',
 'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
-'p.S2', 'p.S3', 'p.S4', 'p.S5',
+'p.S2', 'p.S3', 'p.S4', 'p.S5', 'Bsum.So',
 'theta', 'b1.theta',
 'p.small3', 'p.small4', 
 'mu.Hmarine', 'mu.Habove'
@@ -127,7 +127,7 @@ table_stock(summary)
 plot_stock(telemetry, summary)
 
 plot_theta(summary)
-plot_airerror(summary)
+table_airerror(summary)
 
 lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
 lapply(stock_id, plot_rickeryear, stats_dat = summary)

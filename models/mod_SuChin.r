@@ -124,20 +124,23 @@ for (y in 1:Y) {
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S2 ~ dunif(0.01,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
-  ML1.S2[7] <- 0  
-  ML2.S2[7] <- 0
-for (trib in 1:6) { 
+  ML1.S2[6] <- 0  
+  ML2.S2[6] <- 0
+for (trib in 1:5) { 
   ML1.S2[trib] ~ dnorm(0,0.0001) 
-  ML2.S2[trib] ~ dunif(-0.05, 0.05) 
+  ML2.S2[trib] ~ dnorm(0,0.0001) 
   }
+
 for (y in 1:Y) {
-	for (trib in 1:7) {
+	for (trib in 1:6) {
 	  logistic.S2[y, trib] <- exp(ML1.S2[trib] + ML2.S2[trib] * y)
       pi.S2[y, trib] <- logistic.S2[y, trib] / sum(logistic.S2[y, ])
       gamma.S2[y, trib] <- Dsum.S2 * pi.S2[y, trib]
       g.S2[y, trib] ~ dgamma(gamma.S2[y, trib], 0.1)
-      p.S2[y, trib] <- g.S2[y, trib]/sum(g.S2[y, ])
+      p.S2s[y, trib] <- g.S2[y, trib]/sum(g.S2[y, ])
+	  p.S2[y, trib] <- p.S2s[y, trib] * (1 - p.S2o[y])
       }
+	  p.S2[y, 7] <- p.S2o[y]
     }
 
 # Talkeetna
@@ -145,20 +148,21 @@ for (y in 1:Y) {
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S3 ~ dunif(0.01,1)
   Dsum.S3 <- 1 / (Dscale.S3 * Dscale.S3)
-  ML1.S3[3] <- 0  
-  ML2.S3[3] <- 0
-for (trib in 1:2) { 
-  ML1.S3[trib] ~ dnorm(0,0.0001)
-  ML2.S3[trib] ~ dunif(-0.05, 0.05) 
-  }
+  ML1.S3[2] <- 0  
+  ML2.S3[2] <- 0
+  ML1.S3[1] ~ dnorm(0,0.0001)
+  ML2.S3[1] ~ dnorm(0,0.0001) 
+
 for (y in 1:Y) {
-	for (trib in 1:3) {
+	for (trib in 1:2) {
 	  logistic.S3[y, trib] <- exp(ML1.S3[trib] + ML2.S3[trib] * y)
       pi.S3[y, trib] <- logistic.S3[y, trib] / sum(logistic.S3[y, ])
       gamma.S3[y, trib] <- Dsum.S3 * pi.S3[y, trib]
       g.S3[y, trib] ~ dgamma(gamma.S3[y, trib], 0.1)
-      p.S3[y, trib] <- g.S3[y, trib]/sum(g.S3[y, ])
+      p.S3s[y, trib] <- g.S3[y, trib]/sum(g.S3[y, ])
+	  p.S3[y, trib] <- p.S3s[y, trib] * (1 - p.S3o[y])
       }
+	  p.S3[y, 3] <- p.S3o[y]
     }
 
 # Yentna
@@ -166,20 +170,23 @@ for (y in 1:Y) {
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S4 ~ dunif(0.01,1)
   Dsum.S4 <- 1 / (Dscale.S4 * Dscale.S4)
-  ML1.S4[5] <- 0  
-  ML2.S4[5] <- 0
-for (trib in 1:4) { 
+  ML1.S4[4] <- 0  
+  ML2.S4[4] <- 0
+for (trib in 1:3) { 
   ML1.S4[trib] ~ dnorm(0,0.0001) 
-  ML2.S4[trib] ~ dunif(-0.05, 0.05) 
+  ML2.S4[trib] ~ dnorm(0,0.0001) 
   }
+
 for (y in 1:Y) {
-	for (trib in 1:5) {
+	for (trib in 1:4) {
 	  logistic.S4[y, trib] <- exp(ML1.S4[trib] + ML2.S4[trib] * y)
       pi.S4[y, trib] <- logistic.S4[y, trib] / sum(logistic.S4[y, ])
       gamma.S4[y, trib] <- Dsum.S4 * pi.S4[y, trib]
       g.S4[y, trib] ~ dgamma(gamma.S4[y, trib], 0.1)
-      p.S4[y, trib] <- g.S4[y, trib]/sum(g.S4[y, ])
+	  p.S4s[y, trib] <- g.S4[y, trib]/sum(g.S4[y, ])
+	  p.S4[y, trib] <- p.S4s[y, trib] * (1 - p.S4o[y])
       }
+	  p.S4[y, 5] <- p.S4o[y]
     }	
 
 # Other
@@ -187,28 +194,51 @@ for (y in 1:Y) {
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S5 ~ dunif(0.01,1)
   Dsum.S5 <- 1 / (Dscale.S5 * Dscale.S5)
-  ML1.S5[4] <- 0  
-  ML2.S5[4] <- 0
-for (trib in 1:3) { 
+  ML1.S5[3] <- 0  
+  ML2.S5[3] <- 0
+for (trib in 1:2) { 
   ML1.S5[trib] ~ dnorm(0,0.0001) 
-  ML2.S5[trib] ~ dunif(-0.05, 0.05) 
+  ML2.S5[trib] ~ dnorm(0,0.0001) 
   }
+
 for (y in 1:Y) {
-	for (trib in 1:4) {
+	for (trib in 1:3) {
 	  logistic.S5[y, trib] <- exp(ML1.S5[trib] + ML2.S5[trib] * y)
       pi.S5[y, trib] <- logistic.S5[y, trib] / sum(logistic.S5[y, ])
       gamma.S5[y, trib] <- Dsum.S5 * pi.S5[y, trib]
       g.S5[y, trib] ~ dgamma(gamma.S5[y, trib], 0.1)
-      p.S5[y, trib] <- g.S5[y, trib]/sum(g.S5[y, ])
+      p.S5s[y, trib] <- g.S5[y, trib]/sum(g.S5[y, ])
+	  p.S5[y, trib] <- p.S5s[y, trib] * (1 - p.S5o[y])
       }
+	  p.S5[y, 4] <- p.S5o[y]
     }	
 
 # MULTINOMIAL COUNTS OF RADIOS TRACKED TO INDIVIDUAL TRIBS
 for (y in 1:Y) { 
-    tele.S2[y, ] ~  dmulti(p.S2[y, ], Ntele.S2[y])
-    tele.S3[y, ] ~  dmulti(p.S3[y, ], Ntele.S3[y])
-	tele.S4[y, ] ~  dmulti(p.S4[y, ], Ntele.S4[y])
-	tele.S5[y, ] ~  dmulti(p.S5[y, ], Ntele.S5[y])
+    tele.S2[y, 1:6] ~  dmulti(p.S2s[y, ], Ntele.S2[y] - tele.S2[y, 7])
+    tele.S3[y, 1:2] ~  dmulti(p.S3s[y, ], Ntele.S3[y] - tele.S3[y, 3])
+	tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
+	tele.S5[y, 1:3] ~  dmulti(p.S5s[y, ], Ntele.S5[y] - tele.S5[y, 4])
+}
+
+for(trib in 1:4){
+  p.So.mean[trib] ~ dbeta(1, 1)
+  Bscale.So[trib] ~ dunif(0.01, 1)
+  Bsum.So[trib] <- 1 / Bscale.So[trib] / Bscale.So[trib]
+  B1.So[trib] <- Bsum.So[trib] * p.So.mean[trib]
+  B2.So[trib] <- Bsum.So[trib] - B1.So[trib]
+}
+
+# MULTINOMIAL COUNTS OF RADIOS TRACKED TO Surveyed Areas
+for (y in 1:Y) {
+  p.S2o[y] ~ dbeta(B1.So[1], B2.So[1])
+  p.S3o[y] ~ dbeta(B1.So[2], B2.So[2])
+  p.S4o[y] ~ dbeta(B1.So[3], B2.So[3])
+  p.S5o[y] ~ dbeta(B1.So[4], B2.So[4]) 
+  tele.S2[y, 7] ~  dbinom(p.S2o[y], Ntele.S2[y])
+  tele.S3[y, 3] ~  dbinom(p.S3o[y], Ntele.S3[y])
+  tele.S4[y, 5] ~  dbinom(p.S4o[y], Ntele.S4[y])
+  tele.S5[y, 4] ~  dbinom(p.S5o[y], Ntele.S5[y])
 }
 
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
