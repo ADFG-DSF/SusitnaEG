@@ -16,9 +16,8 @@
 plot_statepairs <- function(dat_post, 
                             pars = c(paste0("beta[", 1:5, "]"),
                                      paste0("lnalpha[", 1:5, "]"),
-                                     'phi',
-                                     paste0('S.msy[', 1:5, "]"),
-                                     'sigma.white'), 
+                                     paste0("phi[", 1:5, "]"),
+                                     paste0("sigma.white[", 1:5, "]")), 
                             n = 200, 
                             trim = 0.05){
   postdf <- as.data.frame(as.matrix(dat_post))   

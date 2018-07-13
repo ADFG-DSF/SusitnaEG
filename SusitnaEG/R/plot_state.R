@@ -3,19 +3,24 @@
 #' Produces a faceted plot of escapement, recruitment, total run, Ricker residuals and harvest rate plotted with 95% confidence envelopes.
 #'
 #' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param stock_name A character element specifying the stock to plot.
 #' @param S_msr Logical (TRUE) indicating if S_msr shoud be included in the escapement panel.  Defaults to FALSE.
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_state(get_summary(post_er), TRUE)
+#' plot_state(get_summary(post), stock_id[1])
+#' plot_state(get_summary(post), "East Susitna")
+#' lapply(stock_id, plot_state, stats_dat = get_summary(post))
 #'
 #' @export
-plot_state <- function(stats_dat, stock, S_msr = FALSE){
+plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
   stopifnot(exists("year_id", .GlobalEnv),
-            exists("age_max", .GlobalEnv))
+            exists("age_max", .GlobalEnv),
+            exists("stock_id", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
+  stock <- unname(which(stock_id == stock_name))
   
 msy50 <- stats_dat %>%
   dplyr::select_(median = as.name("50%")) %>%
@@ -61,6 +66,7 @@ plot <-
     ggplot2::geom_hline(data = msy50, ggplot2::aes(yintercept = median), color = "red", linetype = 2) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
     ggplot2::theme_bw() +
+    ggplot2::ggtitle(stock_name) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
 
 if(S_msr == TRUE) {plot <- plot +     ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5)}

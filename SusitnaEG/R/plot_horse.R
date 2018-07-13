@@ -64,5 +64,6 @@ plot_horse <- function(post_dat, stats_dat, stock_name){
     ggplot2::coord_cartesian(xlim = c(0, upper), ylim = c(0, upper)) +
     ggplot2::geom_abline(slope = 1, size = 1) +
     ggplot2::theme_bw() +
+    ggplot2::ggtitle(stock_name) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"))
 }

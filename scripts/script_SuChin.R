@@ -1,20 +1,6 @@
 packs <- c("SusitnaEG", "rjags", "coda", "ggplot2")
 lapply(packs, require, character.only = TRUE)
 
-##Motivating example##
-#Sampling programs are bias
-#Creel biased toawrds larger fish
-age[, 3:7] %>% 
-  (function(x) {x/rowSums(x)}) %>% 
-  cbind(age[, c("year", "location")]) %>% 
-  tidyr::gather(age, p, -year, -location) %>%
-  dplyr::mutate(loc2 = ifelse(grepl("creel|Creel", location), "Creel",
-                              ifelse(grepl("weir|Weir", location), "Weir", "Other"))) %>%
-  dplyr::filter(year >= "1979") %>%
-  ggplot(aes(x = year, y = p, color = loc2)) +
-  geom_point() +
-  facet_grid(age ~ .)
-
 rm(list=ls(all=TRUE))
 
 get_ids()
@@ -79,44 +65,27 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 
-#saveRDS(post, file = ".\\posts\\SuChinook_fourages_3ec064bc.rds")
-#post <- readRDS(paste0(".\\posts\\", stock, version, ".rds"))
+saveRDS(post, file = ".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
+#post <- readRDS(".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
 
 #inspect convergence
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
+saveRDS(summary, file = ".\\posts\\summary_SuChinook_trendcomp_a9a87b8.rds")
 
-##changes in q##
-new <- get_array(summary, "q") %>%
-  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
-  dplyr::mutate(plot = "Age Composition",
-                year = as.numeric(year_id[cyear]),
-                model = "all data w/beta")
-old <- get_array(get_summary(readRDS(".\\posts\\SuChinook_allagedat96430d7c.rds")), "q") %>%
-  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
-  dplyr::mutate(plot = "Age Composition",
-                year = as.numeric(year_id[cyear]),
-                model = "all data")
-
-#estimates unchanged late in time series (only weir data)
-#early estimates generaly smaller percentages of age4 and larger percentages of age1 & age2
-rbind(new, old) %>%
-  ggplot(aes(x = year, y = propln, color = model)) +
-  geom_line() +
-  facet_grid(age ~ .)
 
 #age at maturity trend maintained
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("ML", rowname))
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("ML", rowname)) %>% print(n = 100)
 
 table_params(summary)
 
 lapply(stock_id, plot_fit, stats_dat = summary)
-lapply(1:5, function(x) plot_state(summary, stock = x, S_msr = TRUE))
+lapply(stock_id, function(x) plot_state(summary, stock = x))
 plot_statepairs(post)
 
 #2d age at maturity and age comp arrays
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("b", rowname))
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("b\\[", rowname))
 table_age(summary, "p") #age-at-maturity
 table_age(summary, "q") #age comp
 table_age(summary, "N.ta") #total run by age
@@ -128,6 +97,7 @@ plot_stock(telemetry, summary)
 
 plot_theta(summary)
 table_airerror(summary)
+tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("B$", rowname))
 
 lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
 lapply(stock_id, plot_rickeryear, stats_dat = summary)
