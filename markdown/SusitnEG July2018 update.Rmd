@@ -102,23 +102,23 @@ plot_theta(summary)
 
 ### Model fits
 Estimates of stock composition and detectability relate survey counts to the spawning abundances estimated by the stock recruit relationship. At the last meeting I was confident Deshka would be the easiest individual SR model to fit.  Turns out that we only have good knowledge about half of the time series because Deshka surveys are variable.
-```{r, fig.height = 6, fig.width = 7, fig.cap = "Figure 2.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Deshka River Chinook salmon as reconstructed from aerial survey counts, weir counts, and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the survey detectability. Points are jittered along the x-axis."}
+```{r, fig.height = 6, fig.width = 9, fig.cap = "Figure 2.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Deshka River Chinook salmon as reconstructed from aerial survey counts, weir counts, and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the survey detectability. Points are jittered along the x-axis."}
 plot_fit(summary, stock_id[1])
 ```
 In contrast, for East Susitna we have 5 years of weir data and several high quality surveys (Kashwitna and Sheep not withstanding).
-```{r, fig.height = 6, fig.width = 7, fig.cap = "Figure 3.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of East Susitna Chinook salmon as reconstructed from aerial survey counts, weir counts, and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion while weir counts were expanded by the inverse of stock composition. Points are jittered along the x-axis."}
+```{r, fig.height = 6, fig.width = 9, fig.cap = "Figure 3.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of East Susitna Chinook salmon as reconstructed from aerial survey counts, weir counts, and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion while weir counts were expanded by the inverse of stock composition. Points are jittered along the x-axis."}
 plot_fit(summary, stock_id[2])
 ```
 Talkeetna is data poor, two surveys, but they track each other very well.
-```{r, fig.height = 6, fig.width = 7, fig.cap = "Figure 4.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Talketna Drainage Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion. Points are jittered along the x-axis."}
+```{r, fig.height = 6, fig.width = 9, fig.cap = "Figure 4.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Talketna Drainage Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion. Points are jittered along the x-axis."}
 plot_fit(summary, stock_id[3])
 ```
 For Yentna we have 4 surveys, two of which are high quality.
-```{r, fig.height = 6, fig.width = 7, fig.cap = "Figure 5.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Yentna Drainage Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion. Points are jittered along the x-axis."}
+```{r, fig.height = 6, fig.width = 9, fig.cap = "Figure 5.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Yentna Drainage Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion. Points are jittered along the x-axis."}
 plot_fit(summary, stock_id[4])
 ```
 It's questionable whether we should even look at the other stock group as no one expressed interest in it and our data is limited and of poor quality.
-```{r, fig.height = 6, fig.width = 7, fig.cap = "Figure 6.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Other Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion. Points are jittered along the x-axis."}
+```{r, fig.height = 6, fig.width = 9, fig.cap = "Figure 6.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Other Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates of escapement. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock compostion. Points are jittered along the x-axis."}
 plot_fit(summary, stock_id[5])
 ```
 
@@ -160,19 +160,19 @@ ggpubr::ggarrange(plotlist = ey, ncol = 2, nrow = 3, common.legend = TRUE,
 ```
 
 ###State Varible Plots
-```{r, fig.width = 6, fig.height = 7, fig.cap = "Figure 19.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Deshka River Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
+```{r, fig.width = 6, fig.height = 9, fig.cap = "Figure 19.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Deshka River Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
 state <- lapply(stock_id, function(x) plot_state(summary, stock = x))
 state[[1]]
 ```
-```{r, fig.width = 6, fig.height = 7, fig.cap = "Figure 20.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of East Susitna Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
+```{r, fig.width = 6, fig.height = 9, fig.cap = "Figure 20.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of East Susitna Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
 state[[2]]
 ```
-```{r, fig.width = 6, fig.height = 7, fig.cap = "Figure 21.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Talketeetna Drainage Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
+```{r, fig.width = 6, fig.height = 9, fig.cap = "Figure 21.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Talketeetna Drainage Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
 state[[3]]
 ```
-```{r, fig.width = 6, fig.height = 7, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Yentan Drainage Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
+```{r, fig.width = 6, fig.height = 9, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Yentan Drainage Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
 state[[4]]
 ```
-```{r, fig.width = 6, fig.height = 7, fig.cap = "Figure 23.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Other Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
+```{r, fig.width = 6, fig.height = 9, fig.cap = "Figure 23.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Other Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines."}
 state[[5]]
 ```
