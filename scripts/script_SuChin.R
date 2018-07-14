@@ -5,7 +5,10 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Ha.hat <- Ha %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha)[1], ncol = dim(Ha)[2]))
+Ha.hat <- Ha %>% rbind(matrix(apply(Ha[(dim(Ha)[1] - 2):dim(Ha)[1], ], MARGIN = 2, mean),
+                              byrow = TRUE,
+                              nrow = length(year_id) - dim(Ha)[1], 
+                              ncol = dim(Ha)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%
