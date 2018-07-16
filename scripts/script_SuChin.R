@@ -68,14 +68,13 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 
-saveRDS(post, file = ".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_3yrHa_07685df.rds")
 #post <- readRDS(".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
 
 #inspect convergence
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
-saveRDS(summary, file = ".\\posts\\summary_SuChinook_trendcomp_a9a87b8.rds")
 
 
 #age at maturity trend maintained

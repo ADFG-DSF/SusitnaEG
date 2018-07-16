@@ -24,7 +24,8 @@ table_airerror <- function(stats_dat){
     dplyr::select(-trib0) %>%
     dplyr::arrange(stock, tribn)
 
-  stats_dat %>%
+  temp <- 
+    stats_dat %>%
     dplyr::select_(median = as.name("50%"), sd = "SD", q05 = as.name("5%"), q95 = as.name("95%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("sigma.air", rowname)) %>%
@@ -34,7 +35,8 @@ table_airerror <- function(stats_dat){
     dplyr::mutate_at(c("median", "q05", "q95", "cv"), SusitnaEG:::digits) %>%
     dplyr::mutate(print1 = paste0(median, " (", q05, " - ", q95, ")"),
                   print2 = paste0(median, " (", cv, ")")) %>%
-    dplyr::select(trib, print1) %>%
-    pixiedust::dust() %>%
-      pixiedust::sprinkle_colnames("trib" = "Tributary", "print1" = "$\\sigma_{weir}$(90% CI)")
+    dplyr::select(trib, print1)
+  
+  colnames(temp)  <- c("Tributary", "$\\sigma_{weir}$(90% CI)")
+  knitr::kable(temp, escape = FALSE)
 }
