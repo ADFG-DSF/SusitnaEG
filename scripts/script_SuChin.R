@@ -5,7 +5,10 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Ha.hat <- Ha %>% rbind(matrix(NA, nrow = length(year_id) - dim(Ha)[1], ncol = dim(Ha)[2]))
+Ha.hat <- Ha %>% rbind(matrix(apply(Ha[(dim(Ha)[1] - 2):dim(Ha)[1], ], MARGIN = 2, mean),
+                              byrow = TRUE,
+                              nrow = length(year_id) - dim(Ha)[1], 
+                              ncol = dim(Ha)[2]))
 
 a <- 
   age[age$year >= 1979, ] %>%
@@ -65,14 +68,13 @@ endtime = proc.time()-ptm
 endtime[3]/60/60  
 
 
-saveRDS(post, file = ".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_3yrHa_07685df.rds")
 #post <- readRDS(".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
 
 #inspect convergence
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 summary <- get_summary(post)
-saveRDS(summary, file = ".\\posts\\summary_SuChinook_trendcomp_a9a87b8.rds")
 
 
 #age at maturity trend maintained
