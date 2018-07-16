@@ -3,6 +3,7 @@
 #' Expected sustained yield plot with 50 percent confidence ribbon
 #'
 #' @param profile_dat Output of the profile data function
+#' @param limit Upper bounds for plot c(xmax, ymax). Default (NULL) will pick bounds from the data.
 #' @param rug Show scaled statewide goal ranges. Defaults to TRUE.
 #' @param goal_range A vector with two element c(lower_bound, upper_bound). Defaults to NA.
 #'
@@ -15,7 +16,7 @@
 #' lapply(profiles, plot_ey)
 #'
 #' @export
-plot_ey <- function(profile_dat, rug = TRUE, goal_range = NA){
+plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
 rug_dat <- SusitnaEG:::get_BEGbounds(median(profile_dat$S.msy))
   
 plot_dat <- profile_dat %>%
@@ -27,10 +28,13 @@ plot_dat <- profile_dat %>%
                    ) %>%
   tidyr::gather(Productivity, SY, median.SY) #, median.SYr) %>%
 
+if(is.null(limit)){
 ymax <- max(plot_dat$p75.SY) * 1.05
 xmax <- plot_dat$s[which(plot_dat$p75.SY < 0)[1]]
 if(is.na(xmax)) 
   stop("Error: profile does not extend to escapements with zero yield, use a larger s_ub in get_profile()")
+}
+else xmax <- limit[1]; ymax <- limit[2]
 
 plot <-
   ggplot2::ggplot(plot_dat, ggplot2::aes(x = s, y = SY, color = Productivity)) +

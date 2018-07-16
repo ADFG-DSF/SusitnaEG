@@ -48,7 +48,7 @@ breaks <-
 col <-setNames(breaks$color, breaks$trib)
 
 ggplot2::ggplot(theta_est, ggplot2::aes(x = year, y = theta, color = trib)) +
-    ggplot2::geom_line() +
+    ggplot2::geom_line(size = 2) +
     ggplot2::geom_point(data = theta_obs, size = 3) +
     ggplot2::facet_grid(. ~ stock) +
     ggplot2::scale_color_manual(name ="Trib",

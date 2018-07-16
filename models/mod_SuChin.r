@@ -119,94 +119,126 @@ for (y in 1:Y) {
   }
 }	
 
-# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITION BY CALENDAR YEAR- East
+# East
+# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
+# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S2 ~ dunif(0.01,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
-  # pi.S2.1p ~ dbeta(0.14,0.86)T(0.03,)
-  # pi.S2.2p ~ dbeta(0.14,0.72)
-  # pi.S2.3p ~ dbeta(0.14,0.58)
-  # pi.S2.4p ~ dbeta(0.14,0.44)
-  # pi.S2.5p ~ dbeta(0.14,0.30)
-  # pi.S2.6p ~ dbeta(0.14,0.16)
-  # pi.S2[1] <- pi.S2.1p
-  # pi.S2[2] <- pi.S2.2p * (1 - pi.S2[1])
-  # pi.S2[3] <- pi.S2.3p * (1 - pi.S2[1] - pi.S2[2])
-  # pi.S2[4] <- pi.S2.4p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3])
-  # pi.S2[5] <- pi.S2.5p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4])
-  # pi.S2[6] <- pi.S2.6p * (1 - pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5])	
-  # pi.S2[7] <- 1 -  pi.S2[1] - pi.S2[2] - pi.S2[3] - pi.S2[4] - pi.S2[5] - pi.S2[6]
-  pi.S2 ~ ddirch(c(1, 1, 1, 1, 1, 1, 1))
-for (trib in 1:7) {
-    gamma.S2[trib] <- Dsum.S2 * pi.S2[trib]
-    for (y in 1:Y) {
-      g.S2[y,trib] ~ dgamma(gamma.S2[trib],0.1)
-      p.S2[y,trib] <- g.S2[y,trib]/sum(g.S2[y,])
+  ML1.S2[6] <- 0  
+  ML2.S2[6] <- 0
+for (trib in 1:5) { 
+  ML1.S2[trib] ~ dnorm(0,0.0001) 
+  ML2.S2[trib] ~ dnorm(0,0.0001) 
+  }
+
+for (y in 1:Y) {
+	for (trib in 1:6) {
+	  logistic.S2[y, trib] <- exp(ML1.S2[trib] + ML2.S2[trib] * y)
+      pi.S2[y, trib] <- logistic.S2[y, trib] / sum(logistic.S2[y, ])
+      gamma.S2[y, trib] <- Dsum.S2 * pi.S2[y, trib]
+      g.S2[y, trib] ~ dgamma(gamma.S2[y, trib], 0.1)
+      p.S2s[y, trib] <- g.S2[y, trib]/sum(g.S2[y, ])
+	  p.S2[y, trib] <- p.S2s[y, trib] * (1 - p.S2o[y])
       }
+	  p.S2[y, 7] <- p.S2o[y]
     }
 
-# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Talkeetna
+# Talkeetna
+# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
+# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S3 ~ dunif(0.01,1)
   Dsum.S3 <- 1 / (Dscale.S3 * Dscale.S3)
-  # pi.S3.1p ~ dbeta(0.33,0.66)T(0.03,)
-  # pi.S3.2p ~ dbeta(0.33,0.33)
-  # pi.S3[1] <- pi.S3.1p
-  # pi.S3[2] <- pi.S3.2p * (1 - pi.S3[1])
-  # pi.S3[3] <- 1 -  pi.S3[1] - pi.S3[2]
-  pi.S3 ~ ddirch(c(1, 1, 1))
-for (trib in 1:3) {
-    gamma.S3[trib] <- Dsum.S3 * pi.S3[trib]
-    for (y in 1:Y) {
-      g.S3[y,trib] ~ dgamma(gamma.S3[trib],0.1)
-      p.S3[y,trib] <- g.S3[y,trib]/sum(g.S3[y,])
+  ML1.S3[2] <- 0  
+  ML2.S3[2] <- 0
+  ML1.S3[1] ~ dnorm(0,0.0001)
+  ML2.S3[1] ~ dnorm(0,0.0001) 
+
+for (y in 1:Y) {
+	for (trib in 1:2) {
+	  logistic.S3[y, trib] <- exp(ML1.S3[trib] + ML2.S3[trib] * y)
+      pi.S3[y, trib] <- logistic.S3[y, trib] / sum(logistic.S3[y, ])
+      gamma.S3[y, trib] <- Dsum.S3 * pi.S3[y, trib]
+      g.S3[y, trib] ~ dgamma(gamma.S3[y, trib], 0.1)
+      p.S3s[y, trib] <- g.S3[y, trib]/sum(g.S3[y, ])
+	  p.S3[y, trib] <- p.S3s[y, trib] * (1 - p.S3o[y])
       }
+	  p.S3[y, 3] <- p.S3o[y]
     }
-	  
-# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- Yentna
+
+# Yentna
+# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
+# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S4 ~ dunif(0.01,1)
   Dsum.S4 <- 1 / (Dscale.S4 * Dscale.S4)
-  # pi.S4.1p ~ dbeta(0.20,0.80)T(0.03,)
-  # pi.S4.2p ~ dbeta(0.20,0.60)
-  # pi.S4.3p ~ dbeta(0.20,0.40)
-  # pi.S4.4p ~ dbeta(0.20,0.20)
-  # pi.S4[1] <- pi.S4.1p
-  # pi.S4[2] <- pi.S4.2p * (1 - pi.S4[1])
-  # pi.S4[3] <- pi.S4.3p * (1 - pi.S4[1] - pi.S4[2])
-  # pi.S4[4] <- pi.S4.4p * (1 - pi.S4[1] - pi.S4[2] - pi.S4[3])
-  # pi.S4[5] <- 1 -  pi.S4[1] - pi.S4[2] - pi.S4[3] - pi.S4[4]
-  pi.S4 ~ ddirch(c(1, 1, 1, 1, 1))
-for (trib in 1:5) {
-    gamma.S4[trib] <- Dsum.S4 * pi.S4[trib]
-    for (y in 1:Y) {
-      g.S4[y,trib] ~ dgamma(gamma.S4[trib],0.1)
-      p.S4[y,trib] <- g.S4[y,trib]/sum(g.S4[y,])
+  ML1.S4[4] <- 0  
+  ML2.S4[4] <- 0
+for (trib in 1:3) { 
+  ML1.S4[trib] ~ dnorm(0,0.0001) 
+  ML2.S4[trib] ~ dnorm(0,0.0001) 
+  }
+
+for (y in 1:Y) {
+	for (trib in 1:4) {
+	  logistic.S4[y, trib] <- exp(ML1.S4[trib] + ML2.S4[trib] * y)
+      pi.S4[y, trib] <- logistic.S4[y, trib] / sum(logistic.S4[y, ])
+      gamma.S4[y, trib] <- Dsum.S4 * pi.S4[y, trib]
+      g.S4[y, trib] ~ dgamma(gamma.S4[y, trib], 0.1)
+	  p.S4s[y, trib] <- g.S4[y, trib]/sum(g.S4[y, ])
+	  p.S4[y, trib] <- p.S4s[y, trib] * (1 - p.S4o[y])
       }
-    }
-	
-# DIRICHLET DISTRIBUTED SUBSTOCK COMPOSITIONs BY CALENDAR YEAR- other main
+	  p.S4[y, 5] <- p.S4o[y]
+    }	
+
+# Other
+# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
+# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S5 ~ dunif(0.01,1)
   Dsum.S5 <- 1 / (Dscale.S5 * Dscale.S5)
-  # pi.S5.1p ~ dbeta(0.25,0.75)T(0.03,)
-  # pi.S5.2p ~ dbeta(0.25,0.50)
-  # pi.S5.3p ~ dbeta(0.25,0.25)
-  # pi.S5[1] <- pi.S5.1p
-  # pi.S5[2] <- pi.S5.2p * (1 - pi.S5[1])
-  # pi.S5[3] <- pi.S5.3p * (1 - pi.S5[1] - pi.S5[2])
-  # pi.S5[4] <- 1 -  pi.S5[1] - pi.S5[2] - pi.S5[3]
-  pi.S5 ~ ddirch(c(1, 1, 1, 1))
-for (trib in 1:4) {
-    gamma.S5[trib] <- Dsum.S5 * pi.S5[trib]
-    for (y in 1:Y) {
-      g.S5[y,trib] ~ dgamma(gamma.S5[trib],0.1)
-      p.S5[y,trib] <- g.S5[y,trib]/sum(g.S5[y,])
+  ML1.S5[3] <- 0  
+  ML2.S5[3] <- 0
+for (trib in 1:2) { 
+  ML1.S5[trib] ~ dnorm(0,0.0001) 
+  ML2.S5[trib] ~ dnorm(0,0.0001) 
+  }
+
+for (y in 1:Y) {
+	for (trib in 1:3) {
+	  logistic.S5[y, trib] <- exp(ML1.S5[trib] + ML2.S5[trib] * y)
+      pi.S5[y, trib] <- logistic.S5[y, trib] / sum(logistic.S5[y, ])
+      gamma.S5[y, trib] <- Dsum.S5 * pi.S5[y, trib]
+      g.S5[y, trib] ~ dgamma(gamma.S5[y, trib], 0.1)
+      p.S5s[y, trib] <- g.S5[y, trib]/sum(g.S5[y, ])
+	  p.S5[y, trib] <- p.S5s[y, trib] * (1 - p.S5o[y])
       }
-    }
+	  p.S5[y, 4] <- p.S5o[y]
+    }	
 
 # MULTINOMIAL COUNTS OF RADIOS TRACKED TO INDIVIDUAL TRIBS
 for (y in 1:Y) { 
-    tele.S2[y, ] ~  dmulti(p.S2[y, ], Ntele.S2[y])
-    tele.S3[y, ] ~  dmulti(p.S3[y, ], Ntele.S3[y])
-	tele.S4[y, ] ~  dmulti(p.S4[y, ], Ntele.S4[y])
-	tele.S5[y, ] ~  dmulti(p.S5[y, ], Ntele.S5[y])
+    tele.S2[y, 1:6] ~  dmulti(p.S2s[y, ], Ntele.S2[y] - tele.S2[y, 7])
+    tele.S3[y, 1:2] ~  dmulti(p.S3s[y, ], Ntele.S3[y] - tele.S3[y, 3])
+	tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
+	tele.S5[y, 1:3] ~  dmulti(p.S5s[y, ], Ntele.S5[y] - tele.S5[y, 4])
+}
+
+for(trib in 1:4){
+  p.So.mean[trib] ~ dbeta(1, 1)
+  Bscale.So[trib] ~ dunif(0.01, 1)
+  Bsum.So[trib] <- 1 / Bscale.So[trib] / Bscale.So[trib]
+  B1.So[trib] <- Bsum.So[trib] * p.So.mean[trib]
+  B2.So[trib] <- Bsum.So[trib] - B1.So[trib]
+}
+
+# MULTINOMIAL COUNTS OF RADIOS TRACKED TO Surveyed Areas
+for (y in 1:Y) {
+  p.S2o[y] ~ dbeta(B1.So[1], B2.So[1])
+  p.S3o[y] ~ dbeta(B1.So[2], B2.So[2])
+  p.S4o[y] ~ dbeta(B1.So[3], B2.So[3])
+  p.S5o[y] ~ dbeta(B1.So[4], B2.So[4]) 
+  tele.S2[y, 7] ~  dbinom(p.S2o[y], Ntele.S2[y])
+  tele.S3[y, 3] ~  dbinom(p.S3o[y], Ntele.S3[y])
+  tele.S4[y, 5] ~  dbinom(p.S4o[y], Ntele.S4[y])
+  tele.S5[y, 4] ~  dbinom(p.S5o[y], Ntele.S5[y])
 }
 
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
