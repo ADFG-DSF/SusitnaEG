@@ -1,8 +1,8 @@
 #' Creates a dataset for plotting OYP, ORP and EY plots
 #'
-#' This function creates a dataframe that can be used by plot_OYP_ORP()
+#' This function creates a dataframe that can be used by plot_profile()
 #'
-#' @param data An mcmc object with nodes "lnalpha", "beta", "S.msy", "lnalpha.c", "lnalpha.c.recent" from which you want to simulate SR relationships.
+#' @param data An mcmc object with nodes lnalpha, beta, S.msy, lnalpha.c from which you want to simulate SR relationships.
 #' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A data.frame

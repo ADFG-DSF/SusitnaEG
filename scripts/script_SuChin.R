@@ -69,7 +69,7 @@ endtime[3]/60/60
 
 
 saveRDS(post, file = ".\\posts\\SuChinook_3yrHa_07685df.rds")
-#post <- readRDS(".\\posts\\SuChinook_trendcomp_a9a87b8.rds")
+#post <- readRDS(".\\posts\\SuChinook_3yrHa_07685df.rds")
 
 #inspect convergence
 shinystan::launch_shinystan(shinystan::as.shinystan(post))
