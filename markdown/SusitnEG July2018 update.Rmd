@@ -180,16 +180,72 @@ table_params(summary)
 ```  
 
 ### Optimum Yield Profiles
-```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 17.- Optimal yield profiles (OYPs) for Susitana River Chinook salmon. OYPs show probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the recommended goal ranges; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+The standard procedure at this point would be to use Optimum Yield profiles to select a goal for each stock. This approach will clearly work for the Deshka River. For the other stocks we assess the goal using aerial count data that only indexes escapement because true abundance is masked by variability in detectability and stock composition.  One way to set a goal in for these in
+```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 24.- Optimal yield profiles for Susitana River Chinook salmon. OYPs show probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
 profiles <- lapply(stock_id, get_profile, post_dat = post)
-profile <- lapply(profiles, plot_profile, limit = 30000, profiles = "OYP")
+profile <- mapply(plot_profile, 
+                  profile_dat = profiles, 
+                  goal_range = list(c(13000, 28000), NA, NA, NA, NA), 
+                  MoreArgs = list(limit = 30000, profiles = "OYP"), 
+                  SIMPLIFY = FALSE)
 ggpubr::ggarrange(plotlist = profile, ncol = 2, nrow = 3, common.legend = TRUE, 
                   labels = stock_id, label.x = .8, hjust = .5, vjust = 2, font.label = list(size = 10, face = "plain"))
+```  
+
+For the other stocks we assess the goal using aerial count data that only indexes escapement because true abundance is masked by variability in detectability and stock composition.  One way to set a goal in for these stocks would be change the Optimum Yield profile to express probabilities of reaching some fraction of maximum sustained yield at various count levels (Note this section is still under development). We expect these profiles to contain less information (lines farther from 1) because there is variability in detectability, stock composition and the relationship between counts and spawners.  Tributaries with highly variable counts (Table 1), low contributions to the stock composition (Figure 10), or highly variable detectability (need to update) should contain less information. I’ve included graphs for all the tributaries for which we currently have goals but some of the graphs have very little information.  
+#### East Susitna
+```{r, ig.width = 8, fig.height = 3, fig.cap = "Figure 25.- Optimal yield profile for the East Susitna stock group as assessed using Goose Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "East Susitna", "Goose")
+plot_countprofile(prof, goal_range = c(250, 650), profiles = "OYP")
 ```
+```{r, fig.width = 8, fig.height = 3, fig.cap = "Figure 26.- Optimal yield profile for the East Susitna stock group as assessed using Little Willow Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "East Susitna", "Little Willow")
+plot_countprofile(prof, goal_range = c(450, 1800), profiles = "OYP")
+```
+```{r, ig.width = 8, fig.height = 3, fig.cap = "Figure 27.- Optimal yield profile for the East Susitna stock group as assessed using Montana Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "East Susitna", "Montana")
+plot_countprofile(prof, goal_range = c(1100, 3100), profiles = "OYP")
+```
+```{r, ig.width = 8, fig.height = 3, fig.cap = "Figure 28.- Optimal yield profile for the East Susitna stock group as assessed using Sheep Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "East Susitna", "Sheep")
+plot_countprofile(prof, goal_range = c(600, 1200), profiles = "OYP")
+```
+```{r, ig.width = 8, fig.height = 3, fig.cap = "Figure 29.- Optimal yield profile for the East Susitna stock group as assessed using Willow Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "East Susitna", "Willow")
+plot_countprofile(prof, goal_range = c(1600, 2800), profiles = "OYP")
+```  
+#### Talkeetna
+```{r, fig.width = 8, fig.height = 3, fig.cap = "Figure 30.- Optimal yield profile for the Talkeetna stock group as assessed using Clear Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "Talkeetna", "Clear")
+plot_countprofile(prof, goal_range = c(950, 3400), profiles = "OYP")
+``` 
+```{r, fig.width = 8, fig.height = 3, fig.cap = "Figure 31.- Optimal yield profile for the Talkeetna stock group as assessed using Prarie Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "Talkeetna", "Prarie")
+plot_countprofile(prof, goal_range = c(3100, 9200), profiles = "OYP")
+```  
+#### Yentna
+```{r, fig.width = 8, fig.height = 6, fig.cap = "Figure 32.- Optimal yield profile for the Yentna River as assessed using Lake Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "Yentna", "Lake")
+plot_countprofile(prof, goal_range = c(2700, 7100), profiles = c("OYP", "ORP"))
+``` 
+```{r, fig.width = 8, fig.height = 6, fig.cap = "Figure 33.- Optimal yield profile for the Yentna River as assessed using Peters Creek aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "Yentna", "Peters")
+plot_countprofile(prof, goal_range = c(1000, 2600), profiles = c("OYP", "ORP"))
+``` 
+```{r, fig.width = 8, fig.height = 6, fig.cap = "Figure 34.- Optimal yield profile for the Yentna River as assessed using Talachulitna River aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "Yentna", "Talachulitna")
+plot_countprofile(prof, goal_range = c(2200, 5000), profiles = c("OYP", "ORP"))
+``` 
+#### Other
+```{r, fig.width = 8, fig.height = 3, fig.cap = "Figure 35.- Optimal yield profile for the Other areas as assessed using Chulitna aerial survey data. OYPs show probability that a specified aerial count will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range."}
+prof <- get_countprofile(post, "Other", "Chulitna")
+plot_countprofile(prof, goal_range = c(1800, 5100), profiles = "OYP")
+```  
 ### Expected Sustained Yield
-```{r fig.width = 8, fig.height = 8, fig.cap = "Figure 18.- Expected sustained yield (ESY) plots for Susitna River Chinook salmon. ESY median (solid black line), and 50% interval (shaded area around the line) assume average productivity for brood years 1973-2014. The shaded vertical area brackets the recommended goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r fig.width = 8, fig.height = 8, fig.cap = "Figure 36.- Expected sustained yield plots for Susitna River Chinook salmon. ESY median (solid black line), and 50% interval (shaded area around the line) assume average productivity for brood years 1973-2014. The grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
 ey <- lapply(profiles, plot_ey, limit = c(40000, 35000))
 ggpubr::ggarrange(plotlist = ey, ncol = 2, nrow = 3, common.legend = TRUE, 
                   labels = stock_id, label.x = .25, hjust = 0, vjust = 2, font.label = list(size = 10, face = "plain"))
-```
+```  
+
 
