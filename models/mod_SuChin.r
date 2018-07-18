@@ -41,16 +41,13 @@ model{
 		R[c, stock] <- exp(log.R[c, stock])
 		}
 	}
+	#Hierarchical phi and lnalpha
 	mu.phi ~ dunif(-1, 1)
 	tau.phi ~ dgamma(0.001,0.001)
 	sigma.phi <- 1 / sqrt(tau.phi)
 	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
 	tau.lnalpha ~ dgamma(0.001,0.001)
 	sigma.lnalpha <- 1 / sqrt(tau.lnalpha)
-	# tau.white ~ dgamma(0.001,0.001)
-	# tau.red <- tau.white * (1-phi*phi)
-	# sigma.white <- 1 / sqrt(tau.white)
-	# sigma.red <- 1 / sqrt(tau.red)
 	tau.R ~ dgamma(0.001,0.001)      
 	sigma.R0 <- 1 / sqrt(tau.R)
        
@@ -104,9 +101,9 @@ for (y in 1:N.yr.a) {
 	  log(rho[y,a]) <- log(N.ta[yr.a[y],a] / N.ta[yr.a[y], 1]) + b[x.samp[y], a]
       }
   }
-for(a in 1:A){b[1,a] <- 0} #corner point weir
+for(a in 1:A){b[1,a] <- 0} #weir baseline
 for(s in 2:3){
-	b[s,1] <- 0 #zero first age
+	b[s,1] <- 0 #age1 baseline
 	for(a in 2:A){
 		b[s,a] ~ dnorm(0, 0.0001)
 	}
@@ -119,7 +116,8 @@ for (y in 1:Y) {
   }
 }	
 
-# East
+#STOCK COMPOSITION
+# East Susitna
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
   Dscale.S2 ~ dunif(0.01,1)
@@ -241,9 +239,8 @@ for (y in 1:Y) {
   tele.S5[y, 4] ~  dbinom(p.S5o[y], Ntele.S5[y])
 }
 
-# GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
-# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
-# GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
+# AIR SURVEY
+# Theta set up as a glm although I’m not sure a good covariate is accessible.
 for (trib in 1:16) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}  #trib glm param
 mu_b1t ~ dnorm(0, 0.0001)
 tau_b1t ~ dgamma(0.001,0.001)
@@ -254,7 +251,7 @@ for (trib in 1:16){
     }
   }
 
-# AIR SURVEY COUNTS W LOGNORMAL ERRORS
+# Heirarchical AIR SURVEY LOGNORMAL ERRORS
 for (trib in 1:16){
 	sigma.air[trib] <- abs(z.air[trib]) / sqrt(g.air[trib]) 
 	z.air[trib] ~ dnorm(0, invBsq)
@@ -265,34 +262,34 @@ B ~ dunif(0,1)
 invBsq <- 1 / B / B
 
 
-# DESHKA survey data
+# Deshka survey data
 # one trib in the stock
 for(y in 1:Y){
 	log.t1S1[y] <- log(theta[1, y] * S[y, 1])
 	air.S1[y] ~ dlnorm(log.t1S1[y], tau.air[1])
 	}
-	
+# East Susitna Survey data	
 for(trib in 1:6) {
 	for(y in 1:Y){
 	log.tpS2[y, trib] <- log(theta[(trib + 1), y] * p.S2[y, trib] * S[y, 2])
 	air.S2[y, trib] ~ dlnorm(log.tpS2[y, trib], tau.air[trib + 1])
 	}
 }
-
+# Talkeetna Survey data
 for(trib in 1:2) {
 	for(y in 1:Y){
 	log.tpS3[y, trib] <- log(theta[(trib + 7), y] * p.S3[y, trib] * S[y, 3])
 	air.S3[y, trib] ~ dlnorm(log.tpS3[y, trib], tau.air[trib + 7])
 	}
 }
-
+# Yentna Survey data
 for(trib in 1:4) {
 	for(y in 1:Y){
 	log.tpS4[y, trib] <- log(theta[(trib + 9), y] * p.S4[y, trib] * S[y, 4])
 	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[trib + 9])
 	}
 }
-
+# Other Survey data
 for(trib in 1:3) {
 	for(y in 1:Y){
 	log.tpS5[y, trib] <- log(theta[(trib + 13), y] * p.S5[y, trib] * S[y, 5])
@@ -319,7 +316,8 @@ for (y in 1:Y) {
   logHm[y] <- log(Hmarine[y])
   tau.logHm[y] <- 1 / log(cv.Hm[y]*cv.Hm[y] + 1)
   Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])             
-
+  # MR estimates gt 500mm fish, reduce IR to same size class
+  # Need to have 2 IR estimates (gt 500 for MR mean and all for output)
   p.small3[y] ~ dbeta(1,1)
   p.small4[y] ~ dbeta(1,1)
   small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
@@ -327,7 +325,7 @@ for (y in 1:Y) {
   tau.logHa[y] <- 1 / log(cv.Ha[y]*cv.Ha[y] + 1)
   tau.logMR[y] <- 1 / log(cv.MR[y]*cv.MR[y] + 1)
   for (stock in 1:5){
-    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y]) 
+    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y])
     logIR[y, stock] <- log(IR[y, stock])
     MR[y, stock] ~ dlnorm(logIR[y, stock], tau.logMR[y])    
 	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
