@@ -1,4 +1,4 @@
-#' Lookup tables for year and age
+#' Lookup tables for year, age and stock
 #'
 #' Creates lookup tables to switch between informative names and jags array locations.
 #'

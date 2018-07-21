@@ -30,5 +30,5 @@ table_state <- function(stats_dat){
     dplyr::select(year, N, IR, S, R) %>%
     pixiedust::dust(justify = "right") %>%
       pixiedust::sprinkle_colnames(year = "Year", N = "Total Run (CV)", IR = "Inriver Run (CV)", S = "Escapement (CV)", R = "Recruitment (CV)") %>%
-      pixiedust::sprinkle(fn = quote(KenaiSRA:::nareplace(value)))
+      pixiedust::sprinkle(fn = quote(nareplace(value)))
 }

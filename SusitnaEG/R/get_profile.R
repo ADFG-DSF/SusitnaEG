@@ -2,7 +2,7 @@
 #'
 #' This function creates a dataframe that can be used by plot_profile()
 #'
-#' @param data An mcmc object with nodes lnalpha, beta, S.msy, lnalpha.c from which you want to simulate SR relationships.
+#' @param post_dat An mcmc object with nodes lnalpha, beta, S.msy, lnalpha.c from which you want to simulate SR relationships.
 #' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A data.frame

@@ -3,8 +3,8 @@
 #' @description This function allows you to pull out variables from a mcmc.list or matrix.
 #'    Modifided version of oriiginal written by Ben Stanton (bas0041@auburn.edu).
 #'
-#' @param post.samp: an object of class 'mcmc.list' or 'matrix'
-#' @param var: the variable you wish to view. Must be in "quotes". To pull out a vector specify thru the opening bracket e.g. "N["
+#' @param post_dat an object of class 'mcmc.list' or 'matrix'
+#' @param var the variable you wish to view. Must be in "quotes". To pull out a vector specify thru the opening bracket e.g. "N["
 #'
 #' @examples get.post(post_er, var="N[")
 #' @examples get.post(post_er, var="lnalpha")

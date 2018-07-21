@@ -2,7 +2,7 @@
 #'
 #' This function creates a dataframe that can be used by plot_countprofile()
 #'
-#' @param data An mcmc object with nodes lnalpha, beta, S.msy, lnalpha.c, p.S#, theta, and sigma.air from which you want 
+#' @param post_dat An mcmc object with nodes lnalpha, beta, S.msy, lnalpha.c, p.S#, theta, and sigma.air from which you want 
 #' to simulate SR relationships.
 #' @param stock_name A character element specifying the stock of interest.
 #' @param trib_name A character element specifying the tributary aerial data.

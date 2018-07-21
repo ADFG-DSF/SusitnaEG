@@ -3,7 +3,7 @@
 #' Produces a horsetail plot of the median Spawn-Recruit relationship.  Plot also shows 40 plausible Spawn-Recruit relationships in the background and Spawner and Recruit estimates with associated 90% CIs.
 #'
 #' @param post_dat SRA model mcmc.list output
-#' @param stat_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
 #' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
