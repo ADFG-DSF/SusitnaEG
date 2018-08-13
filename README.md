@@ -23,10 +23,10 @@ This method has some overhead but has advantages that outweigh the costs. You wi
 2. In your newly created repository copy the URL (green button labeled 'clone or download' followed by the copy symbol next to the URL).
   
 3. In RStudio navigate to File > New Project > Version Control > Git and:
-  + Paste the URL under 'repository URL' (The directory name will auto-fill)
-  + Pick a location for the directory
+    + Paste the URL under 'repository URL' (The directory name will auto-fill)
+    + Pick a location for the directory
   
-4. Run the script, look at the code and results. If you see an error fix it! If you know a better way try it!
+4. Run the script, look at the code and results. If you see an, error fix it! If you know a better way, try it!
   
 5. Save the files you have modified. Don't rename anything just save it.
 

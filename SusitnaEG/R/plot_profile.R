@@ -11,7 +11,7 @@
 #' @return A figure
 #'
 #' @examples
-#' plot_profile(get_profile(post, 200000), rug = FALSE, NA, c("OYP", "OFP"))
+#' plot_profile(get_profile(post, "Deshka"), rug = FALSE, NA, c("OYP", "OFP"))
 #'
 #' @export
 plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA, profiles = c("OYP", "ORP", "OFP")){
