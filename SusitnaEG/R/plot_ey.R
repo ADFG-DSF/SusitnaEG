@@ -24,9 +24,9 @@ plot_dat <- profile_dat %>%
   dplyr::group_by(s) %>%
   dplyr::summarise(median.SY = median(SY, na.rm = TRUE),
                     p25.SY = quantile(SY, probs = 0.25, na.rm = TRUE),
-                    p75.SY = quantile(SY, probs = 0.75, na.rm = TRUE) #median.SYr = median(SYr, na.rm = TRUE)
+                    p75.SY = quantile(SY, probs = 0.75, na.rm = TRUE)
                    ) %>%
-  tidyr::gather(Productivity, SY, median.SY) #, median.SYr) %>%
+  tidyr::gather(Productivity, SY, median.SY)
 
 if(is.null(limit)){
 ymax <- max(plot_dat$p75.SY) * 1.05
@@ -34,7 +34,7 @@ xmax <- plot_dat$s[which(plot_dat$p75.SY < 0)[1]]
 if(is.na(xmax)) 
   stop("Error: profile does not extend to escapements with zero yield, use a larger s_ub in get_profile()")
 }
-else xmax <- limit[1]; ymax <- limit[2]
+else {xmax <- limit[1]; ymax <- limit[2]}
 
 plot <-
   ggplot2::ggplot(plot_dat, ggplot2::aes(x = s, y = SY, color = Productivity)) +
@@ -43,7 +43,6 @@ plot <-
     ggplot2::scale_x_continuous("Spawners", labels = scales::comma) +
     ggplot2::scale_y_continuous("Expected Yield", labels = scales::comma) +
     ggplot2::coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax)) +
-    #ggplot2::scale_color_manual(name = "Productivity", labels = c("Historic, 1979-2010 broods", "Recent, 2006-10 broods"), values = c("black", "red")) +
     ggplot2::scale_color_manual(name = "Productivity", labels = "1973-2013 broods", values = "black") +
     ggplot2::theme_bw()
 

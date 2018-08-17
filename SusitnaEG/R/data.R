@@ -21,7 +21,11 @@
 #'
 #' @docType data
 #' 
-#' @format matrix
+#' @format list
+#'   \describe{
+#'   \item{mr}{Abundance estimates}
+#'   \item{cv_mr}{Coefficient of variation for abundance estimates}
+#'   }
 "mr"
 
 #' Marine Harvest data

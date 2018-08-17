@@ -29,7 +29,7 @@ dat = list(
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
   Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.Hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
-  MR = mr, cv.MR = rep(0.15, dim(mr)[1]),
+  MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))

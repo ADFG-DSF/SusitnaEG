@@ -150,9 +150,12 @@ abun_matrix <- function(param){
     dplyr::select(-year) %>%
     as.matrix()
   
-  rbind(matrix(NA, nrow = length(year_id) - dim(mr0)[1], ncol = dim(mr0)[2]),
+  rbind(matrix(NA, 
+               nrow = length(year_id) - dim(mr0)[1], 
+               ncol = dim(mr0)[2]),
         mr0)
 }
 
-mr <- list(mr = abun_matrix(N), cv_mr = abun_matrix(cv))
+cv_mr <- abun_matrix(cv)
+mr <- list(mr = abun_matrix(N), cv_mr = ifelse(is.na(cv_mr), 0.1, cv_mr))
 devtools::use_data(mr, pkg = ".\\SusitnaEG", overwrite = TRUE)

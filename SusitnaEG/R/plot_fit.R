@@ -89,7 +89,7 @@ surveys <- lapply(1:5, function(x) data.frame(stock = factor(unname(stock_id[x])
   dplyr::select(year, stock, name, type, name_f, value)
 
 markrecap <- 
-  mr %>%
+  mr[[1]] %>%
   as.data.frame() %>%
   dplyr::mutate(year = year_id) %>%
   tidyr::gather(stock, value, -year) %>%

@@ -323,11 +323,11 @@ for (y in 1:Y) {
   small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
   tau.logHa[y] <- 1 / log(cv.Ha[y]*cv.Ha[y] + 1)
-  tau.logMR[y] <- 1 / log(cv.MR[y]*cv.MR[y] + 1)
   for (stock in 1:5){
     IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y])
     logIR[y, stock] <- log(IR[y, stock])
-    MR[y, stock] ~ dlnorm(logIR[y, stock], tau.logMR[y])    
+	tau.logMR[y, stock] <- 1 / log(cv.MR[y, stock]*cv.MR[y, stock] + 1)
+    MR[y, stock] ~ dlnorm(logIR[y, stock], tau.logMR[y, stock])    
 	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
 	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
 	logHa[y, stock] <- log(Habove[y, stock])
