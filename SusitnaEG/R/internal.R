@@ -26,3 +26,18 @@ get_BEGbounds <- function(scale_Smsy){
   chinBEGs %>% dplyr::mutate(lb = scale_Smsy*lb/Smsy,
                              ub = scale_Smsy*ub/Smsy)
 }
+
+#used by plot_age and table_age
+get_array <- function(stats_dat, node, statistic = "Mean"){
+  pattern <- paste0("^", node, "\\[")
+  df <- tibble::rownames_to_column(stats_dat) %>%
+    dplyr::filter(grepl(pattern, rowname)) %>%
+    tidyr::separate(rowname, into = c("year", "age"), ",") %>%
+    dplyr::select_("year", "age", stat = statistic) %>%
+    dplyr::mutate(year = as.numeric(gsub("[^0-9]", "", year)),
+                  age = paste0("age",gsub("[^0-9]", "", age))) %>%
+    tidyr::spread_("age", "stat")
+  yname <- ifelse(node == "p", "byear", "cyear")
+  colnames(df)[colnames(df) == 'year'] <- yname
+  df
+}
