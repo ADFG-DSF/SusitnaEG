@@ -5,8 +5,8 @@
 #' @param year_range character vector with the indices of abundance included in the analysis.
 #' @param age_id named vector of age names and age column position.
 #'
-#' @return writes 5 objects to R's Global Environment; year_id and stock_id where each object is a named vector where the names are jags array 
-#' locations and the elements are informative. age_id where each object is a named vector where the names are informative
+#' @return writes 6 objects to R's Global Environment; year_id and stock_id where each object is a named vector where the names are jags array 
+#' locations and the elements are informative. trib_id which is a named list with the tributaries comprising each stock. age_id where each object is a named vector where the names are informative
 #' and the elements are jags array locations. Also, age_min and age_max the number of years between spawning and recruitment for the youngest and
 #' oldest non-negligible age classes.
 #'
@@ -24,9 +24,19 @@ get_ids <- function(year_range = 1979:2017,
   
   stock_id <- c("Deshka", "East Susitna", "Talkeetna", "Yentna", "Other")
   names(stock_id) <- 1:length(stock_id)
+  
+  trib_id <- 
+  list(
+    Deshka = c("Deshka"),
+    "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other East Susitna"),
+    Talkeetna = c("Clear", "Prairie", "Other Talkeetna"),
+    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna"),
+    Other = c("Chulitna", "Indian", "Portage", "Other Other")
+  )
 
   list <- list(year_id = year_id,
                stock_id = stock_id,
+               trib_id = trib_id,
                age_id = age_id,
                age_min = age_min,
                age_max = age_max)
