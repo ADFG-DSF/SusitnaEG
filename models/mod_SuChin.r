@@ -317,17 +317,17 @@ for (y in 1:Y) {
   tau.logHm[y] <- 1 / log(cv.Hm[y]*cv.Hm[y] + 1)
   Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])             
   # MR estimates gt 500mm fish, reduce IR to same size class
-  # Need to have 2 IR estimates (gt 500 for MR mean and all for output)
   p.small3[y] ~ dbeta(1,1)
   p.small4[y] ~ dbeta(1,1)
   small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
   tau.logHa[y] <- 1 / log(cv.Ha[y]*cv.Ha[y] + 1)
   for (stock in 1:5){
-    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y]) * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y])
-    logIR[y, stock] <- log(IR[y, stock])
+    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y])
+	IRlt500[y, stock] <- IR[y, stock] * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y])
+    logIRlt500[y, stock] <- log(IRlt500[y, stock])
 	tau.logMR[y, stock] <- 1 / log(cv.MR[y, stock]*cv.MR[y, stock] + 1)
-    MR[y, stock] ~ dlnorm(logIR[y, stock], tau.logMR[y, stock])    
+    MR[y, stock] ~ dlnorm(logIRlt500[y, stock], tau.logMR[y, stock])    
 	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
 	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
 	logHa[y, stock] <- log(Habove[y, stock])
