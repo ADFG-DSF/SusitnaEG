@@ -19,9 +19,10 @@ table_params <- function(stats_dat){
                                 paste0("S.eq[", 1:5, "]"),
                                 paste0("S.msy[", 1:5, "]"),
                                 paste0("U.msy[", 1:5, "]"),
-                                "Dsum.age",
-                                paste0("Dsum.S", 2:5), 
-                                "sigma.weir"),
+                                rep("Dsum.age", 5),
+                                paste0("Dsum.S", 2:5),
+                                paste0("Bsum.So[", 1:4, "]"),
+                                rep("sigma.weir", 2)),
                     Parameter = factor(c(
                       rep("ln($\\alpha$)", 5),
                       rep("$\\beta$", 5),
@@ -31,9 +32,10 @@ table_params <- function(stats_dat){
                       rep("$S_{EQ}$", 5),
                       rep("$S_{MSY}$", 5),
                       rep("$U_{MSY}$", 5),
-                      "$D_{age}$",
+                      rep("$D_{age}$", 5),
                       rep("$D_{comp}$", 4),
-                      "$\\sigma_{weir}$"),
+                      rep("$B_{survey}$", 4),
+                      rep("$\\sigma_{weir}$", 2)),
                       levels = c(
                         "ln($\\alpha$)", 
                         "$\\beta$", 
@@ -42,10 +44,12 @@ table_params <- function(stats_dat){
                         "$\\sigma_{weir}$",
                         "$D_{age}$",
                         "$D_{comp}$",
+                        "$B_{survey}$",
                         "$S_{MSR}$",
                         "$S_{EQ}$",
                         "$S_{MSY}$",
                         "$U_{MSY}$")),
+                    stock = c(rep(1:5, times = 9), rep(2:5, times = 2), 1:2),
                     stringsAsFactors = FALSE)
   
   temp <-
@@ -56,9 +60,7 @@ table_params <- function(stats_dat){
     dplyr::mutate(cv = ifelse(grepl("^S.", rowname),
                               sqrt(exp(((log(q95)-log(abs(q05)))/1.645/2)^2)-1), #Geometric CV for lognormals, abs(q05) to suppresses NaN warning on phi
                               sd / abs(median)),
-                  stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname),
-                  stock = ifelse(stock0 %in% 1:5, stock0, 
-                                 ifelse(grepl("^Dsum.S(\\d)", stock0), gsub("^Dsum.S(\\d)", "\\1", stock0), "1"))) %>%
+                  stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname)) %>%
     dplyr::mutate_at(c("median", "q05", "q95", "cv"), SusitnaEG:::digits) %>%
     dplyr::mutate(print1 = paste0(median, " (", q05, " - ", q95, ")"),
                   print2 = paste0(median, " (", cv, ")")) %>%
