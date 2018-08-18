@@ -1,6 +1,13 @@
+#' Pipe
+#'
+#' Use the pipe function \code{\%>\%} to turn function composition into a series of imperative statements.
+#'
 #' @importFrom magrittr %>%
+#' @name %>%
+#' @rdname pipe
 #' @export
-magrittr::`%>%`
+#' @param lhs,rhs A object and a function to apply to it
+NULL
 
 #format tables with numbers of very different magnitude
 digits <- function(p){
