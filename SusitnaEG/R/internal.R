@@ -35,16 +35,15 @@ get_BEGbounds <- function(scale_Smsy){
 }
 
 #used by plot_age and table_age
-get_array <- function(stats_dat, node, statistic = "Mean"){
+get_array <- function(post_dat, node, statistic = "mean"){
   pattern <- paste0("^", node, "\\[")
-  df <- tibble::rownames_to_column(stats_dat) %>%
+  df <- 
+    post_dat[["summary"]] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>%
     dplyr::filter(grepl(pattern, rowname)) %>%
-    tidyr::separate(rowname, into = c("year", "age"), ",") %>%
-    dplyr::select_("year", "age", stat = statistic) %>%
-    dplyr::mutate(year = as.numeric(gsub("[^0-9]", "", year)),
-                  age = paste0("age",gsub("[^0-9]", "", age))) %>%
-    tidyr::spread_("age", "stat")
-  yname <- ifelse(node == "p", "byear", "cyear")
-  colnames(df)[colnames(df) == 'year'] <- yname
-  df
+    dplyr::mutate(yr = as.numeric(gsub(".*\\[(\\d+),\\d]", "\\1", rowname)),
+                  age = as.numeric(gsub(".*\\[\\d+,(\\d)]", "\\1", rowname))) %>%
+    dplyr::select_("yr", "age", statistic)
+    df
 }

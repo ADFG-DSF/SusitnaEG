@@ -7,13 +7,11 @@ Description: This Package contains data functions associated with the Susitna Ri
  distribution of run reconstruction and spawn-recruit parameters.
 Depends: R (>= 3.4.2)
 Imports:
-  coda,
   dplyr,
   ggplot2,
   knitr,
   magrittr,
   plyr,
-  pixiedust,
   RColorBrewer,
   scales,
   stringr,

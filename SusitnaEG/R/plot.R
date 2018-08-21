@@ -2,53 +2,41 @@
 #'
 #' Faceted plot of age at maturity, age composition and total run by age.  Observed age composition is also plotted.
 #'
-#' @param input_dat The input dataset for the SRA model
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list ouput
+#' @param post_dat The posterior object from the SRA model of class jagsUI
 #'
 #' @return A figure
 #'
 #' @examples
-#' x.a <- 
-#' age[grepl("Deshka", age$location), ] %>%
-#'  dplyr::mutate(x34 = x3 + x4,
-#'                x678 = x6 + x78) %>%
-#'  dplyr::select(x34, x5, x678) %>%
-#'  as.matrix()
-#'
-#' plot_age(x.a, get_summary(post))
+#' plot_age(post)
 #'
 #' @export
-plot_age <- function(input_dat, stats_dat){
+plot_age <- function(post_dat){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_p <- yr0 - age_max
   
-Q.obs <- as.data.frame(input_dat / rowSums(input_dat)) %>%
-  setNames(paste0("age", 1:ncol(input_dat))) %>%
+Q.obs <- 
+  as.data.frame(post_dat$data$x.a / rowSums(post_dat$data$x.a)) %>%
+  setNames(paste0("age", 1:ncol(post_dat$data$x.a))) %>%
   tibble::rownames_to_column(var = "yr_id") %>%
   tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
   dplyr::group_by(yr_id) %>%
-  dplyr::mutate(prop = cumsum(prop), plot = "Age Composition") %>%
+  dplyr::mutate(mean = cumsum(prop), plot = "Age Composition") %>%
   dplyr::ungroup(yr_id) %>%
   dplyr::mutate(year = as.numeric(year_id[a$yr.a[as.numeric(yr_id)]]))
                 
-P.mn <- get_array(stats_dat, "p") %>%
-  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
-  dplyr::mutate(plot = "Age-at-Maturity") %>%
-  dplyr::rename(year = byear)
-Q.mn <- get_array(stats_dat, "q") %>%
-  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
-  dplyr::mutate(plot = "Age Composition") %>%
-  dplyr::rename(year = cyear)
-N.mn <- get_array(stats_dat, "N.ta") %>%
-  tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
-  dplyr::mutate(plot = "Total Run") %>%
-  dplyr::rename(year = cyear)
+P.mn <- get_array(post_dat, "p") %>%
+  dplyr::mutate(plot = "Age-at-Maturity")
+Q.mn <- get_array(post_dat, "q") %>%
+  dplyr::mutate(plot = "Age Composition")
+N.mn <- get_array(post_dat, "N.ta") %>%
+  dplyr::mutate(plot = "Total Run")
 
 dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
-  dplyr::mutate(year = (plot != c("Age-at-Maturity")) * (yr0 + year) + (plot == c("Age-at-Maturity")) * (yr0_p + year)) %>%
-  ggplot2::ggplot(ggplot2::aes(x = year, y = prop, alpha = age)) +
+  dplyr::mutate(year = (plot != c("Age-at-Maturity")) * (yr0 + yr) + (plot == c("Age-at-Maturity")) * (yr0_p + yr),
+                age = paste0("age", age)) %>%
+  ggplot2::ggplot(ggplot2::aes(x = year, y = mean, alpha = age)) +
     ggplot2::geom_area(position = ggplot2::position_stack(reverse = TRUE)) +
     ggplot2::facet_grid(plot ~ ., scales = "free", switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 3), minor_breaks = NULL) +
@@ -185,27 +173,28 @@ plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
 #'
 #' Produces a faceted plot of Escapement and Inriver Run with the appropriately scaled indices of abundance that were used as inputs to the model.
 #'
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param post_dat The posterior object from the SRA model of class jagsUI
 #' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
 #' get_ids()
-#' plot_fit(get_summary(post), stock_id[1])
-#' plot_fit(get_summary(post), "East Susitna")
-#' lapply(stock_id, plot_fit, stats_dat = get_summary(post))
+#' plot_fit(post, stock_id[1])
+#' plot_fit(post, "East Susitna")
+#' lapply(stock_id, plot_fit, post_dat = post)
 #'
 #' @export
-plot_fit <- function(stats_dat, stock_name){
+plot_fit <- function(post_dat, stock_name){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
+            exists("trib_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
   
-  id0 <- lapply(1:5, function(x) colnames(as[[x]]))
+  id0 <- lapply(trib_id, function(x){x[!grepl("Other", x)]})
   names(id0) <- names(as)
   id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = stock_id), 
                    tribn = unlist(sapply(id0, function(x) 1:length(x)), use.names = FALSE), 
@@ -215,26 +204,28 @@ plot_fit <- function(stats_dat, stock_name){
     dplyr::arrange(stock, tribn, trib)
   
   trib <- function(node){
-    temp <- stats_dat %>%
+    temp <- 
+      post_dat[["summary"]][grepl(paste0("p.S", node, "\\["), rownames(post$summary)), c("mean", "sd")] %>%
+      as.data.frame() %>%
       tibble::rownames_to_column() %>%
-      dplyr::filter(grepl(paste0("p.S", node, "\\["), rowname)) %>%
       dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
                     tribn = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname)),
                     stock = stock_id[[node]],
                     node = node) %>%
       dplyr::filter(tribn != dim(as[[stock_name]])[2] + 1) %>%
-      dplyr::select(year, stock, tribn, ps = Mean)
+      dplyr::select(year, stock, tribn, ps = mean)
     if(node == 1) data.frame(year = as.numeric(year_id), stock = stock_id[[node]], tribn = 1, ps = 1) else temp
   } 
   
   theta <- 
-    stats_dat %>%
+    post_dat[["summary"]]%>%
+    as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("^theta\\[", rowname)) %>%
     dplyr::mutate(tribn2 = as.numeric(gsub("theta\\[(\\d+),\\d+\\]$", "\\1", rowname)),
                   year = as.numeric(gsub("theta\\[\\d+,(\\d+)\\]$", "\\1", rowname)) + yr0) %>%
     dplyr::left_join(id, by = "tribn2") %>%
-    dplyr::select(year, stock, tribn, theta = Mean)
+    dplyr::select(year, stock, tribn, theta = mean)
   
   expand <- 
     lapply(1:5, function(x) trib(x)) %>% 
@@ -306,7 +297,8 @@ plot_fit <- function(stats_dat, stock_name){
   col <-setNames(breaks$color, breaks$name)
   sha <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
   
-  stats_dat %>%
+  post_dat$summary %>%
+    as.data.frame() %>%
     dplyr::select_(value = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("^S\\[|^IR\\[", rowname)) %>%
@@ -342,16 +334,15 @@ plot_fit <- function(stats_dat, stock_name){
 #' Produces a horsetail plot of the median Spawn-Recruit relationship.  Plot also shows 40 plausible Spawn-Recruit relationships in the background and Spawner and Recruit estimates with associated 90% CIs.
 #'
 #' @param post_dat SRA model mcmc.list output
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
 #' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
 #' get_ids()
-#' plot_horse(post, get_summary(post), stock_id[1])
-#' plot_horse(post, get_summary(post), "East Susitna")
-#' lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
+#' plot_horse(post, stock_id[1])
+#' plot_horse(post, "East Susitna")
+#' lapply(stock_id, plot_horse, post_dat = post)
 #'
 #' @export
 plot_horse <- function(post_dat, stats_dat, stock_name){
@@ -362,21 +353,22 @@ plot_horse <- function(post_dat, stats_dat, stock_name){
   yr0_R <- yr0 - age_max
   
   stock_n <- which(stock_id == stock_name)
-  coeflines <- sapply(paste0(c("beta", "lnalpha"), "[", stock_n, "]"), function(x){get_post(post_dat, var = x)}) %>% 
-    as.data.frame() %>%
+  coeflines <- 
+    data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], lnalpha = post_dat$sims.list[["lnalpha"]][, stock_n]) %>%
     dplyr::sample_n(40) %>%
     as.matrix() %>%
     plyr::alply(1, function(coef) {ggplot2::stat_function(fun=function(x){x * exp(coef[2] - coef[1] * x)}, colour="grey", alpha = 0.5)})
   
-  param_50 <- stats_dat %>%
-    tibble::rownames_to_column() %>%
-    dplyr::filter(rowname %in% paste0(c("beta", "lnalpha"), "[", stock_n, "]")) %>%
-    dplyr::select_(as.name("50%")) %>%
-    unlist()
+  param_50 <- 
+    post_dat[["summary"]][paste0(c("beta", "lnalpha"), "[", stock_n, "]"), "50%", drop = FALSE] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column()
   
-  temp <- stats_dat %>%
-    dplyr::select_(median =as.name("50%"), lb = as.name("5%"), ub = as.name("95%")) %>%
+  temp <- 
+    post_dat[["summary"]][ , c("2.5%", "50%", "97.5%"), drop = FALSE] %>%
+    as.data.frame() %>%
     tibble::rownames_to_column() %>%
+    dplyr::rename(lb = "2.5%", median = "50%", ub = "97.5%") %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock_n, "\\]|S\\[\\d+,", stock_n, "\\]"), rowname)) %>%
     dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
                   index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
@@ -396,7 +388,7 @@ plot_horse <- function(post_dat, stats_dat, stock_name){
     ggplot2::geom_text() +
     ggplot2::geom_errorbar(linetype = 2) +
     ggplot2::geom_errorbarh(linetype = 2) +
-    ggplot2::stat_function(fun=function(x){x * exp(param_50[2] - param_50[1] * x)}, size = 2, linetype = 2) +
+    ggplot2::stat_function(fun=function(x){x * exp(param_50[2, 2] - param_50[1, 2] * x)}, size = 2, linetype = 2) +
     coeflines +
     ggplot2::scale_x_continuous("Spawners", limits = c(0, upper), minor_breaks = NULL, labels = scales::comma) +
     ggplot2::scale_y_continuous("Recruits", minor_breaks = NULL, labels = scales::comma) +
@@ -476,19 +468,19 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
 #' logresid.y <- log(R.y) - logRhat.y
 #' lnalpha.y <- lnalpha + logresid.y
 #' 
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param post_dat The posterior object from the SRA model of class jagsUI
 #' @param stock_name A character element specifying the stock to plot.
 #'
 #' @return A figure
 #'
 #' @examples
 #' get_ids()
-#' plot_rickeryear(get_summary(post), stock_id[1])
-#' plot_rickeryear(get_summary(post), "East Susitna")
-#' lapply(stock_id, plot_rickeryear, stats_dat = get_summary(post))
+#' plot_rickeryear(post, stock_id[1])
+#' plot_rickeryear(post, "East Susitna")
+#' lapply(stock_id, plot_rickeryear, post_dat = post)
 #'
 #' @export
-plot_rickeryear <- function(stats_dat, stock_name){
+plot_rickeryear <- function(post_dat, stock_name){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
             exists("age_max", .GlobalEnv))
@@ -497,7 +489,9 @@ plot_rickeryear <- function(stats_dat, stock_name){
   
   stock_n <- which(stock_id == stock_name)
   
-  text <- stats_dat %>%
+  text <- 
+    post_dat$summary %>%
+    as.data.frame() %>% 
     dplyr::select_(median =as.name("50%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock_n, "\\]|S\\[\\d+,", stock_n, "\\]"), rowname)) %>%
@@ -508,11 +502,13 @@ plot_rickeryear <- function(stats_dat, stock_name){
     tidyr::spread(name, median) %>%
     dplyr::filter(!is.na(R) & ! is.na(S))
   
-  lines <- stats_dat %>%
-    dplyr::select(value = Mean) %>%
+  lines <- 
+    post_dat$summary %>%
+    as.data.frame() %>%
+    dplyr::select(value = mean) %>%
     tibble::rownames_to_column()  %>% 
     dplyr::filter(grepl(paste0("^lnalpha.vec\\[\\d+,", stock_n, "\\]"), rowname)) %>%
-    dplyr::mutate(beta = as.numeric(stats_dat[grepl(paste0("beta\\[", stock_n, "\\]"), rownames(stats_dat)), "Mean"])) %>%
+    dplyr::mutate(beta = as.numeric(post_dat$summary[grepl(paste0("beta\\[", stock_n, "\\]"), rownames(post_dat$summary)), "mean"])) %>%
     dplyr::select(value, beta) %>%
     as.matrix() %>%
     plyr::alply(1, function(coef) {ggplot2::stat_function(fun = function(x){x * exp(coef[1] - coef[2] * x)}, colour="grey", alpha = 0.5)})
@@ -534,19 +530,19 @@ plot_rickeryear <- function(stats_dat, stock_name){
 #'
 #' Produces a faceted plot of escapement, recruitment, total run, Ricker residuals and harvest rate plotted with 95% confidence envelopes.
 #'
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param post_dat The posterior object from the SRA model of class jagsUI
 #' @param stock_name A character element specifying the stock to plot.
 #' @param S_msr Logical (TRUE) indicating if S_msr shoud be included in the escapement panel.  Defaults to FALSE.
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_state(get_summary(post), stock_id[1])
-#' plot_state(get_summary(post), "East Susitna")
-#' lapply(stock_id, plot_state, stats_dat = get_summary(post))
+#' plot_state(post, stock_id[1])
+#' plot_state(post, "East Susitna")
+#' lapply(stock_id, plot_state, post_dat = post)
 #'
 #' @export
-plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
+plot_state <- function(post_dat, stock_name, S_msr = FALSE){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv))
@@ -554,7 +550,9 @@ plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
   yr0_R <- yr0 - age_max
   stock <- unname(which(stock_id == stock_name))
   
-  msy50 <- stats_dat %>%
+  msy50 <- 
+    post_dat$summary %>%
+    as.data.frame() %>%
     dplyr::select_(median = as.name("50%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("msy\\[", stock, "\\]"), rowname)) %>%
@@ -562,7 +560,9 @@ plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
                                 levels = c("S", "U"),
                                 labels = c("Escapement", "Harvest Rate")))
   
-  msr50 <- stats_dat %>%
+  msr50 <- 
+    post_dat$summary %>%
+    as.data.frame() %>%
     dplyr::select_(median = as.name("50%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("beta\\[", stock, "\\]|lnalpha\\[", stock, "\\]"), rowname)) %>%
@@ -572,7 +572,8 @@ plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
                                 labels = c("Escapement", "Harvest Rate")))
   
   plot <-
-    stats_dat %>%
+    post_dat$summary %>%
+    as.data.frame() %>%
     dplyr::select_(median = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock, 
@@ -612,9 +613,7 @@ plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
 #' Pairs plot for beta, ln(alpha), phi, S.msy and sigma.white
 #'
 #' @param dat_post posterior object
-#' @param pars nodes to plot. Defaults to beta, ln(alpha), phi, S.msy and sigma.white.
-#' @param n number of pairs to plot. Defaults to 200.
-#' @param trim percentage of extreme S.msy realizations to remove. Defaults to 0.05.
+#' @param plot "stock" a separate plot of each stock, "param" for a separate plot for each Ricker parameter
 #'
 #' @return A figure
 #'
@@ -622,18 +621,17 @@ plot_state <- function(stats_dat, stock_name, S_msr = FALSE){
 #' plot_statepairs(post)
 #'
 #' @export
-plot_statepairs <- function(dat_post, 
-                            pars = c(paste0("beta[", 1:5, "]"),
-                                     paste0("lnalpha[", 1:5, "]"),
-                                     paste0("phi[", 1:5, "]"),
-                                     paste0("sigma.white[", 1:5, "]")), 
-                            n = 200, 
-                            trim = 0.05){
-  postdf <- as.data.frame(as.matrix(dat_post))   
-  bounds <- lapply(postdf[, grepl("S.msy", names(postdf))], quantile, probs = c(trim / 2, 1 - trim / 2))
-  index <- Reduce(intersect, lapply(1:5, function(x) which(postdf[names(bounds)][, x] > bounds[[x]][1] & postdf[names(bounds)][, x] < bounds[[x]][2])))
-  subset <- postdf[index, pars]
-  pairs(subset[sample(1:dim(subset)[1], n), ], cex=0.6)
+plot_statepairs <- function(post_dat,
+                            plot){
+  pars = c("beta", "lnalpha", "phi", "sigma.white")  
+  lb <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "2.5%"]
+  ub <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "97.5%"] 
+  index <- Reduce(intersect, lapply(1:5, function(x) which(post_dat$sims.list$S.msy[, x] > lb[x] & post_dat$sims.list$S.msy[, x] < ub[x])))
+  sample <- sample(index, size = 200)
+  subset <- post_dat$sims.list[pars] %>% lapply(function(x){x[sample, ]})
+  
+  if(plot == "stock") lapply(1:5, function(y) pairs(lapply(subset, function(x) x[, y])))
+  if(plot == "param") lapply(subset, pairs, labels = stock_id)
 }
 
 
@@ -642,27 +640,26 @@ plot_statepairs <- function(dat_post,
 #' Faceted plot of stock composition for Susitna Drainage. (Need to add observations)
 #'
 #' @param input_dat telemetry data matrix
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list ouput
+#' @param post_dat The posterior object from the SRA model of class jagsUI
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_stock(telemetry, get_summary(post))
+#' plot_stock(telemetry, post)
 #'
 #' @export
-plot_stock <- function(input_dat, stats_dat){
+plot_stock <- function(input_dat, post_dat){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
+            exists("trib_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
   
-  id0 <- lapply(1:5, function(x) c(colnames(as[[x]]), paste0("Other ", names(as[x]))))
-  names(id0) <- names(as)
-  id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = stock_id), 
-                   tribn = unlist(sapply(id0, function(x) 1:length(x)), use.names = FALSE), 
-                   trib0 = unlist(id0, use.names = FALSE),
+  id <- data.frame(stock = factor(rep(names(trib_id), sapply(trib_id, length)), levels = stock_id), 
+                   tribn = unlist(sapply(trib_id, function(x) 1:length(x)), use.names = FALSE), 
+                   trib0 = unlist(trib_id, use.names = FALSE),
                    stringsAsFactors = FALSE) %>%
     dplyr::mutate(trib = factor(trib0, levels = trib0)) %>%
     dplyr::select(-trib0) %>%
@@ -683,21 +680,22 @@ plot_stock <- function(input_dat, stats_dat){
       dplyr::group_by(year) %>%
       dplyr::mutate(p = cumsum(p0)) %>%
       dplyr::ungroup() %>%
-      dplyr::select(year, stock, trib, Mean = p)
+      dplyr::select(year, stock, trib, mean = p)
   }
   
   obs <- 
     lapply(stock_id[-1], obs_f) %>% do.call(rbind, .) %>%
     dplyr::mutate(stock = factor(stock, levels = stock_id))
   
-  est <- stats_dat %>%
+  est <- 
+    post_dat[["summary"]][grepl("p.S", rownames(post$summary)), "mean"] %>%
+    as.data.frame() %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl("p.S", rowname)) %>%
     dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
                   stock = factor(unname(stock_id[gsub("p.S(\\d).*", "\\1", rowname)]), levels = stock_id),
                   tribn = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname))) %>%
     dplyr::left_join(id, by = c("stock", "tribn")) %>%
-    dplyr::select(stock, year, trib, Mean) 
+    dplyr::select(stock, year, trib, mean = ".") 
   
   pal <- RColorBrewer::brewer.pal(7, "Paired")
   breaks <- id[!id$stock == "Deshka", ] %>% 
@@ -709,7 +707,7 @@ plot_stock <- function(input_dat, stats_dat){
   alp <-setNames(breaks$alpha, breaks$trib)
   
   est %>%
-    ggplot2::ggplot(ggplot2::aes(x = as.numeric(year), y = Mean, fill = trib, alpha = trib)) +
+    ggplot2::ggplot(ggplot2::aes(x = as.numeric(year), y = mean, fill = trib, alpha = trib)) +
     ggplot2::geom_area() +
     ggplot2::facet_grid(stock ~ ., switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
@@ -727,35 +725,38 @@ plot_stock <- function(input_dat, stats_dat){
 #'
 #' Estimated and observed aerial survey detectability in the Susitna River drainage.
 #'
-#' @param stats_dat The output from get_summary() for the SRA model mcmc.list output
+#' @param post_dat The posterior object from the SRA model of class jagsUI
 #'
 #' @return A figure
 #'
 #' @examples
-#' plot_theta(get_summary(post))
+#' plot_theta(post)
 #'
 #' @export
-plot_theta <- function(stats_dat){
+plot_theta <- function(post_dat){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
+            exists("trib_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
   
   yr0 <- as.numeric(min(year_id)) - 1
   
-  id0 <- lapply(1:5, function(x) colnames(as[[x]]))
-  names(id0) <- names(as)
+  id0 <- lapply(trib_id, function(x){x[!grepl("Other", x)]})
+  names(id0) <- names(trib_id)
   id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = stock_id), 
                    tribn = unlist(sapply(id0, function(x) 1:length(x)), use.names = FALSE), 
                    tribn2 = 1:length(unlist(id0)),
                    trib = unlist(id0, use.names = FALSE))
   
   theta_est <- 
-    tibble::rownames_to_column(stats_dat) %>% 
-    dplyr::filter(grepl(paste0("^theta\\["), rowname)) %>% 
+    post_dat[["summary"]][, c("mean", "sd")] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>% 
+    dplyr::filter(grepl("^theta\\[", rowname)) %>%
     dplyr::mutate(year = as.numeric(gsub("theta\\[\\d+,(\\d+)\\]", "\\1", rowname)) + yr0,
                   tribn2 = as.numeric(gsub("theta\\[(\\d+),\\d+\\]", "\\1", rowname))) %>%
     dplyr::left_join(id, by = "tribn2") %>%
-    dplyr::select(year, stock, trib, theta = Mean)
+    dplyr::select(year, stock, trib, theta = mean)
   
   theta_obs1 <- data.frame(year = as.numeric(year_id), stock = unname(stock_id[1]), trib = "Deshka", theta = as[["Deshka"]][, "Deshka"] / weir[, "Deshka"])
   theta_obs2 <- data.frame(year = as.numeric(year_id), stock = unname(stock_id[2]), trib = "Montana", theta = as[["East Susitna"]][, "Montana"] / weir[, "Montana"])

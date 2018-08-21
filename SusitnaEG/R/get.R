@@ -16,14 +16,13 @@
 #' @export
 get_countprofile <- function(post_dat, stock_name, trib_name){
   stopifnot(exists("stock_id", .GlobalEnv),
+            exists("trib_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
   
-  id0 <- lapply(1:5, function(x) colnames(as[[x]]))
-  names(id0) <- names(as)
-  id <- data.frame(stock = factor(rep(names(id0), sapply(id0, length)), levels = stock_id), 
-                   tribn = unlist(sapply(id0, function(x) 1:length(x)), use.names = FALSE), 
-                   tribn2 = 1:length(unlist(id0)),
-                   trib = unlist(id0, use.names = FALSE),
+  id <- data.frame(stock = factor(rep(names(trib_id), sapply(trib_id, length)), levels = stock_id), 
+                   tribn = unlist(sapply(trib_id, function(x) 1:length(x)), use.names = FALSE), 
+                   tribn2 = 1:length(unlist(trib_id)),
+                   trib = unlist(trib_id, use.names = FALSE),
                    stringsAsFactors = FALSE) %>%
     dplyr::arrange(stock, tribn, trib)
   
@@ -31,14 +30,15 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
   trib_n1 <- id$tribn[id$stock == stock_name & id$trib == trib_name]
   trib_n2 <- id$tribn2[id$stock == stock_name & id$trib == trib_name]
   tribnodes <- c(paste0("p.S", stock_n, "[39,", trib_n1, "]"), paste0("theta[", trib_n2, ",39]"), paste0("sigma.air[", trib_n2, "]"))
-  SRnodes <-  paste0(c("lnalpha[", "beta[", "S.msy[", "lnalpha.c["), stock_n, "]")
   
-  samples <- coda::nchain(post_dat) * coda::niter(post_dat)
+  samples <- post_dat$mcmc.info$n.chains * post_dat$mcmc.info$n.samples
   
   SRparams <-
-    sapply(SRnodes, function(x){get_post(post_dat, var = x)}) %>% 
+    data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], 
+               lnalpha = post_dat$sims.list[["lnalpha"]][, stock_n],
+               S.msy = post_dat$sims.list[["S.msy"]][, stock_n],
+               lnalpha.c = post_dat$sims.list[["lnalpha.c"]][, stock_n]) %>%
     as.data.frame() %>%
-    setNames(gsub("(^.*)\\[\\d\\]", "\\1", SRnodes)) %>%
     dplyr::mutate(R.msy = S.msy * exp(lnalpha.c - beta * S.msy),
                   R.max = 1/beta * exp(lnalpha.c - 1),
                   MSY = R.msy - S.msy) %>%
@@ -49,9 +49,10 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
   c_step <- max(as[[stock_name]][, trib_name], na.rm = TRUE) / 50
   
   tribparams <-
-    sapply(tribnodes, function(x){get_post(post_dat, var = x)}) %>% 
+    data.frame(p = post_dat$sims.list[[paste0("p.S", stock_n)]][, 39, trib_n1], 
+               theta = post_dat$sims.list[["theta"]][, trib_n2, 39],
+               sigma = post_dat$sims.list[["sigma.air"]][, trib_n2]) %>% 
     as.data.frame() %>%
-    setNames(c("p", "theta", "sigma")) %>%
     tibble::rownames_to_column(var = "id_var") %>%
     dplyr::inner_join(data.frame(id_var = as.character(rep(1:samples, each = length(s))), 
                                  s = rep(s, samples), 
@@ -177,29 +178,6 @@ get_inits <- function(){
 }
 
 
-#' Get Posterior Summaries
-#'
-#' @description This function allows you to pull out variables from a mcmc.list or matrix.
-#'    Modifided version of oriiginal written by Ben Stanton (bas0041@auburn.edu).
-#'
-#' @param post_dat an object of class 'mcmc.list' or 'matrix'
-#' @param var the variable you wish to view. Must be in "quotes". To pull out a vector specify thru the opening bracket e.g. "N["
-#'
-#' @examples get.post(post_er, var="N[")
-#' @examples get.post(post_er, var="lnalpha")
-#'
-#' @export
-get_post=function(post_dat, var){
-  #coerce to matrix if mcmc.list
-  if (!coda::is.mcmc.list(post_dat) & !is.matrix(post_dat)) stop("post_dat is not of class mcmc.list or matrix")
-  if (coda::is.mcmc.list(post_dat)) post_dat=as.matrix(post_dat)
-  
-  #pull out posteriors for requested variable
-  if(substr(var,nchar(var), nchar(var))=="[") post=post_dat[,substr(colnames(post_dat), 1, nchar(var))==var] else post=post_dat[,var]
-  post
-}
-
-
 #' Creates a dataset for plotting OYP, ORP and EY plots
 #'
 #' This function creates a dataframe that can be used by plot_profile()
@@ -220,14 +198,15 @@ get_profile <- function(post_dat, stock_name){
   stopifnot(exists("stock_id", .GlobalEnv))
   
   stock_n <- which(stock_id == stock_name)
-  selectnodes <-  paste0(c("lnalpha[", "beta[", "S.msy[", "lnalpha.c["), stock_n, "]")
   
-  samples <- coda::nchain(post_dat) * coda::niter(post_dat)
+  samples <- post_dat$mcmc.info$n.chains * post_dat$mcmc.info$n.samples
   
   temp <-
-    sapply(selectnodes, function(x){get_post(post_dat, var = x)}) %>% 
+    data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], 
+               lnalpha = post_dat$sims.list[["lnalpha"]][, stock_n],
+               S.msy = post_dat$sims.list[["S.msy"]][, stock_n],
+               lnalpha.c = post_dat$sims.list[["lnalpha.c"]][, stock_n]) %>%
     as.data.frame() %>%
-    setNames(gsub("(^.*)\\[\\d\\]", "\\1", selectnodes)) %>%
     dplyr::mutate(R.msy = S.msy * exp(lnalpha.c - beta * S.msy),
                   R.max = 1/beta * exp(lnalpha.c - 1),
                   MSY = R.msy - S.msy) %>%
@@ -257,22 +236,22 @@ get_profile <- function(post_dat, stock_name){
 }
 
 
-#' Posterior summaries
+#' Identify parameters with questionable convergence.
 #'
-#' Posterior summaries in a format expected by KenaiSRA plotting functions
+#' Return parameters from a RJags posterior object with an Rhat that exceed a user specified cutoff.
 #'
-#' @param post An mcmc.list to be summarised
+#' @param post Jags posterior object
+#' @param cutoff returns parameters with an Rhat that exceeds the cutoff.
 #'
-#' @return Data frame with means, sd and quantiles of posterior estimates.
+#' @return a list with 2 elements.  The parameters with a Rhat exceeding the cutoff and the Rhat values forming the 90%+ quartiles.
 #'
 #' @examples
-#' get_summary(post_er)
+#' get_Rhat(post)
 #'
 #' @export
-get_summary <- function(post){
-  sumout <- coda:::summary.mcmc.list(post, quantiles = c(0.025, 0.05, 0.25, 0.5, 0.75, 0.95, 0.975))
-  statsquants <- as.data.frame(cbind(sumout$statistics,sumout$quantiles))
-  #write.csv(statsquants, file= paste("BFG",version,"statsquants.csv") )
-  dplyr::as.tbl(statsquants)
+get_Rhat <- function(post, cutoff = 1.1){
+  list(
+    data.frame("Rhat" = post$summary[, "Rhat"][post$summary[, "Rhat"] > cutoff & !is.na(post$summary[, "Rhat"])]),
+       "R^ quantiles" = quantile(post$summary[, "Rhat"], probs = seq(0.9, 1, by = .01), na.rm = TRUE))
 }
 

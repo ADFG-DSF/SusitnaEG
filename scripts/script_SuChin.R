@@ -1,4 +1,4 @@
-packs <- c("SusitnaEG", "rjags", "coda", "ggplot2")
+packs <- c("SusitnaEG", "jagsUI")
 lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
@@ -35,9 +35,6 @@ dat = list(
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
 )
 
-# bundle inits for JAGS
-inits <- list(get_inits(), get_inits())
-
 ####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
 'sigma.white', 'sigma.R0', 'sigma.air', 'B', 'sigma.weir',
@@ -54,55 +51,67 @@ parameters=c(
 'mu.Hmarine', 'mu.Habove'
 )
 
-#### run JAGS ####
-#ptm = proc.time()
-jmod = jags.model(file=".\\models\\mod_SuChin.r", data=dat, n.chains=2, inits=inits, n.adapt=1000)  
-update(jmod, n.iter=1000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=1000, thin=1)        # 10 min
-update(jmod, n.iter=15000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=10000, thin=10)         
-update(jmod, n.iter=100000, by=1, progress.bar='text')               
-post = coda.samples(jmod, parameters, n.iter=100000, thin=50)         #  1.5h
-#post = coda.samples(jmod, parameters, n.iter=600000, thin=300)       #  
-endtime = proc.time()-ptm
-endtime[3]/60/60  
+#MCMC settings
+nc <- 3
+nb <- 100000
+nt <- 200
+ns <- 700000
 
+#MCMC settings
+nc <- 3
+nb <- 2000
+nt <- 10
+ns <- 6000
+
+post <- jags(data = dat,
+             parameters.to.save = parameters,
+             inits = get_inits,
+             model.file = ".\\models\\mod_SuChin.r",
+             n.chains = nc,
+             n.iter = ns,
+             n.burnin = nb,
+             n.thin = nt,
+             parallel = TRUE,
+             store.data = TRUE
+)
 
 saveRDS(post, file = ".\\posts\\SuChinook_3yrHa_07685df.rds")
 #post <- readRDS(".\\posts\\SuChinook_3yrHa_07685df.rds")
 
+rhat <- get_Rhat(post)
+rhat
+#lapply(rownames(rhat[[1]][rhat[[1]]$Rhat >= quantile(rhat[[1]]$Rhat, .9), , drop = FALSE]), jagsUI::traceplot, x = post)
+lapply(rownames(rhat[[1]]), jagsUI::traceplot, x = post)
 #inspect convergence
-shinystan::launch_shinystan(shinystan::as.shinystan(post))
-
-summary <- get_summary(post)
-
+#shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
 #age at maturity trend maintained
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("ML", rowname)) %>% print(n = 100)
+post$summary[grepl("ML1", rownames(post$summary)), ]
+post$summary[grepl("ML2", rownames(post$summary)), ]
 
-table_params(summary)
+table_params(post)
 
-lapply(stock_id, plot_fit, stats_dat = summary)
+lapply(stock_id, plot_fit, post_dat = post)
 lapply(stock_id, function(x) plot_state(summary, stock = x))
 plot_statepairs(post)
 
 #2d age at maturity and age comp arrays
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("b\\[", rowname))
-table_age(summary, "p") #age-at-maturity
-table_age(summary, "q") #age comp
-table_age(summary, "N.ta") #total run by age
+post$summary[grepl("b\\[", rownames(post$summary)), ]
+table_age(post, "p") #age-at-maturity
+table_age(post, "q") #age comp
+table_age(post, "N.ta") #total run by age
 
-plot_age(as.data.frame(x.a), summary)
+plot_age(post)
 
-table_stock(summary)
-plot_stock(telemetry, summary)
+table_stock(post)
+plot_stock(telemetry, post)
 
-plot_theta(summary)
-table_airerror(summary)
-tibble::rownames_to_column(summary) %>% dplyr::filter(grepl("B$", rowname))
+plot_theta(post)
+table_airerror(post)
+post$summary[grepl("B$", rownames(post$summary)), ]
 
 lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
-lapply(stock_id, plot_rickeryear, stats_dat = summary)
+lapply(stock_id, plot_rickeryear, post_dat = post)
 profiles <- lapply(stock_id, get_profile, post_dat = post)
 lapply(profiles, plot_profile)
 lapply(profiles, plot_ey)
