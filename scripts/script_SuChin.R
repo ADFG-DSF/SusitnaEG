@@ -53,9 +53,9 @@ parameters=c(
 
 #MCMC settings
 nc <- 3
-nb <- 100000
-nt <- 200
-ns <- 700000
+nb <- 20000
+nt <- 50
+ns <- 50000
 
 #MCMC settings
 nc <- 3
@@ -85,41 +85,62 @@ lapply(rownames(rhat[[1]]), jagsUI::traceplot, x = post)
 #inspect convergence
 #shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
-#age at maturity trend maintained
-post$summary[grepl("ML1", rownames(post$summary)), ]
-post$summary[grepl("ML2", rownames(post$summary)), ]
-
-table_params(post)
-
-lapply(stock_id, plot_fit, post_dat = post)
-lapply(stock_id, function(x) plot_state(post, stock = x))
-table_state(post, "bystock")
-plot_statepairs(post, plot = "param")
-
-#2d age at maturity and age comp arrays
-post$summary[grepl("b\\[", rownames(post$summary)), ]
+#Drainage wide age composition
 table_age(post, "p") #age-at-maturity
 table_age(post, "q") #age comp
 table_age(post, "N.ta") #total run by age
 
+#Survey bias
+post$summary[grepl("b\\[", rownames(post$summary)), ]
+#age at maturity trend maintained
+post$summary[grepl("ML2\\[", rownames(post$summary)), ]
 plot_age(post)
 
-table_stock(post)
+#Stock Composition estimates
 plot_stock(telemetry, post)
+#trends in stock composition
+post$summary[grepl("ML2\\.", rownames(post$summary)), ]
+table_stock(post)
 
+#survey detectability
 plot_theta(post)
+#survey variability
 table_airerror(post)
+#mean survey variability
 post$summary[grepl("B$", rownames(post$summary)), ]
 
-lapply(stock_id, plot_horse, post_dat = post, stats_dat = summary)
-lapply(stock_id, plot_rickeryear, post_dat = post)
-profiles <- lapply(stock_id, get_profile, post_dat = post)
-lapply(profiles, plot_profile)
-lapply(profiles, plot_ey)
+#model fit plots
+lapply(stock_id[-5], plot_fit, post_dat = post)
 
+#state varible plots
+lapply(stock_id[-5], function(x) plot_state(post, stock = x))
+table_state(post, "bystock")
+plot_statepairs(post, plot = "bystock")
+
+#SR relationships
+lapply(stock_id[-5], plot_horse, post_dat = post)
+lapply(stock_id[-5], plot_rickeryear, post_dat = post)
+
+#SR parameters
+table_params(post)
+
+#create profile dataset
+profiles <- lapply(stock_id[-5], get_profile, post_dat = post)
+
+#Statewide bounds as a percentage of Smsy
 quantile(chinBEGs$lb/chinBEGs$Smsy, probs = seq(0.3, 1, 0.1))
 quantile(chinBEGs$ub/chinBEGs$Smsy, probs = seq(0.3, 1, 0.1))
-goal_range <- data.frame(stock = stock_id, 
-                         lb = post$summary[grepl("^S.msy", rownames(post$summary)), "mean"] * c(.7, .9, .7, .7, .7), 
-                         ub = post$summary[grepl("^S.msy", rownames(post$summary)), "mean"] * c(1.6, 1.8, 1.6, 1.6, 1.6))
+#straw dog goals
+goals_df <- data.frame(stock = stock_id[-5], 
+                       lb = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(.75, .9, .8, .8), 
+                       ub = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(1.5, 1.8, 1.6, 1.6))
+goals_list <- split(goals_df[, -1], 1:nrow(goals_df))
+
+#Profiles
+mapply(plot_profile, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
+
+#expected yield
+mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
+
+#escapement vrs. proposed goals
 plot_Swgoals(post, goal_range)

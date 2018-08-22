@@ -76,7 +76,7 @@ table_airerror <- function(post_dat){
     dplyr::select(trib, print1)
   
   colnames(temp)  <- c("Tributary", "$\\sigma_{air}$(95% CI)")
-  knitr::kable(temp, escape = FALSE)
+  knitr::kable(temp, escape = FALSE, align = "r")
 }
 
 
@@ -152,7 +152,7 @@ table_params <- function(post_dat){
   
   colnames(temp)  <- c("Parameter", stock_id)
   
-  knitr::kable(temp, escape = FALSE)
+  knitr::kable(temp, escape = FALSE, align = "r")
 }
 
 
@@ -161,7 +161,7 @@ table_params <- function(post_dat){
 #' Produces a table of escapement, recruitment, total run, and inriver run along with cv's.
 #'
 #' @param post_dat The posterior object from the SRA model of class jagsUI
-#' @param "bystock" for a list of state parameter estimates for each stock and "bystate" for 
+#' @param display "bystock" for a list of state parameter estimates for each stock and "bystate" for 
 #'  a list of stock parameter estimates for each state.
 #'
 #' @return A table

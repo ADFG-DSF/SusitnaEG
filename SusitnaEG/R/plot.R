@@ -124,6 +124,7 @@ plot_countprofile <- function(profile_dat, limit = NULL, goal_range = NA, profil
 #' @export
 plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
   rug_dat <- get_BEGbounds(median(profile_dat$S.msy))
+  stock_name <- unique(profile_dat$name)
   
   plot_dat <- profile_dat %>%
     dplyr::select(s, dplyr::starts_with("SY")) %>%
@@ -149,7 +150,8 @@ plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
     ggplot2::scale_x_continuous("Spawners", labels = scales::comma) +
     ggplot2::scale_y_continuous("Expected Yield", labels = scales::comma) +
     ggplot2::coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax)) +
-    ggplot2::scale_color_manual(name = "Productivity", labels = "1973-2013 broods", values = "black") +
+    ggplot2::scale_color_manual(name = "Productivity", labels = "1973-2014 broods", values = "black") +
+    ggplot2::ggtitle(stock_name) +
     ggplot2::theme_bw()
   
   if(rug == TRUE) {
@@ -160,8 +162,9 @@ plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
   else plot2 <- plot
   
   if(!anyNA(goal_range)) {
+    dat <- data.frame(xmin = unname(goal_range[1]), xmax = unname(goal_range[2]), ymin = -Inf, ymax = Inf)
     plot2 + ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                               data.frame(xmin = goal_range[1], xmax = goal_range[2], ymin = -Inf, ymax = Inf),
+                               data = dat,
                                inherit.aes = FALSE, fill = "red", alpha = 0.2)
   }
   else plot2
@@ -345,7 +348,7 @@ plot_fit <- function(post_dat, stock_name){
 #' lapply(stock_id, plot_horse, post_dat = post)
 #'
 #' @export
-plot_horse <- function(post_dat, stats_dat, stock_name){
+plot_horse <- function(post_dat, stock_name){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
             exists("age_max", .GlobalEnv))
@@ -423,6 +426,7 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
                                           'ORP' = "Optimum Recruitment Profile"))
   S.msy50 <- median(profile_dat$S.msy) 
   rug_dat <- get_BEGbounds(S.msy50)
+  stock_name <- unique(profile_dat$name)
   
   if(is.null(limit)){
     xmax <- S.msy50 * 2.25
@@ -444,6 +448,7 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
     ggplot2::scale_y_continuous("Probability", breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
     ggplot2::scale_linetype_discrete(name = "Percent of Max.")+
     ggplot2::facet_grid(profile ~ ., labeller = profile_label) +
+    ggplot2::ggtitle(stock_name) +
     ggplot2::theme_bw()
   
   if(rug == TRUE) {
@@ -454,8 +459,9 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
   else plot2 <- plot
   
   if(!anyNA(goal_range)) {
+    dat <- data.frame(xmin = unname(goal_range[1]), xmax = unname(goal_range[2]), ymin = -Inf, ymax = Inf)
     plot2 + ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
-                               data.frame(xmin = goal_range[1], xmax = goal_range[2], ymin = -Inf, ymax = Inf),
+                               data = dat,
                                inherit.aes = FALSE, fill = "red", alpha = 0.2)
   }
   else plot2
@@ -524,38 +530,6 @@ plot_rickeryear <- function(post_dat, stock_name){
     ggplot2::theme_bw() +
     ggplot2::ggtitle(stock_name) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"))
-}
-
-
-#' Plot of escapement vrs. proposed goals faceted by stock
-#'
-#' Produces a faceted plot of model estimated escapement with 95% CI error bars overlain by proposed goal ranges for each stock.
-#'
-#' @param post_dat The posterior object from the SRA model of class jagsUI
-#' @param goal_range A data frame with columns "stock", "lb" the lower bound of the goal range and "ub" the upper bound of the goal range.
-#'
-#' @return A figure
-#'
-#' @examples
-#' plot_Swgoals(post, goals)
-#'
-#' @export
-plot_Swgoals <- function(post_dat, goal_range){
-  post_dat[["summary"]] %>%
-    as.data.frame() %>%
-    tibble::rownames_to_column() %>%
-    dplyr::filter(grepl("^S\\[\\d+,\\d\\]", rowname)) %>%
-    dplyr::select_("rowname", Escapement = as.name("50%"), lb = as.name("2.5%"), ub = as.name("97.5%")) %>%
-    dplyr::mutate(year = as.numeric(gsub("^S\\[(\\d+),\\d\\]", "\\1", rowname)) + min(as.numeric(year_id)) - 1,
-                  stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id)) %>%
-    ggplot2::ggplot(ggplot2::aes(x = year, y = Escapement)) +
-    ggplot2::geom_line() +
-    ggplot2::geom_pointrange(ggplot2::aes(ymin = lb, ymax = ub), linetype = 2) +
-    ggplot2::geom_rect(data = goal_range, ggplot2::aes(x = NULL, y = NULL, xmin = -Inf, xmax = Inf, ymin = lb, ymax = ub), fill = "red", alpha = 0.2) +
-    ggplot2::scale_x_continuous("Year", breaks = seq(1985, 2015, 3), minor_breaks = NULL) +
-    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
-    ggplot2::facet_grid(stock ~ ., scales = "free_y") +
-    ggplot2::theme_bw()
 }
 
 
@@ -645,7 +619,7 @@ plot_state <- function(post_dat, stock_name, S_msr = FALSE){
 #' Pairs plot for beta, ln(alpha), phi, S.msy and sigma.white
 #'
 #' @param dat_post posterior object
-#' @param plot "stock" a separate plot of each stock, "param" for a separate plot for each Ricker parameter
+#' @param plot "bystock" a separate plot of each stock, "byparam" for a separate plot for each Ricker parameter
 #'
 #' @return A figure
 #'
@@ -653,8 +627,7 @@ plot_state <- function(post_dat, stock_name, S_msr = FALSE){
 #' plot_statepairs(post)
 #'
 #' @export
-plot_statepairs <- function(post_dat,
-                            plot){
+plot_statepairs <- function(post_dat, plot){
   pars = c("beta", "lnalpha", "phi", "sigma.white")  
   lb <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "2.5%"]
   ub <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "97.5%"] 
@@ -662,8 +635,8 @@ plot_statepairs <- function(post_dat,
   sample <- sample(index, size = 200)
   subset <- post_dat$sims.list[pars] %>% lapply(function(x){x[sample, ]})
   
-  if(plot == "stock") lapply(1:5, function(y) pairs(lapply(subset, function(x) x[, y])))
-  if(plot == "param") lapply(subset, pairs, labels = stock_id)
+  if(plot == "bystock") lapply(1:5, function(y) pairs(lapply(subset, function(x) x[, y]), main = stock_id[y]))
+  if(plot == "byparam") lapply(1:length(pars), function(x) pairs(subset[x], labels = stock_id, main = names(subset[x])))
 }
 
 
@@ -750,6 +723,38 @@ plot_stock <- function(input_dat, post_dat){
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
   
+}
+
+
+#' Plot of escapement vrs. proposed goals faceted by stock
+#'
+#' Produces a faceted plot of model estimated escapement with 95% CI error bars overlain by proposed goal ranges for each stock.
+#'
+#' @param post_dat The posterior object from the SRA model of class jagsUI
+#' @param goal_range A data frame with columns "stock", "lb" the lower bound of the goal range and "ub" the upper bound of the goal range.
+#'
+#' @return A figure
+#'
+#' @examples
+#' plot_Swgoals(post, goals)
+#'
+#' @export
+plot_Swgoals <- function(post_dat, goal_range){
+  post_dat[["summary"]] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>%
+    dplyr::filter(grepl("^S\\[\\d+,[1234]\\]", rowname)) %>%
+    dplyr::select_("rowname", Escapement = as.name("50%"), lb = as.name("2.5%"), ub = as.name("97.5%")) %>%
+    dplyr::mutate(year = as.numeric(gsub("^S\\[(\\d+),\\d\\]", "\\1", rowname)) + min(as.numeric(year_id)) - 1,
+                  stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = year, y = Escapement)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_pointrange(ggplot2::aes(ymin = lb, ymax = ub), linetype = 2) +
+    ggplot2::geom_rect(data = goal_range, ggplot2::aes(x = NULL, y = NULL, xmin = -Inf, xmax = Inf, ymin = lb, ymax = ub), fill = "red", alpha = 0.2) +
+    ggplot2::scale_x_continuous("Year", breaks = seq(1985, 2015, 3), minor_breaks = NULL) +
+    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
+    ggplot2::facet_grid(stock ~ ., scales = "free_y") +
+    ggplot2::theme_bw()
 }
 
 

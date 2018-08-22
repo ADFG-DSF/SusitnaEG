@@ -231,8 +231,9 @@ get_profile <- function(post_dat, stock_name){
                   ORP90 = (Rs - 0.9 * R.max) > 0,
                   OFP70 = (SY - 0.7 * MSY) < 0 & (s < S.msy),
                   OFP80 = (SY - 0.8 * MSY) < 0 & (s < S.msy),
-                  OFP90 = (SY - 0.9 * MSY) < 0 & (s < S.msy)) %>%
-    dplyr::select(s, S.msy, dplyr::starts_with("SY"), dplyr::starts_with("O"))
+                  OFP90 = (SY - 0.9 * MSY) < 0 & (s < S.msy),
+                  name = stock_name) %>%
+    dplyr::select(name, s, S.msy, dplyr::starts_with("SY"), dplyr::starts_with("O"))
 }
 
 
