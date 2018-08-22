@@ -83,9 +83,9 @@ plot_countprofile <- function(profile_dat, limit = NULL, goal_range = NA, profil
     dplyr::select_("bin", .dots = temp) %>%
     dplyr::filter(bin <= xmax) %>%
     tidyr::gather("key", "prob", -bin, factor_key = TRUE) %>%
-    dplyr::mutate(profile = factor(stringr::str_extract(key, "[A-Z]+"),
+    dplyr::mutate(profile = factor(gsub("([A-Z]+)[0-9]+", "\\1", key),
                                    levels = c("OYP", "OFP", "ORP")),
-                  max_pct = stringr::str_extract(key, "[0-9]+")) %>%
+                  max_pct = gsub("[A-Z]+([0-9]+)", "\\1", key)) %>%
     ggplot2::ggplot(ggplot2::aes(x = bin, y = prob, linetype = max_pct)) +
     ggplot2::geom_line() +
     ggplot2::scale_x_continuous("Count", limits = c(0, xmax), labels = scales::comma) +
@@ -299,7 +299,7 @@ plot_fit <- function(post_dat, stock_name){
   
   post_dat$summary %>%
     as.data.frame() %>%
-    dplyr::select_(value = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
+    dplyr::select(value = "50%", lcb = "2.5%", ucb = "97.5%") %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("^S\\[|^IR\\[", rowname)) %>%
     dplyr::mutate(name_f = factor(gsub("(^.*)\\[.*", "\\1", rowname),
@@ -370,8 +370,8 @@ plot_horse <- function(post_dat, stats_dat, stock_name){
     tibble::rownames_to_column() %>%
     dplyr::rename(lb = "2.5%", median = "50%", ub = "97.5%") %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock_n, "\\]|S\\[\\d+,", stock_n, "\\]"), rowname)) %>%
-    dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
-                  index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
+    dplyr::mutate(name = gsub("(^.*)\\[.*", "\\1", rowname),
+                  index = as.numeric(gsub(".*\\[(\\d+),\\d\\]", "\\1", rowname)),
                   year = (name != "R") * (yr0 + index) + (name == "R") * (yr0_R + index))
   
   v_dat <-  temp %>% dplyr::filter(name == "R") %>% dplyr::select(vlb = lb, vub = ub, year)
@@ -435,9 +435,9 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
     dplyr::filter(s <= xmax) %>%
     dplyr::summarise_all(mean, na.rm = TRUE) %>%
     tidyr::gather("key", "prob", -s, factor_key = TRUE) %>%
-    dplyr::mutate(profile = factor(stringr::str_extract(key, "[A-Z]+"),
+    dplyr::mutate(profile = factor(gsub("([A-Z]+)[0-9]+", "\\1", key),
                                    levels = c("OYP", "OFP", "ORP")),
-                  max_pct = stringr::str_extract(key, "[0-9]+")) %>%
+                  max_pct = gsub("[A-Z]+([0-9]+)", "\\1", key)) %>%
     ggplot2::ggplot(ggplot2::aes(x = s, y = prob, linetype = max_pct)) +
     ggplot2::geom_line() +
     ggplot2::scale_x_continuous("Spawners", limits = c(0, xmax), labels = scales::comma) +
@@ -492,11 +492,11 @@ plot_rickeryear <- function(post_dat, stock_name){
   text <- 
     post_dat$summary %>%
     as.data.frame() %>% 
-    dplyr::select_(median =as.name("50%")) %>%
+    dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock_n, "\\]|S\\[\\d+,", stock_n, "\\]"), rowname)) %>%
-    dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
-                  index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
+    dplyr::mutate(name = gsub("(^.*)\\[.*", "\\1", rowname),
+                  index = as.numeric(gsub(".*\\[(\\d+),\\d\\]", "\\1", rowname)),
                   year = (name != "R") * (yr0 + index) + (name == "R") * (yr0_R + index)) %>%
     dplyr::select(median, name, year) %>%
     tidyr::spread(name, median) %>%
@@ -522,7 +522,40 @@ plot_rickeryear <- function(post_dat, stock_name){
     ggplot2::scale_y_continuous("Recruits", limits = c(0, NA), minor_breaks = NULL, labels = scales::comma) +
     ggplot2::coord_cartesian(xlim = c(0, upper), ylim = c(0, upper)) +
     ggplot2::theme_bw() +
+    ggplot2::ggtitle(stock_name) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"))
+}
+
+
+#' Plot of escapement vrs. proposed goals faceted by stock
+#'
+#' Produces a faceted plot of model estimated escapement with 95% CI error bars overlain by proposed goal ranges for each stock.
+#'
+#' @param post_dat The posterior object from the SRA model of class jagsUI
+#' @param goal_range A data frame with columns "stock", "lb" the lower bound of the goal range and "ub" the upper bound of the goal range.
+#'
+#' @return A figure
+#'
+#' @examples
+#' plot_Swgoals(post, goals)
+#'
+#' @export
+plot_Swgoals <- function(post_dat, goal_range){
+  post_dat[["summary"]] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>%
+    dplyr::filter(grepl("^S\\[\\d+,\\d\\]", rowname)) %>%
+    dplyr::select_("rowname", Escapement = as.name("50%"), lb = as.name("2.5%"), ub = as.name("97.5%")) %>%
+    dplyr::mutate(year = as.numeric(gsub("^S\\[(\\d+),\\d\\]", "\\1", rowname)) + min(as.numeric(year_id)) - 1,
+                  stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = year, y = Escapement)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_pointrange(ggplot2::aes(ymin = lb, ymax = ub), linetype = 2) +
+    ggplot2::geom_rect(data = goal_range, ggplot2::aes(x = NULL, y = NULL, xmin = -Inf, xmax = Inf, ymin = lb, ymax = ub), fill = "red", alpha = 0.2) +
+    ggplot2::scale_x_continuous("Year", breaks = seq(1985, 2015, 3), minor_breaks = NULL) +
+    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
+    ggplot2::facet_grid(stock ~ ., scales = "free_y") +
+    ggplot2::theme_bw()
 }
 
 
@@ -553,17 +586,17 @@ plot_state <- function(post_dat, stock_name, S_msr = FALSE){
   msy50 <- 
     post_dat$summary %>%
     as.data.frame() %>%
-    dplyr::select_(median = as.name("50%")) %>%
+    dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl(paste0("msy\\[", stock, "\\]"), rowname)) %>%
-    dplyr::mutate(name = factor(stringr::str_sub(rowname, stringr::str_locate(rowname, ".")),
+    dplyr::filter(grepl(paste0(".msy\\[", stock, "\\]"), rowname)) %>%
+    dplyr::mutate(name = factor(gsub("(.)\\.msy.*", "\\1", rowname),
                                 levels = c("S", "U"),
                                 labels = c("Escapement", "Harvest Rate")))
   
   msr50 <- 
     post_dat$summary %>%
     as.data.frame() %>%
-    dplyr::select_(median = as.name("50%")) %>%
+    dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("beta\\[", stock, "\\]|lnalpha\\[", stock, "\\]"), rowname)) %>%
     dplyr::mutate(msr = ifelse(rowname == paste0("beta[", stock, "]"), 1 / median, 1-1/exp(median)),
@@ -574,19 +607,18 @@ plot_state <- function(post_dat, stock_name, S_msr = FALSE){
   plot <-
     post_dat$summary %>%
     as.data.frame() %>%
-    dplyr::select_(median = as.name("50%"), lcb = as.name("2.5%"), ucb = as.name("97.5%")) %>%
+    dplyr::select(median = "50%", lcb = "2.5%", ucb = "97.5%") %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock, 
                                "\\]|S\\[\\d+,", stock, 
                                "\\]|N\\[\\d+,", stock, 
                                "\\]|log.resid.vec\\[\\d+,", stock, 
                                "\\]|mu.Habove\\[\\d+,", stock, "\\]"), rowname)) %>%
-    dplyr::mutate(name = factor(stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
+    dplyr::mutate(name = factor(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname),
                                 levels = c("S", "N", "R", "mu.Habove", "log.resid.vec"),
                                 labels = c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")),
-                  index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
-                  year = (name != c("Recruitment")) * (yr0 + index) +
-                    (name == "Recruitment") * (yr0_R + index)) %>%
+                  index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
+                  year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index)) %>%
     dplyr::filter(year >= yr0) %>%
     ggplot2::ggplot(ggplot2::aes(x = year, y = median)) +
     ggplot2::geom_line() +

@@ -92,8 +92,9 @@ post$summary[grepl("ML2", rownames(post$summary)), ]
 table_params(post)
 
 lapply(stock_id, plot_fit, post_dat = post)
-lapply(stock_id, function(x) plot_state(summary, stock = x))
-plot_statepairs(post)
+lapply(stock_id, function(x) plot_state(post, stock = x))
+table_state(post, "bystock")
+plot_statepairs(post, plot = "param")
 
 #2d age at maturity and age comp arrays
 post$summary[grepl("b\\[", rownames(post$summary)), ]
@@ -115,3 +116,10 @@ lapply(stock_id, plot_rickeryear, post_dat = post)
 profiles <- lapply(stock_id, get_profile, post_dat = post)
 lapply(profiles, plot_profile)
 lapply(profiles, plot_ey)
+
+quantile(chinBEGs$lb/chinBEGs$Smsy, probs = seq(0.3, 1, 0.1))
+quantile(chinBEGs$ub/chinBEGs$Smsy, probs = seq(0.3, 1, 0.1))
+goal_range <- data.frame(stock = stock_id, 
+                         lb = post$summary[grepl("^S.msy", rownames(post$summary)), "mean"] * c(.7, .9, .7, .7, .7), 
+                         ub = post$summary[grepl("^S.msy", rownames(post$summary)), "mean"] * c(1.6, 1.8, 1.6, 1.6, 1.6))
+plot_Swgoals(post, goal_range)

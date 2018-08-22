@@ -161,39 +161,62 @@ table_params <- function(post_dat){
 #' Produces a table of escapement, recruitment, total run, and inriver run along with cv's.
 #'
 #' @param post_dat The posterior object from the SRA model of class jagsUI
+#' @param "bystock" for a list of state parameter estimates for each stock and "bystate" for 
+#'  a list of stock parameter estimates for each state.
 #'
 #' @return A table
 #'
 #' @examples
-#' table_state(get_summary(post_er))
+#' table_state(post, "bystate")
 #'
 #' @export
-table_state <- function(stats_dat){
+table_state <- function(post_dat, display){
   stopifnot(exists("year_id", .GlobalEnv),
+            exists("stock_id", .GlobalEnv),
             exists("age_max", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
   
-  stats_dat %>%
-    post_dat[["summary"]][, c("50%", "mean", "sd")] %>%
-      as.data.frame() %>%
-      dplyr::filter(grepl("^R\\[|S\\[|N\\[|IR\\[", rowname)) %>%
-      dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
-                    index = as.numeric(stringr::str_sub(rowname, stringr::str_locate(rowname, "[0-9]+"))),
-                    year = (name != c("R")) * (yr0 + index) + (name == "R") * (yr0_R + index),
-                    cv = sd/mean,
-                    print = paste0(format(round(median, 0), big.mark = ","), " (", format(round(cv, 2), nsmall = 2), ")")) %>%
-      dplyr::select(year, print, name) %>%
+  temp <- 
+    post_dat[["summary"]] %>%
+    as.data.frame() %>%
+    dplyr::select(mean, sd, median = "50%") %>%
+    tibble::rownames_to_column() %>%
+    dplyr::filter(grepl("^R\\[|S\\[|N\\[|IR\\[", rowname)) %>%
+    dplyr::mutate(name = factor(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname),
+                                levels = c("N", "IR", "S", "R"),
+                                labels = c("Total Run", "Inriver Run", "Escapement", "Recruitment")),
+                  index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
+                  year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index),
+                  stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id),
+                  cv = sd/mean,
+                  print = paste0(format(round(median, 0), big.mark = ","), " (", format(round(cv, 2), nsmall = 2), ")"))
+  
+  if(display == "bystock"){
+    temp2 <-
+      temp %>%
+      dplyr::select(year, name, stock, print) %>%
       tidyr::spread(name, print) %>%
-      dplyr::select(year, N, IR, S, R) %>%
-      dplyr::select(year, N, Inriver.Run, S, R) %>%
       dplyr::rowwise() %>%
       dplyr::mutate_all(nareplace) %>%
-      as.data.frame()
-  
-  colnames(temp)  <- c(year = "Year", N = "Total Run (CV)", Inriver.Run = "Inriver Run (CV)", S = "Escapement (CV)", R = "Recruitment (CV)")
-  
-  knitr::kable(temp, align = "r", escape = FALSE)
+      dplyr::arrange(stock, year)
+   
+    out <- split(temp2, temp2$stock) %>% knitr::kable(row.names = FALSE, align = "r", escape = FALSE)
+  }
+
+  if(display == "bystate"){
+    temp3 <-
+      temp %>%
+      dplyr::select(year, name, stock, print) %>%
+      tidyr::spread(stock, print) %>%
+      dplyr::select(year, name, Deshka, 'East Susitna', Talkeetna, Yentna, Other) %>%
+      dplyr::rowwise() %>%
+      dplyr::mutate_all(nareplace) %>%
+      dplyr::arrange(name, year)
+    
+    out <- split(temp3, temp3$name) %>% knitr::kable(row.names = FALSE, align = "r", escape = FALSE)
+  }
+  out
 }
 
 
