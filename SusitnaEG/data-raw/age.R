@@ -4,11 +4,11 @@ deshka_n <- c(297, 181, 159, 298, 1329, 1463, 435, 382, 192, 351, #79-88
               386, 336, 348, 289,  250,  242, 336, 435, 239)      #09-17
 
 age_deshka <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Susitna run reconstruction data_Jan102018.xlsx",
-                   range = "Deshka brood table!A12:M50",
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+                   range = "Deshka brood table!A14:M52",
                    col_names = c("year", "p3", "p4", "p5", "p6", "p78"),
                    col_types = c("text", rep("skip", 7), rep("numeric", 5))) %>%
-  dplyr::mutate_if(is.numeric, function(x) ifelse(.$year == "1990", NA, x)) %>% # no sampling in 1990
+  dplyr::mutate_if(is.numeric, function(x) ifelse(.$year == "1990", NA, x)) %>% 
   dplyr::mutate(n = deshka_n,
                 x3 = as.integer(p3 * n),
                 x4 = as.integer(p4 * n),
@@ -17,11 +17,11 @@ age_deshka <-
                 x78 = as.integer(p78 *n),
                 location = ifelse(year %in% as.character(1979:1995), "Deshka creel", "Deshka weir")) %>%
   dplyr::select(-dplyr::starts_with("p")) %>%
-  dplyr::filter(year >= "1986")             ##### this data is dulicated in age_alex
+  dplyr::filter(year >= "1986" & year != "1990")  # <1986 data dulicated in age_alex, 1990 dat is average of surrounding years, no sampling
 
 age_alex <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of Alexander age comp.xls",
-                     range = "Alexander age comp!A4:K21",
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+                     range = "Alexander_Deshka_Yentna sport!A6:K23",
                      col_types = c("text", "skip", "text", rep("numeric", 6), "skip", "numeric"),
                      col_names = c("year", "location", "p3", "p4", "p5", "p6", "p7", "p6_2", "n")) %>%
   dplyr::mutate_all(function(x) ifelse(is.na(x), 0, x)) %>%
@@ -36,8 +36,8 @@ age_alex <-
   dplyr::filter(n != 0)
 
 age_east <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of eastside susitna age  comp.xls",
-                     range = "harvest ages!A4:K42",
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+                     range = "Eastside_Talkeetna sport!A6:K44",
                      col_types = c("text", "skip", "text", rep("numeric", 5), rep("skip", 2), "numeric"),
                      col_names = c("year", "location", "p3", "p4", "p5", "p6", "p7", "n")) %>%
   dplyr::mutate_all(function(x) ifelse(is.na(x), 0, x)) %>%
@@ -51,8 +51,8 @@ age_east <-
   dplyr::select(-dplyr::starts_with("p"))
 
 age_willow <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of eastside susitna age  comp.xls",
-                     range = "Willow weir!A4:K6",
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+                     range = "Willow weir!A6:K8",
                      col_types = c("text", "skip", "text", rep("numeric", 5), rep("skip", 2), "numeric"),
                      col_names = c("year", "location", "p3", "p4", "p5", "p6", "p7", "n")) %>%
   dplyr::mutate_all(function(x) ifelse(is.na(x), 0, x)) %>%
@@ -154,5 +154,8 @@ xage %>%
   tidyr::gather(age, prop, -year, - location, -n) %>%
   ggplot(aes(x = year, y = prop, color = location)) + geom_point(aes(size = n)) + facet_grid(age ~ ., scales = "free_y")
 
-age <- xage %>% dplyr::select(-dplyr::starts_with("p"))
+age <- 
+  xage %>% 
+  dplyr::select(-dplyr::starts_with("p")) %>%
+  dplyr::filter(year >= 1979)
 devtools::use_data(age, pkg = ".\\SusitnaEG", overwrite = TRUE)

@@ -243,7 +243,7 @@ table_stock <- function(post_dat){
   
   id <- data.frame(stock = factor(rep(names(trib_id), sapply(trib_id, length)), levels = stock_id), 
                    tribn = unlist(sapply(trib_id, function(x) 1:length(x)), use.names = FALSE), 
-                   trib = unlist(trib_id, use.names = FALSE),
+                   trib = factor(unlist(trib_id, use.names = FALSE), levels = unlist(trib_id, use.names = FALSE)),
                    stringsAsFactors = FALSE)
   
   est <- 

@@ -1,50 +1,43 @@
+lut <- data.frame(stock = c("Deshka0", rep("East_Susitna0", 7), "Talkeetna0", rep("Yentna0", 5), rep("Other0", 3), "All"),
+                  trib = c("Deshka", "Caswell", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Talkeetna", 
+                           "Fish", "Lake", "Peters", "Talachulitna", "Yentna", "Birch", "Rabideux", "Sunshine", "Total_above"),
+                  stringsAsFactors = FALSE)
+
 Ha_raw <-
-readxl::read_excel(".\\SusitnaEG\\data-raw\\Susitna run reconstruction data_Jan102018.xlsx",
-                   range = "Harvest!A1:AO20",
+readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG harvest.xlsx",
+                   range = "Inriver!A4:z43",
                    col_names = TRUE) %>%
-  dplyr::rename(group = Group, trib = X__1) %>%
-  dplyr::filter(!is.na(group)) %>%
-  tidyr::gather(year, count, -group, -trib) %>%
-  dplyr::filter(as.numeric(year) >= 1979)
+  dplyr::select(-Alexander, -dplyr::starts_with("X")) %>%
+  dplyr::filter(year >= 1979) %>%
+  tidyr::gather(trib, H_trib, -year) %>%
+  dplyr::left_join(lut, by = "trib")
 
-#SWHS estimated more fisheries in later years.
-plot <- Ha_raw %>%
-  dplyr::group_by(year, group) %>%
-  dplyr::summarise(sum = sum(count, na.rm = TRUE),
-                   counts = n(),
-                   n = sum(!is.na(count)),
-                   pct = n / counts) %>%
-  dplyr::mutate(sum = ifelse(n == 0 & sum == 0, NA, sum))
+table(Ha_raw$trib, Ha_raw$stock, useNA = "ifany")
+range(apply(table(Ha_raw$trib, Ha_raw$stock, useNA = "ifany"), 1, sum))
 
-ggplot2::ggplot(plot, ggplot2::aes(x = as.numeric(year), y = pct)) +
-  ggplot2::geom_line() +
-  ggplot2::facet_grid(group~.)
-
-Ha <- plot %>% 
-  dplyr::select(-counts, -n, -pct) %>%
-  tidyr::spread(group, sum) %>%
+Ha <-
+  Ha_raw %>%
+  dplyr::group_by(year, stock) %>%
+  dplyr::summarise(H_stock = sum(H_trib, na.rm = TRUE)) %>%
+  tidyr::spread(stock, H_stock) %>%
+  dplyr::mutate(sum = sum(Deshka0, East_Susitna0, Talkeetna0, Yentna0, Other0),
+                nostock = All - sum,
+                Deshka = Deshka0 + nostock * Deshka0 / All,
+                East_Susitna = East_Susitna0 + nostock * East_Susitna0 / All,
+                Talkeetna = Talkeetna0 + nostock * Talkeetna0 / All,
+                Yentna = Yentna0 + nostock * Yentna0 / All,
+                Other = Other0 + nostock * Other0 / All) %>%
   dplyr::ungroup() %>%
-  dplyr::mutate_all(function(x) ifelse(is.na(x), 0, x)) %>%
-  dplyr::mutate(Deshka = C,
-                'East Susitna' = E,
-                Talkeetna = F,
-                Yentna = J + K + L + N,
-                Other = B) %>%
-  dplyr::select(Deshka, 'East Susitna', Talkeetna, Yentna, Other) %>%
-  dplyr::mutate_all(function(x){ifelse(x == 0, 1, x)}) %>%
-  as.matrix()
+  dplyr::select(year, Deshka, East_Susitna, Talkeetna, Yentna, Other) %>%
+  dplyr::mutate_all(function(x){ifelse(x == 0, 1, round(x))})
 
 devtools::use_data(Ha, pkg = ".\\SusitnaEG", overwrite = TRUE)
 
 Hm <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of Susitna Chinook harvest data.xlsx",
-                     range = "Sheet1!R3:Y42", 
-                     col_names = c("year", "NCI", "NCI_Susitna", "Sub", "Sub_Susitna"),
-                     col_types = c(rep("numeric", 3), rep("skip", 3), rep("numeric", 2))) %>%
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG harvest.xlsx",
+                     range = "Marine!z4:aa45",
+                     col_names = TRUE) %>%
   dplyr::mutate_all(as.integer) %>%
   dplyr::filter(year >=1979)
-
-Hm$Hm <- rowSums(Hm[, c("NCI", "Sub")], na.rm = TRUE)
-Hm$Hm_Susitna <- rowSums(Hm[, c("NCI_Susitna", "Sub_Susitna")], na.rm = TRUE)
 
 devtools::use_data(Hm, pkg = ".\\SusitnaEG", overwrite = TRUE)

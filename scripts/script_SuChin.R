@@ -5,19 +5,23 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Ha.hat <- Ha %>% rbind(matrix(apply(Ha[(dim(Ha)[1] - 2):dim(Ha)[1], ], MARGIN = 2, mean),
-                              byrow = TRUE,
-                              nrow = length(year_id) - dim(Ha)[1], 
-                              ncol = dim(Ha)[2]))
+range(Ha$year)
+#3yr average for 2016 and 2017
+Ha.hat <- 
+  as.matrix(Ha[, -1]) %>% 
+  rbind(matrix(apply(Ha[(dim(Ha)[1] - 2):dim(Ha)[1], -1], MARGIN = 2, mean),
+               byrow = TRUE,
+               nrow = length(year_id) - dim(Ha)[1], 
+               ncol = dim(Ha[, -1])[2])
+        )
 
 a <- 
-  age[age$year >= 1979, ] %>%
+  age %>%
   dplyr::mutate(x678 = x6 + x78,
                 samp = ifelse(grepl("creel|Creel", location), 2, ifelse(grepl("weir|Weir", location), 1, 3))) %>% 
   dplyr::left_join(data.frame(yr.a = as.numeric(names(year_id)), year = year_id, stringsAsFactors = FALSE),
                    by = "year") %>%
-  dplyr::select(yr.a, samp, x3, x4, x5, x678) %>%
-  dplyr::filter(!is.na(x4))
+  dplyr::select(yr.a, samp, x3, x4, x5, x678)
 x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
 ####  Bundle data to be passed to JAGS  ####
@@ -27,7 +31,7 @@ dat = list(
   tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna, tele.S5 = telemetry$Other,
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna, Ntele.S5 = telemetry$N_Other,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
-  Hm.hat = c(Hm$Hm_Susitna, rep(NA, length(year_id) - length(Hm$Hm_Susitna))), cv.Hm = rep(0.05, length(year_id)),
+  Hm.hat = Hm$Susitna, cv.Hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
   MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
@@ -143,4 +147,4 @@ mapply(plot_profile, profile_dat = profiles, goal_range = goals_list, SIMPLIFY =
 mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
 
 #escapement vrs. proposed goals
-plot_Swgoals(post, goal_range)
+plot_Swgoals(post, goals_df)

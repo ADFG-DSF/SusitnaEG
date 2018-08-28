@@ -1,27 +1,36 @@
-library(SusitnaEG)
-get_ids()
+tribid <- 
+  list(
+    Deshka = c("Deshka"),
+    "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other East Susitna"),
+    Talkeetna = c("Clear", "Prairie", "Other Talkeetna"),
+    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna"),
+    Other = c("Chulitna", "Indian", "Portage", "Other Other")
+  )
+stockid <-names(tribid)
+
+
 tele_dat <- function(year){
   dat <-
-    readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of DATA_JKC_7_27_18 v2.xlsx",
+    readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG telemetry_mr.xlsx",
                        sheet = year,
-                       range = readxl::cell_limits(ul = c(2, 2), lr = c(NA, 5)),
-                       col_names = c("stock", "trib", "name", "radios")) %>%
+                       range = readxl::cell_limits(ul = c(1, 3), lr = c(NA, 5)),
+                       col_names = TRUE) %>%
     dplyr::filter(!is.na(stock)) %>%
     dplyr::mutate(year = as.numeric(year))
   
   dat_trib <-
     dat %>%
     dplyr::group_by(year, stock, trib) %>%
-    dplyr::summarise(radio = round(sum(radios)))
+    dplyr::summarise(count = round(sum(Number_Trans)))
   
   stopifnot(min(rowSums(table(dat_trib$trib, dat_trib$stock))) == 1,
             max(rowSums(table(dat_trib$trib, dat_trib$stock))) == 1,
-            dat_trib$stock %in% stock_id,
-            dat_trib$trib[dat_trib$stock == "Deshka"] %in% trib_id[["Deshka"]],
-            dat_trib$trib[dat_trib$stock == "East Susitna"] %in% trib_id[["East Susitna"]],
-            dat_trib$trib[dat_trib$stock == "Talkeetna"] %in% trib_id[["Talkeetna"]],
-            dat_trib$trib[dat_trib$stock == "Yentna"] %in% trib_id[["Yentna"]],
-            dat_trib$trib[dat_trib$stock == "Other"] %in% trib_id[["Other"]])
+            dat_trib$stock %in% stockid,
+            dat_trib$trib[dat_trib$stock == "Deshka"] %in% tribid[["Deshka"]],
+            dat_trib$trib[dat_trib$stock == "East Susitna"] %in% tribid[["East Susitna"]],
+            dat_trib$trib[dat_trib$stock == "Talkeetna"] %in% tribid[["Talkeetna"]],
+            dat_trib$trib[dat_trib$stock == "Yentna"] %in% tribid[["Yentna"]],
+            dat_trib$trib[dat_trib$stock == "Other"] %in% tribid[["Other"]])
   
   dat_trib
 }
@@ -29,31 +38,31 @@ tele_dat <- function(year){
 tele12 <- tele_dat("2012")
 tele13 <- tele_dat("2013")
 abun13 <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of DATA_JKC_7_27_18 v2.xlsx",
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG telemetry_mr.xlsx",
                      range = "2013Abundance!A1:D7",
                      col_names = TRUE) %>%
   dplyr::group_by(stock) %>%
   dplyr::summarise(N = sum(N),
-                   se_N = sqrt(sum(se^2))) %>%
+                   se_N = sqrt(sum(SEN^2))) %>%
   dplyr::mutate(year = 2013) %>%
   dplyr::select(year, stock, N, se_N)
   
 all_dat<- function(year){
   dat0 <-
-    readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of DATA_JKC_7_27_18 v2.xlsx",
+    readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG telemetry_mr.xlsx",
                        sheet = year,
-                       range = readxl::cell_limits(ul = c(2, 2), lr = c(NA, 7)),
-                       col_names = c("stock", "trib", "name", "radios", "N", "se_N")) %>%
+                       range = readxl::cell_limits(ul = c(1, 2), lr = c(NA, 7)),
+                       col_names = TRUE) %>%
     dplyr::filter(!is.na(stock)) %>%
     dplyr::mutate(year = as.numeric(year))
-  dat <- dplyr::filter(dat0, !(stock == "Other" & trib == "Other Other" & name == "Chulitna River"))
+  dat <- dplyr::filter(dat0, !(stock == "Other" & trib == "Other Other" & SPLOC == "Chulitna River"))
   dat_chulitna <- 
-    dplyr::filter(dat0, stock == "Other" & trib == "Other Other" & name == "Chulitna River") %>%
-    dplyr::rename(Ntotal = N, se_Ntotal = se_N)
+    dplyr::filter(dat0, stock == "Other" & trib == "Other Other" & SPLOC == "Chulitna River") %>%
+    dplyr::rename(Ntotal = N, se_Ntotal = SEN)
     
   
   chulitna <-
-    readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of DATA_JKC_7_27_18 v2.xlsx",
+    readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG telemetry_mr.xlsx",
                        range = "Chulitna tags!A1:D5") %>%
     tidyr::gather(area, n_area, -year, -total) %>%
     dplyr::right_join(dat_chulitna, by = "year") %>%
@@ -64,18 +73,18 @@ all_dat<- function(year){
                   p = n_area / total,
                   var_p = p * (1 - p) / (total - 1),
                   N = Ntotal * p,
-                  se_N = sqrt(Ntotal^2 * var_p + p^2 * se_Ntotal^2 - var_p * se_Ntotal^2),
-                  radios = round(p * radios),
+                  SEN = sqrt(Ntotal^2 * var_p + p^2 * se_Ntotal^2 - var_p * se_Ntotal^2),
+                  MOD_TRANS = round(p * MOD_TRANS),
                   trib = ifelse(area == "surveyed", "Chulitna", trib)) %>%
-    dplyr::select(year, stock, trib, name, radios, N , se_N)
+    dplyr::select(year, stock, trib, SPLOC, MOD_TRANS, N , SEN)
 
   dat_trib <-
     dat %>%
     rbind(chulitna) %>%
     dplyr::group_by(year, stock, trib) %>%
-    dplyr::summarise(radio = round(sum(radios)),
+    dplyr::summarise(count = round(sum(MOD_TRANS)),
                      N = sum(N),
-                     se_N = sqrt(sum(se_N^2)))
+                     se_N = sqrt(sum(SEN^2)))
   
   dat_stock <-
     dat_trib %>%
@@ -84,12 +93,12 @@ all_dat<- function(year){
   
   stopifnot(min(rowSums(table(dat_trib$trib, dat_trib$stock))) == 1,
             max(rowSums(table(dat_trib$trib, dat_trib$stock))) == 1,
-            dat_trib$stock %in% stock_id,
-            dat_trib$trib[dat_trib$stock == "Deshka"] %in% trib_id[["Deshka"]],
-            dat_trib$trib[dat_trib$stock == "East Susitna"] %in% trib_id[["East Susitna"]],
-            dat_trib$trib[dat_trib$stock == "Talkeetna"] %in% trib_id[["Talkeetna"]],
-            dat_trib$trib[dat_trib$stock == "Yentna"] %in% trib_id[["Yentna"]],
-            dat_trib$trib[dat_trib$stock == "Other"] %in% trib_id[["Other"]])
+            dat_trib$stock %in% stockid,
+            dat_trib$trib[dat_trib$stock == "Deshka"] %in% tribid[["Deshka"]],
+            dat_trib$trib[dat_trib$stock == "East Susitna"] %in% tribid[["East Susitna"]],
+            dat_trib$trib[dat_trib$stock == "Talkeetna"] %in% tribid[["Talkeetna"]],
+            dat_trib$trib[dat_trib$stock == "Yentna"] %in% tribid[["Yentna"]],
+            dat_trib$trib[dat_trib$stock == "Other"] %in% tribid[["Other"]])
   
   list(dat_trib = dat_trib, 
        dat_stock = dat_stock)
@@ -103,11 +112,11 @@ dat17 <- all_dat("2017")
 tele_list <- list(tele12, tele13, dat14[[1]], dat15[[1]], dat16[[1]], dat17[[1]])
 tele_matrix <- function(stock){
   tele <- function(dat, stock){
-    dat[dat$stock == stock, c("year", "stock", "trib", "radio")] %>%
+    dat[dat$stock == stock, c("year", "stock", "trib", "count")] %>%
       dplyr::mutate(trib = factor(trib, 
                                   levels = unlist(lapply(1:5, function(x) c(colnames(as[[x]]), paste0("Other ", names(as[x]))))),
                                   ordered = TRUE)) %>%
-      tidyr::spread(trib, "radio")
+      tidyr::spread(trib, count)
   }
   
   dat <- 
@@ -119,7 +128,7 @@ tele_matrix <- function(stock){
       as.matrix()
   colnames(dat) <- c(colnames(dat)[-dim(dat)[2]], "Other")
 
-  rbind(matrix(NA, nrow = length(year_id) - dim(dat)[1], ncol = dim(dat)[2]),
+  rbind(matrix(NA, nrow = if(stock == "Yentna") 34 else(33), ncol = dim(dat)[2]),
         dat)
 }
 
@@ -144,18 +153,19 @@ abun_matrix <- function(param){
     lapply(abun_list, dplyr::ungroup) %>%
     do.call(rbind, .) %>%
     dplyr::mutate(cv = se_N / N,
-                  stock = factor(stock, stock_id, ordered = TRUE)) %>%
+                  stock = factor(stock, stockid, ordered = TRUE)) %>%
     dplyr::select(year, stock, !! param_var) %>%
     tidyr::spread(stock, !! param_var) %>%
     dplyr::select(-year) %>%
     as.matrix()
   
   rbind(matrix(NA, 
-               nrow = length(year_id) - dim(mr0)[1], 
+               nrow = 34, 
                ncol = dim(mr0)[2]),
         mr0)
 }
 
 cv_mr <- abun_matrix(cv)
 mr <- list(mr = abun_matrix(N), cv_mr = ifelse(is.na(cv_mr), 0.1, cv_mr))
+
 devtools::use_data(mr, pkg = ".\\SusitnaEG", overwrite = TRUE)

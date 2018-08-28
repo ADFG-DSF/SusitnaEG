@@ -30,11 +30,11 @@
 
 #' Marine Harvest data
 #'
-#' Commercial and Substance harvest of Chinook salmon in North Cook inlet. Susitna numbers apportioned by GSI.
+#' Commercial and Substance harvest of Chinook salmon in North Cook inlet. Apportioned by GSI.
 #'
 #' @docType data
 #'  
-#' @format data.frame
+#' @format tibble
 "Hm"
 
 #' Inriver Harvest data
@@ -43,24 +43,24 @@
 #'
 #' @docType data
 #'  
-#' @format matrix
+#' @format tibble
 #' 
 #' @source SWHS
 "Ha"
 
 #' Aerial Survey data
 #'
-#' Aerial survey data by group with only complete surveys included.
+#' Aerial survey data by stock and tributary.
 #'
 #' @docType data
 #' 
 #' @format list
 #'  \describe{
 #'   \item{Deshka}{A matrix of aerial survey data from the Deshka River}
-#'   \item{East Susitna}{A matrix of aerial survey data from the East Susitna area}
+#'   \item{East Susitna}{A matrix of aerial survey data from the East Susitna stock group}
 #'   \item{Talkeetna}{A matrix of aerial survey data from the Talkeetna drainage}
 #'   \item{Yentna}{A matrix of aerial survey data from the Yentna drainage}
-#'   \item{Other}{A matrix of aerial survey data from the Other areas}
+#'   \item{Other}{A matrix of aerial survey data from Other areas}
 #'   }
 "as"
 

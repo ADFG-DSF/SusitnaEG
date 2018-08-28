@@ -1,39 +1,29 @@
-library(SusitnaEG)
-get_ids()
+lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2), rep("Yentna", 4), rep("Other", 3)),
+                  trib = c("Deshka", "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Clear", "Prairie", 
+                           "Cache", "Lake", "Peters", "Talachulitna", "Chulitna", "Indian", "Portage"),
+                  stringsAsFactors = FALSE)
 
 survey_raw <-
-readxl::read_excel(".\\SusitnaEG\\data-raw\\Susitna run reconstruction data_Jan102018.xlsx",
-                   range = "Aerial counts!A3:AO25") %>%
-  dplyr::rename(trib0 = Tributary) %>%
-  dplyr::filter(!grepl("weir|Weir", trib0),                #drop Deshka Weir counts
-                !grepl("non-hatch", trib0),                #drop Deception Creek non-hatchery
-                !grepl("Other WS", trib0),                 #drop poorly defined surveys
-                !grepl("Other ES", trib0)) %>%            
-  tidyr::gather(year, count, -stock, -trib0) %>%
-  dplyr::filter(!is.na(stock)) %>%
-  dplyr::mutate(stock = factor(stock, stock_id),
-                trib0 = gsub(" Aerial| River| Creek.*", "", trib0),
-                trib = ifelse(trib0 == "Deception", "Willow", trib0)) %>%
-  dplyr::group_by(year, stock, trib) %>%
-  dplyr::summarise(count = sum(count)) %>%
-  dplyr::ungroup() %>%
-  dplyr::arrange(stock, year)
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG survey.xlsx",
+                     range = "Single aerial survey counts!A4:X43",
+                     col_names = TRUE) %>%
+  dplyr::mutate(Willow = Willow + Deception) %>%
+  dplyr::select(-Alexander, -Deception, -dplyr::starts_with("X")) %>%
+  tidyr::gather(trib, count, -year) %>%
+  dplyr::left_join(lut, by = "trib")
 
-as <- lapply(unique(survey_raw$stock), 
-             function(x) 
-               survey_raw %>% dplyr::filter(stock == x) %>% 
-               tidyr::spread(trib, count) %>%
-               dplyr::mutate_all(function(x) ifelse(x == 0, NA, x)) %>% 
-               dplyr::select(-year, -stock) %>%
-               as.matrix()
-             )
-names(as) <- unique(survey_raw$stock)
+make_list <- function(stock){
+  survey_raw[survey_raw$stock == stock, ] %>%
+    dplyr::select(-stock) %>%
+    tidyr::spread(trib, count) %>%
+    dplyr::select(-year) %>%
+    as.matrix()
+}
 
-stopifnot(names(as) %in% stock_id,
-          colnames(as[["Deshka"]]) %in% trib_id[["Deshka"]],
-          colnames(as[["East Susitna"]]) %in% trib_id[["East Susitna"]],
-          colnames(as[["Talkeetna"]]) %in% trib_id[["Talkeetna"]],
-          colnames(as[["Yentna"]]) %in% trib_id[["Yentna"]],
-          colnames(as[["Other"]]) %in% trib_id[["Other"]])
+as2 <- list(Deshka = make_list("Deshka"),
+           'East Susitna' = make_list("East_Susitna"),
+           Talkeetna = make_list("Talkeetna"),
+           Yentna = make_list("Yentna"),
+           Other = make_list("Other"))
 
 devtools::use_data(as, pkg = ".\\SusitnaEG", overwrite = TRUE)
