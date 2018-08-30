@@ -276,12 +276,30 @@ plot_fit <- function(post_dat, stock_name){
     dplyr::select(year, stock, name, type, name_f, value)
   
   indicies <- 
-    rbind(weirs, surveys, markrecap) %>%
+    rbind(weirs, surveys) %>%
     dplyr::mutate(name_f = factor(name_f,
                                   levels = c("S", "IR"),
                                   labels = c("Escapement", "Inriver Run")),
                   type = factor(type, levels = c("survey", "weir", "Mark-Recapture")),
                   year = as.numeric(year)) %>%
+    dplyr::filter(!is.na(value))
+  
+  indicies2 <-
+    dplyr::left_join(post_dat[["data"]][["MR"]] %>% 
+                      as.data.frame() %>%
+                      tibble::rownames_to_column(var = "yr") %>%
+                      tidyr::gather(stock, value, -yr),
+                     post_dat[["data"]][["cv.MR"]] %>% 
+                       as.data.frame() %>%
+                       tibble::rownames_to_column(var = "yr") %>%
+                       tidyr::gather(stock, cv, -yr), 
+                     by = c("yr", "stock")) %>%
+    dplyr::mutate(year = yr0 + as.numeric(yr),
+                  name = "Mark-Recapture",
+                  type = "Mark-Recapture",
+                  name_f = "Inriver Run",
+                  ub = exp(log(value) + 1.96 * sqrt(log(cv * cv + 1))),
+                  lb = exp(log(value) - 1.96 * sqrt(log(cv * cv + 1)))) %>%
     dplyr::filter(!is.na(value))
   
   pal <- RColorBrewer::brewer.pal(6, "Paired")
@@ -317,7 +335,8 @@ plot_fit <- function(post_dat, stock_name){
     ggplot2::facet_grid(name_f ~ ., scales = "free_y", switch = "y") +
     ggplot2::labs(x = NULL, y = NULL) +
     ggplot2::geom_jitter(data = indicies[indicies$stock == stock_name, ], ggplot2::aes(color = name, shape = type), size = 3, width = .3) +
-    #ggplot2::geom_pointrange(data = indicies2, ggplot2::aes(ymin = lb, ymax = ub, color = "IR.hat", shape = "IR.hat")) +
+    ggplot2::geom_pointrange(data = indicies2[indicies2$stock == stock_name, ], 
+                             ggplot2::aes(ymin = lb, ymax = ub, color = "Mark-Recapture", shape = "Mark-Recapture")) +
     ggplot2::scale_color_manual(name ="Index",
                                 breaks = breaks$name,
                                 values = col) +
