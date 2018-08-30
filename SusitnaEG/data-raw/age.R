@@ -1,23 +1,17 @@
-deshka_n <- c(297, 181, 159, 298, 1329, 1463, 435, 382, 192, 351, #79-88
-              307, NA,  156, 105,  152,  116, 338, 338, 491, 319, #89-98
-              446, 466, 543, 558,  488,  100, 490, 488, 232, 266, #99-08, the 100 in this line in a placeholder, unknown
-              386, 336, 348, 289,  250,  242, 336, 435, 239)      #09-17
-
 age_deshka <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
-                   range = "Deshka brood table!A14:M52",
-                   col_names = c("year", "p3", "p4", "p5", "p6", "p78"),
-                   col_types = c("text", rep("skip", 7), rep("numeric", 5))) %>%
-  dplyr::mutate_if(is.numeric, function(x) ifelse(.$year == "1990", NA, x)) %>% 
-  dplyr::mutate(n = deshka_n,
-                x3 = as.integer(p3 * n),
+                     range = "Deshka!A11:I49",
+                     col_names = c("year", "p3", "p4", "p5", "p6", "p78", "pall", "n", "source"),
+                     col_types = c("text", rep("numeric", 7), "text")) %>%
+  dplyr::filter(!is.na(n)) %>%  # 1990 no sampling
+  dplyr::mutate(x3 = as.integer(p3 * n),
                 x4 = as.integer(p4 * n),
                 x5 = as.integer(p5 * n),
                 x6 = as.integer(p6 * n),
                 x78 = as.integer(p78 *n),
-                location = ifelse(year %in% as.character(1979:1995), "Deshka creel", "Deshka weir")) %>%
-  dplyr::select(-dplyr::starts_with("p")) %>%
-  dplyr::filter(year >= "1986" & year != "1990")  # <1986 data dulicated in age_alex, 1990 dat is average of surrounding years, no sampling
+                location = ifelse(grepl("creel|Creel", source), "Deshka creel", "Deshka weir")) %>%
+  dplyr::select(-dplyr::starts_with("p"), -source) %>%
+  dplyr::filter(year >= "1986")  # <1986 data dulicated in age_alex
 
 age_alex <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
