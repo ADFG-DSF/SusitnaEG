@@ -57,9 +57,9 @@ parameters=c(
 
 #MCMC settings
 nc <- 3
-nb <- 20000
-nt <- 50
-ns <- 50000
+nb <- 50000
+nt <- 200
+ns <- 200000
 
 #MCMC settings
 nc <- 3
@@ -79,7 +79,7 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_3yrHa_07685df.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_20c3cebf.rds")
 #post <- readRDS(".\\posts\\SuChinook_3yrHa_07685df.rds")
 
 rhat <- get_Rhat(post)

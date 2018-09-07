@@ -27,7 +27,7 @@ model{
 	  log.resid.0[stock] ~ dnorm(0,tau.red[stock])T(-3,3) 
 	  alpha[stock] <- exp(lnalpha[stock])
 	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white[stock] * sigma.white[stock] / 2 / (1-phi[stock]*phi[stock]) )
-	  phi[stock] ~ dnorm(mu.phi, tau.phi)
+	  phi[stock] ~ dunif(-0.95, 0.95) #dnorm(mu.phi, tau.phi)T(-0.95, 0.95)
 	  S.max[stock] <- 1 / beta[stock]
 	  S.eq[stock] <- lnalpha.c[stock] * S.max[stock]
 	  S.msy[stock] <- S.eq[stock] * (0.5 - 0.07*lnalpha.c[stock])
@@ -42,9 +42,9 @@ model{
 		}
 	}
 	#Hierarchical phi and lnalpha
-	mu.phi ~ dunif(-1, 1)
-	tau.phi ~ dgamma(0.001,0.001)
-	sigma.phi <- 1 / sqrt(tau.phi)
+	#mu.phi ~ dunif(-0.95, 0.95)
+	#tau.phi ~ dgamma(0.001,0.001)
+	#sigma.phi <- 1 / sqrt(tau.phi)
 	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
 	tau.lnalpha ~ dgamma(0.001,0.001)
 	sigma.lnalpha <- 1 / sqrt(tau.lnalpha)
