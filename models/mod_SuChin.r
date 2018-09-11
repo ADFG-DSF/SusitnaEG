@@ -120,7 +120,7 @@ for (y in 1:Y) {
 # East Susitna
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
-  Dscale.S2 ~ dunif(0.01,1)
+  Dscale.S2 ~ dunif(0.07,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
   ML1.S2[6] <- 0  
   ML2.S2[6] <- 0
@@ -144,7 +144,7 @@ for (y in 1:Y) {
 # Talkeetna
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
-  Dscale.S3 ~ dunif(0.01,1)
+  Dscale.S3 ~ dunif(0.07,1)
   Dsum.S3 <- 1 / (Dscale.S3 * Dscale.S3)
   ML1.S3[2] <- 0  
   ML2.S3[2] <- 0
@@ -166,7 +166,7 @@ for (y in 1:Y) {
 # Yentna
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
-  Dscale.S4 ~ dunif(0.01,1)
+  Dscale.S4 ~ dunif(0.07,1)
   Dsum.S4 <- 1 / (Dscale.S4 * Dscale.S4)
   ML1.S4[4] <- 0  
   ML2.S4[4] <- 0
@@ -190,7 +190,7 @@ for (y in 1:Y) {
 # Other
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
 # GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
-  Dscale.S5 ~ dunif(0.01,1)
+  Dscale.S5 ~ dunif(0.07,1)
   Dsum.S5 <- 1 / (Dscale.S5 * Dscale.S5)
   ML1.S5[3] <- 0  
   ML2.S5[3] <- 0

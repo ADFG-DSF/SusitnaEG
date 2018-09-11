@@ -19,6 +19,7 @@ plot_age <- function(post_dat){
 Q.obs <- 
   as.data.frame(post_dat$data$x.a / rowSums(post_dat$data$x.a)) %>%
   setNames(paste0("age", 1:ncol(post_dat$data$x.a))) %>%
+  dplyr::mutate(sample = factor(post_dat$data$x.samp, levels = c("1", "2", "3"), labels = c("Weir", "Creel", "Other"))) %>%
   tibble::rownames_to_column(var = "yr_id") %>%
   tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
   dplyr::group_by(yr_id) %>%
@@ -26,12 +27,21 @@ Q.obs <-
   dplyr::ungroup(yr_id) %>%
   dplyr::mutate(year = as.numeric(year_id[a$yr.a[as.numeric(yr_id)]]))
                 
-P.mn <- get_array(post_dat, "p") %>%
+P.mn <- SusitnaEG:::get_array(post_dat, "p") %>%
   dplyr::mutate(plot = "Age-at-Maturity")
-Q.mn <- get_array(post_dat, "q") %>%
+Q.mn <- SusitnaEG:::get_array(post_dat, "q") %>%
   dplyr::mutate(plot = "Age Composition")
-N.mn <- get_array(post_dat, "N.ta") %>%
+N.mn <- SusitnaEG:::get_array(post_dat, "N.ta") %>%
   dplyr::mutate(plot = "Total Run")
+
+pi.mn <- SusitnaEG:::get_array(post_dat, "pi") %>%
+  dplyr::group_by(yr) %>%
+  dplyr::mutate(mean = cumsum(mean), 
+                plot = "Age-at-Maturity",
+                year = yr0_p + yr,
+                age = paste0("age", age)) %>%
+  dplyr::ungroup(year) %>%
+  dplyr::filter(age != "age4")
 
 dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
   dplyr::mutate(year = (plot != c("Age-at-Maturity")) * (yr0 + yr) + (plot == c("Age-at-Maturity")) * (yr0_p + yr),
@@ -41,11 +51,15 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
     ggplot2::facet_grid(plot ~ ., scales = "free", switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
-    ggplot2::geom_point(data = Q.obs, size = 3) +
-    ggplot2::scale_alpha_discrete(name = NULL, labels = names(age_id)) +
+    ggplot2::geom_point(data = Q.obs, size = 3, ggplot2::aes(shape = sample)) +
+    ggplot2::geom_line(data = pi.mn, ggplot2::aes(alpha = NULL, color = age), size = 0.75, linetype = "dashed") +
+    ggplot2::scale_color_manual(values = rep("black", 4), guide = FALSE) +
+    ggplot2::scale_alpha_discrete(name = "Age", labels = names(age_id)) +
+    ggplot2::scale_shape_discrete(name = "Sample") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme_bw() +
-    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), 
+                   strip.placement = "outside")
 }
 
 
@@ -592,7 +606,7 @@ plot_state <- function(post_dat, stock_name, S_msr = FALSE){
     dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl(paste0("beta\\[", stock, "\\]|lnalpha\\[", stock, "\\]"), rowname)) %>%
-    dplyr::mutate(msr = ifelse(rowname == paste0("beta[", stock, "]"), 1 / median, 1-1/exp(median)),
+    dplyr::mutate(msr = ifelse(rowname == paste0("beta[", stock, "]"), 1 / median, 1-1/exp(median - 1)),
                   name = factor(c("S", "U"),
                                 levels = c("S", "U"),
                                 labels = c("Escapement", "Harvest Rate")))

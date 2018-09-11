@@ -21,7 +21,12 @@ a <-
                 samp = ifelse(grepl("creel|Creel", location), 2, ifelse(grepl("weir|Weir", location), 1, 3))) %>% 
   dplyr::left_join(data.frame(yr.a = as.numeric(names(year_id)), year = year_id, stringsAsFactors = FALSE),
                    by = "year") %>%
-  dplyr::select(yr.a, samp, x3, x4, x5, x678)
+  dplyr::select(yr.a, samp, x3, x4, x5, x678) %>%
+  tidyr::gather(age, n, -yr.a, -samp) %>%
+  dplyr::group_by(yr.a, samp, age) %>%
+  dplyr::summarise(n = sum(n)) %>%
+  tidyr::spread(age, n)
+table(a$yr.a, a$samp)
 x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
 ####  Bundle data to be passed to JAGS  ####
@@ -48,7 +53,7 @@ parameters=c(
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star',
-'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
+'Dsum.S2', 'ML1.S2', 'Dsum.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
 'p.S2', 'p.S3', 'p.S4', 'p.S5', 'Bsum.So',
 'theta', 'b1.theta',
 'p.small3', 'p.small4', 
@@ -63,9 +68,9 @@ ns <- 200000
 
 #MCMC settings
 nc <- 3
-nb <- 2000
-nt <- 10
-ns <- 6000
+nb <- 30000
+nt <- 30
+ns <- 80000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -79,7 +84,7 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_20c3cebf.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_Sept10.rds")
 #post <- readRDS(".\\posts\\SuChinook_3yrHa_07685df.rds")
 
 rhat <- get_Rhat(post)
@@ -117,7 +122,7 @@ post$summary[grepl("B$", rownames(post$summary)), ]
 lapply(stock_id[-5], plot_fit, post_dat = post)
 
 #state varible plots
-lapply(stock_id[-5], function(x) plot_state(post, stock = x))
+lapply(stock_id[-5], function(x) plot_state(post, stock = x, S_msr = TRUE))
 table_state(post, "bystock")
 plot_statepairs(post, plot = "bystock")
 
