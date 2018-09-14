@@ -25,16 +25,16 @@ Q.obs <-
   dplyr::group_by(yr_id) %>%
   dplyr::mutate(mean = cumsum(prop), plot = "Age Composition") %>%
   dplyr::ungroup(yr_id) %>%
-  dplyr::mutate(year = as.numeric(year_id[a$yr.a[as.numeric(yr_id)]]))
+  dplyr::mutate(year = as.numeric(year_id[post_dat$data$yr.a[as.numeric(yr_id)]]))
                 
-P.mn <- SusitnaEG:::get_array(post_dat, "p") %>%
+P.mn <- get_array(post_dat, "p") %>%
   dplyr::mutate(plot = "Age-at-Maturity")
-Q.mn <- SusitnaEG:::get_array(post_dat, "q") %>%
+Q.mn <- get_array(post_dat, "q") %>%
   dplyr::mutate(plot = "Age Composition")
-N.mn <- SusitnaEG:::get_array(post_dat, "N.ta") %>%
+N.mn <- get_array(post_dat, "N.ta") %>%
   dplyr::mutate(plot = "Total Run")
 
-pi.mn <- SusitnaEG:::get_array(post_dat, "pi") %>%
+pi.mn <- get_array(post_dat, "pi") %>%
   dplyr::group_by(yr) %>%
   dplyr::mutate(mean = cumsum(mean), 
                 plot = "Age-at-Maturity",
@@ -164,7 +164,7 @@ plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
     ggplot2::scale_x_continuous("Spawners", labels = scales::comma) +
     ggplot2::scale_y_continuous("Expected Yield", labels = scales::comma) +
     ggplot2::coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax)) +
-    ggplot2::scale_color_manual(name = "Productivity", labels = "1973-2014 broods", values = "black") +
+    ggplot2::scale_color_manual(guide = FALSE, values = "black") +
     ggplot2::ggtitle(stock_name) +
     ggplot2::theme_bw()
   
@@ -773,6 +773,7 @@ plot_stock <- function(input_dat, post_dat){
 #'
 #' @export
 plot_Swgoals <- function(post_dat, goal_range){
+  stopifnot(exists("year_id", .GlobalEnv))
   post_dat[["summary"]] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
@@ -784,7 +785,7 @@ plot_Swgoals <- function(post_dat, goal_range){
     ggplot2::geom_line() +
     ggplot2::geom_pointrange(ggplot2::aes(ymin = lb, ymax = ub), linetype = 2) +
     ggplot2::geom_rect(data = goal_range, ggplot2::aes(x = NULL, y = NULL, xmin = -Inf, xmax = Inf, ymin = lb, ymax = ub), fill = "red", alpha = 0.2) +
-    ggplot2::scale_x_continuous("Year", breaks = seq(1985, 2015, 3), minor_breaks = NULL) +
+    ggplot2::scale_x_continuous("Year", breaks = seq(as.numeric(year_id[1]), as.numeric(year_id[length(year_id)]), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::facet_grid(stock ~ ., scales = "free_y") +
     ggplot2::theme_bw()

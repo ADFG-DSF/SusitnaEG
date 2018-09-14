@@ -84,8 +84,8 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_Sept10.rds")
-#post <- readRDS(".\\posts\\SuChinook_3yrHa_07685df.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_DsumS_ababd3a.rds")
+#post <- readRDS(".\\posts\\SuChinook_Sept10.rds")
 
 rhat <- get_Rhat(post)
 rhat
@@ -116,7 +116,7 @@ plot_theta(post)
 #survey variability
 table_airerror(post)
 #mean survey variability
-post$summary[grepl("B$", rownames(post$summary)), ]
+post$summary["B", ]
 
 #model fit plots
 lapply(stock_id[-5], plot_fit, post_dat = post)
@@ -137,12 +137,12 @@ table_params(post)
 profiles <- lapply(stock_id[-5], get_profile, post_dat = post)
 
 #Statewide bounds as a percentage of Smsy
-quantile(chinBEGs$lb/chinBEGs$Smsy, probs = seq(0.3, 1, 0.1))
-quantile(chinBEGs$ub/chinBEGs$Smsy, probs = seq(0.3, 1, 0.1))
+quantile(chinBEGs$lb/chinBEGs$Smsy, probs = seq(0.2, 1, 0.2))
+quantile(chinBEGs$ub/chinBEGs$Smsy, probs = seq(0.2, 1, 0.2))
 #straw dog goals
 goals_df <- data.frame(stock = stock_id[-5], 
                        lb = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(.75, .9, .8, .8), 
-                       ub = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(1.5, 1.8, 1.6, 1.6))
+                       ub = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(1.45, 1.8, 1.6, 1.6))
 goals_list <- split(goals_df[, -1], 1:nrow(goals_df))
 
 #Profiles

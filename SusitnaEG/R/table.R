@@ -69,7 +69,7 @@ table_airerror <- function(post_dat){
     dplyr::mutate(cv = sd / mean,
                   tribn = gsub("^.*\\[(\\d+)\\]", "\\1", rowname),
                   trib = id$trib[as.numeric(tribn)]) %>%
-    dplyr::mutate_if(is.numeric, KenaiSRA:::digits) %>%
+    dplyr::mutate_if(is.numeric, digits) %>%
     dplyr::rename(q2.5 = "2.5%", q97.5 = "97.5%") %>%
     dplyr::mutate(print1 = paste0(mean, " (", q2.5, " - ", q97.5, ")"),
                   print2 = paste0(mean, " (", cv, ")")) %>%
@@ -92,46 +92,45 @@ table_airerror <- function(post_dat){
 #' table_params(post)
 #'
 #' @export
-table_params <- function(post_dat){
-  lut <- data.frame(rowname = c(paste0("lnalpha[", 1:5, "]"),
-                                paste0("beta[", 1:5, "]"),
-                                paste0("phi[", 1:5, "]"),
-                                paste0("sigma.white[", 1:5, "]"),
-                                paste0("S.max[", 1:5, "]"),
-                                paste0("S.eq[", 1:5, "]"),
-                                paste0("S.msy[", 1:5, "]"),
-                                paste0("U.msy[", 1:5, "]"),
-                                rep("Dsum.age", 5),
-                                paste0("Dsum.S", 2:5),
-                                paste0("Bsum.So[", 1:4, "]"),
-                                rep("sigma.weir", 2)),
-                    Parameter = factor(c(
-                      rep("ln($\\alpha$)", 5),
-                      rep("$\\beta$", 5),
-                      rep("$\\phi$", 5),
-                      rep("$\\sigma_{w}$", 5),
-                      rep("$S_{MSR}$", 5),
-                      rep("$S_{EQ}$", 5),
-                      rep("$S_{MSY}$", 5),
-                      rep("$U_{MSY}$", 5),
-                      rep("$D_{age}$", 5),
-                      rep("$D_{comp}$", 4),
-                      rep("$B_{survey}$", 4),
-                      rep("$\\sigma_{weir}$", 2)),
-                      levels = c(
-                        "ln($\\alpha$)", 
-                        "$\\beta$", 
-                        "$\\phi$", 
-                        "$\\sigma_{w}$", 
-                        "$\\sigma_{weir}$",
-                        "$D_{age}$",
-                        "$D_{comp}$",
-                        "$B_{survey}$",
-                        "$S_{MSR}$",
-                        "$S_{EQ}$",
-                        "$S_{MSY}$",
-                        "$U_{MSY}$")),
-                    stock = c(rep(1:5, times = 9), rep(2:5, times = 2), 1:2),
+table_params <- function(post_dat, stocks = 1:4){
+  stock_n <- length(stocks)
+  lut <- data.frame(rowname = c(paste0("lnalpha[", stocks, "]"),
+                                paste0("beta[", stocks, "]"),
+                                paste0("phi[", stocks, "]"),
+                                paste0("sigma.white[", stocks, "]"),
+                                paste0("S.max[", stocks, "]"),
+                                paste0("S.eq[", stocks, "]"),
+                                paste0("S.msy[", stocks, "]"),
+                                paste0("U.msy[", stocks, "]"),
+                                rep("Dsum.age", stock_n),
+                                if(stock_n == 1 & (1 %in%stocks)){}else{paste0("Dsum.S", intersect(stocks, 2:5))},
+                                if(stock_n == 1 & (1 %in%stocks) == 1){}else{paste0("Bsum.So[", intersect(stocks - 1, 1:4), "]")},
+                                rep("sigma.weir", length(intersect(stocks, 1:2)))),
+                    Parameter = factor(c(rep("ln($\\alpha$)", stock_n),
+                                        rep("$\\beta$", stock_n),
+                                        rep("$\\phi$", stock_n),
+                                        rep("$\\sigma_{w}$", stock_n),
+                                        rep("$S_{MSR}$", stock_n),
+                                        rep("$S_{EQ}$", stock_n),
+                                        rep("$S_{MSY}$", stock_n),
+                                        rep("$U_{MSY}$", stock_n),
+                                        rep("$D_{age}$", stock_n),
+                                        rep("$D_{comp}$", length(intersect(stocks, 2:5))),
+                                        rep("$B_{survey}$", length(intersect(stocks - 1, 1:4))),
+                                        rep("$\\sigma_{weir}$", length(intersect(stocks, 1:2)))),
+                                      levels = c("ln($\\alpha$)", 
+                                                "$\\beta$", 
+                                                "$\\phi$", 
+                                                "$\\sigma_{w}$", 
+                                                "$\\sigma_{weir}$",
+                                                "$D_{age}$",
+                                                "$D_{comp}$",
+                                                "$B_{survey}$",
+                                                "$S_{MSR}$",
+                                                "$S_{EQ}$",
+                                                "$S_{MSY}$",
+                                                "$U_{MSY}$")),
+                    stock = c(rep(stocks, times = 9), rep(intersect(stocks, 2:5), times = 2), intersect(stocks, 1:2)),
                     stringsAsFactors = FALSE)
   
   temp <-
@@ -146,13 +145,22 @@ table_params <- function(post_dat){
                     stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname)) %>%
       dplyr::mutate_at(c("median", "q2.5", "q97.5", "cv"), digits) %>%
       dplyr::mutate(print1 = paste0(median, " (", q2.5, " - ", q97.5, ")"),
-                    print2 = paste0(median, " (", cv, ")")) %>%
+                    print2 = paste0(median, " (", cv, ")"))
+  
+  if(stock_n != 1){
+    print <- 
+      temp %>%
       dplyr::select(Parameter, print2, stock) %>%
       tidyr::spread(stock, print2)
+    colnames(print) <- c("Parameter", stock_id[stocks])} 
+  else{
+    print <- 
+      temp %>%
+      dplyr::select(Parameter, print1, stock) %>%
+      tidyr::spread(stock, print1)
+    colnames(print) <- c("Parameter", "median(95% CI)")}
   
-  colnames(temp)  <- c("Parameter", stock_id)
-  
-  knitr::kable(temp, escape = FALSE, align = "r")
+  knitr::kable(print, escape = FALSE, align = "r")
 }
 
 

@@ -237,6 +237,61 @@ get_profile <- function(post_dat, stock_name){
 }
 
 
+#' OYP, ORP and OFP probabilities
+#'
+#' Function can be used in two ways. Specifying a goal range will return the OYP, OFP and ORP probabilities of each end of the goal range. 
+#' Specifying OYP or ORP probabilities will return the escapement sizes associated with those probabilities.
+#'
+#' @param profile_dat Output of the get_profile function
+#' @param goal_range A vector with two element c(lower_bound, upper_bound). Defaults to NULL.
+#' @param probs A list containing a 2 element vector. The vector is named after the profile of interest (e.g. "OYP90" of "ORP70") while 
+#' the vector contains the desired probability at each bound c(lower_bound, upper_bound). Defaults to NULL.
+#' 
+#' @return a dataframe with 2 rows.
+#'
+#' @examples
+#' get_profileprobs(profile, goal_range = c(10000, 20000))
+#' get_profileprobs(profile, probs = list(OYP80 = c(.8, .3))
+#'
+#' @export
+get_profileprobs <- function(profile_dat, goal_range = NULL, probs = NULL){
+  stopifnot(sum(is.null(goal_range), is.null(probs)) == 1,
+            grepl("OYP|ORP", names(probs)))
+  
+  if(!is.null(goal_range)){
+    print <- 
+      profile_dat %>% 
+      dplyr::select(-name, -S.msy, -SY) %>%
+      dplyr::group_by(s) %>%
+      dplyr::summarise_all(mean, na.rm = TRUE) %>%
+      dplyr::mutate(lb =abs(s - goal_range[1]),
+                    ub = abs(s - goal_range[2])) %>% 
+      dplyr::filter(lb == min(lb) | ub == min(ub)) %>%
+      dplyr::select(-lb, -ub) %>%
+      dplyr::mutate_at(.vars = dplyr::vars(dplyr::starts_with("O")), function(x){round(x, 3)} * 100)
+  }
+  if(!is.null(probs)){
+    temp <-
+      profile_dat %>% 
+      dplyr::select(-name, -S.msy, -SY) %>%
+      dplyr::group_by(s) %>%
+      dplyr::summarise_all(mean, na.rm = TRUE)
+    
+    cut <- min(which(temp[names(probs)] == max(temp[names(probs)])))
+    lr <- 1:cut
+    ur <- (cut + 1):dim(temp)[1]
+    name <- names(probs)
+    
+    print <-
+      rbind(
+        temp[lr, ][abs(temp[lr, name] - probs[[1]][1]) == min(abs(temp[lr, name] - probs[[1]][1])), ],
+        temp[ur, ][abs(temp[ur, name] - probs[[1]][2]) == min(abs(temp[ur, name] - probs[[1]][2])), ]
+      )
+  }
+  print
+}
+
+
 #' Identify parameters with questionable convergence.
 #'
 #' Return parameters from a RJags posterior object with an Rhat that exceed a user specified cutoff.
