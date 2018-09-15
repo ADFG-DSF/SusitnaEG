@@ -773,7 +773,8 @@ plot_stock <- function(input_dat, post_dat){
 #'
 #' @export
 plot_Swgoals <- function(post_dat, goal_range){
-  stopifnot(exists("year_id", .GlobalEnv))
+  stopifnot(exists("year_id", .GlobalEnv),
+            "package:SusitnaEG" %in% search())
   post_dat[["summary"]] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
@@ -781,14 +782,16 @@ plot_Swgoals <- function(post_dat, goal_range){
     dplyr::select_("rowname", Escapement = as.name("50%"), lb = as.name("2.5%"), ub = as.name("97.5%")) %>%
     dplyr::mutate(year = as.numeric(gsub("^S\\[(\\d+),\\d\\]", "\\1", rowname)) + min(as.numeric(year_id)) - 1,
                   stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id)) %>%
+    dplyr::left_join(regs, by = c("stock", "year")) %>%
     ggplot2::ggplot(ggplot2::aes(x = year, y = Escapement)) +
     ggplot2::geom_line() +
-    ggplot2::geom_pointrange(ggplot2::aes(ymin = lb, ymax = ub), linetype = 2) +
-    ggplot2::geom_rect(data = goal_range, ggplot2::aes(x = NULL, y = NULL, xmin = -Inf, xmax = Inf, ymin = lb, ymax = ub), fill = "red", alpha = 0.2) +
+    ggplot2::geom_pointrange(ggplot2::aes(ymin = lb, ymax = ub, color = reg), size = 0.75, linetype = 2) +
+    ggplot2::geom_rect(data = goals_df, ggplot2::aes(x = NULL, y = NULL, xmin = -Inf, xmax = Inf, ymin = lb, ymax = ub), fill = "red", alpha = 0.2) +
     ggplot2::scale_x_continuous("Year", breaks = seq(as.numeric(year_id[1]), as.numeric(year_id[length(year_id)]), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::facet_grid(stock ~ ., scales = "free_y") +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw() +
+    ggplot2::labs(color = "Management Action")
 }
 
 

@@ -85,7 +85,7 @@ post <- jags(data = dat,
 )
 
 saveRDS(post, file = ".\\posts\\SuChinook_DsumS_ababd3a.rds")
-#post <- readRDS(".\\posts\\SuChinook_Sept10.rds")
+#post <- readRDS(".\\posts\\SuChinook_DsumS_ababd3a.rds")
 
 rhat <- get_Rhat(post)
 rhat
