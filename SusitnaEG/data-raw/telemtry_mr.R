@@ -66,11 +66,7 @@ all_dat<- function(year){
                        range = "Chulitna tags!A1:D5") %>%
     tidyr::gather(area, n_area, -year, -total) %>%
     dplyr::right_join(dat_chulitna, by = "year") %>%
-    dplyr::mutate(n_area = ifelse(year == 2017, ifelse(area == "not_surveyed", 
-                                                                  total * .45, 
-                                                                  total * .55), 
-                                  n_area), # TEMP till John gets back with me
-                  p = n_area / total,
+    dplyr::mutate(p = n_area / total,
                   var_p = p * (1 - p) / (total - 1),
                   N = Ntotal * p,
                   SEN = sqrt(Ntotal^2 * var_p + p^2 * se_Ntotal^2 - var_p * se_Ntotal^2),
