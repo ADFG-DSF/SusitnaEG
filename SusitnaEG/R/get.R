@@ -19,10 +19,11 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
             exists("trib_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
   
-  id <- data.frame(stock = factor(rep(names(trib_id), sapply(trib_id, length)), levels = stock_id), 
-                   tribn = unlist(sapply(trib_id, function(x) 1:length(x)), use.names = FALSE), 
-                   tribn2 = 1:length(unlist(trib_id)),
-                   trib = unlist(trib_id, use.names = FALSE),
+  trib_id0 <- lapply(1:5, function(x) trib_id[[x]][!grepl("Other", trib_id[[x]])])
+  id <- data.frame(stock = factor(rep(names(trib_id), sapply(trib_id0, length)), levels = stock_id), 
+                   tribn = unlist(sapply(trib_id0, function(x) 1:length(x)), use.names = FALSE), 
+                   tribn2 = 1:length(unlist(trib_id0)),
+                   trib = unlist(trib_id0, use.names = FALSE),
                    stringsAsFactors = FALSE) %>%
     dplyr::arrange(stock, tribn, trib)
   
@@ -31,7 +32,7 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
   trib_n2 <- id$tribn2[id$stock == stock_name & id$trib == trib_name]
   tribnodes <- c(paste0("p.S", stock_n, "[39,", trib_n1, "]"), paste0("theta[", trib_n2, ",39]"), paste0("sigma.air[", trib_n2, "]"))
   
-  samples <- post_dat$mcmc.info$n.chains * post_dat$mcmc.info$n.samples
+  samples <- post_dat$mcmc.info$n.samples
   
   SRparams <-
     data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], 
