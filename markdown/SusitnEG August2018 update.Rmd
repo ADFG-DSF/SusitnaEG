@@ -239,6 +239,8 @@ temp <-
   data.frame(trib = c("Goose", "Little Willow", "Montana", "Sheep", "Clear", "Prairie", "Lake", "Peters", "Talachulitna"), 
              lb = c(250, 450, 1100, 600, 950, 3100, 2700, 1000, 2200),
              ub = c(650, 1800, 3100, 1200, 3400, 9200, 7100, 2600, 5000),
+             new_lb = c(115, 673, 491, 370, 957, 2896, 1612, 1023, 2071),
+             new_ub = c(371, 1110, 1854, 879, 1937, 4579, 4243, 1673, 3512),
              stock = c(rep(2, 4), rep(3, 2), rep(4, 3)),
              stock_lb = c(rep(11800, 4), rep(8500, 2), rep(12900, 3)),
              stock_ub = c(rep(23000, 4), rep(17200, 2), rep(26100, 3)),
@@ -260,54 +262,21 @@ temp <-
                        post$summary[paste0("theta[", 8:9, ",1]"), 'mean'], 
                        post$summary[paste0("theta[", 11:13, ",1]"), 'mean']),
             stringsAsFactors = FALSE) %>%
-    dplyr::mutate(trib_goal = paste0("(", lb, "-", ub, ")"),
-                  stock_goal = paste0("(", stock_lb, "-", stock_ub, ")"),
+    dplyr::mutate(trib_goal = paste0(lb, "-", ub),
+                  stock_goal = paste0(stock_lb, "-", stock_ub),
                   scaled_lb = round(stock_lb * p * theta, 0),
                   scaled_ub = round(stock_ub * p * theta, 0),
                   p = round(p, 2),
                   theta = round(theta, 2),
-                  scaledstock_goal = paste0("(", scaled_lb, "-", scaled_ub, ")")
+                  scaledstock_goal = paste0(scaled_lb, "-", scaled_ub),
+                  Clark_goal = paste0(new_lb, "-", new_ub)
                   )
 
-knitr::kable(temp[, c("trib", "trib_goal", "stock_goal", "p", "theta", "scaledstock_goal")])
+knitr::kable(temp[, c("trib", "trib_goal", "stock_goal", "p", "theta", "scaledstock_goal", "Clark_goal")], align ="r")
 ```
   
 Table 6.- Single aerial surveys below, within and above the existing goal ranges and scaled stock-specific goal ranges. 
 ```{r}
-temp <- 
-  data.frame(trib = c("Goose", "Little Willow", "Montana", "Sheep", "Clear", "Prairie", "Lake", "Peters", "Talachulitna"), 
-             lb = c(250, 450, 1100, 600, 950, 3100, 2700, 1000, 2200),
-             ub = c(650, 1800, 3100, 1200, 3400, 9200, 7100, 2600, 5000),
-             stock = c(rep(2, 4), rep(3, 2), rep(4, 3)),
-             stock_lb = c(rep(11800, 4), rep(8500, 2), rep(12900, 3)),
-             stock_ub = c(rep(23000, 4), rep(17200, 2), rep(26100, 3)),
-             p = apply(
-               matrix(c(post$summary[paste0("p.S2[", 35:39, ",1]"), 'mean'],
-                        post$summary[paste0("p.S2[", 35:39, ",3]"), 'mean'],
-                        post$summary[paste0("p.S2[", 35:39, ",4]"), 'mean'],
-                        post$summary[paste0("p.S2[", 35:39, ",5]"), 'mean'],
-                        post$summary[paste0("p.S3[", 35:39, ",1]"), 'mean'],
-                        post$summary[paste0("p.S3[", 35:39, ",2]"), 'mean'],
-                        post$summary[paste0("p.S4[", 35:39, ",2]"), 'mean'],
-                        post$summary[paste0("p.S4[", 35:39, ",3]"), 'mean'],
-                        post$summary[paste0("p.S4[", 35:39, ",4]"), 'mean']),
-                      nrow = 9, ncol = 5, byrow = TRUE),
-               1,
-               mean
-             ),
-             theta = c(post$summary[paste0("theta[", c(2,4,5,6), ",1]"), 'mean'], 
-                       post$summary[paste0("theta[", 8:9, ",1]"), 'mean'], 
-                       post$summary[paste0("theta[", 11:13, ",1]"), 'mean']),
-             stringsAsFactors = FALSE) %>%
-  dplyr::mutate(trib_goal = paste0("(", lb, "-", ub, ")"),
-                stock_goal = paste0("(", stock_lb, "-", stock_ub, ")"),
-                scaled_lb = round(stock_lb * p * theta, 0),
-                scaled_ub = round(stock_ub * p * theta, 0),
-                p = round(p, 2),
-                theta = round(theta, 2),
-                scaledstock_goal = paste0("(", scaled_lb, "-", scaled_ub, ")")
-  )
-
 historic_bounds <- function(stock, trib, lb, ub){
   as = as[[stock]][, trib]
   table(cut(as, c(0, lb, ub, Inf), labels = c("below", "within", "above")))
