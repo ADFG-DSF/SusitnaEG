@@ -11,6 +11,7 @@ SusitnaEG/.gitignore
 SusitnaEG/.Rbuildignore
 SusitnaEG/man/
 April26_2018 meeting/
+data_requests/
 posts/
 *.xlsx
 *.docx

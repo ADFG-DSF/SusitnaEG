@@ -52,7 +52,7 @@ parameters=c(
 'S.eq', 'S.max', 'S.msy', 'U.msy',
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
-'N.ta','q', 'b', 'q.star',
+'N.ta','q', 'b', 'q.star', 'N.tas',
 'Dsum.S2', 'ML1.S2', 'Dsum.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
 'p.S2', 'p.S3', 'p.S4', 'p.S5', 'Bsum.So',
 'theta', 'b1.theta',
@@ -68,9 +68,9 @@ ns <- 200000
 
 #MCMC settings
 nc <- 3
-nb <- 30000
+nb <- 3000
 nt <- 30
-ns <- 80000
+ns <- 8000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,

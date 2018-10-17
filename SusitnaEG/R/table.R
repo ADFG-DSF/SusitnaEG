@@ -79,6 +79,45 @@ table_airerror <- function(post_dat){
   knitr::kable(temp, escape = FALSE, align = "r")
 }
 
+#' Brood table
+#'
+#' Produces an brood tables based on the posterior means form the state space model.  Most of the table functions in this package are intended
+#'  for output into word via markdown.  This one produces a tibble object that can be output to excel using WriteXLS::WriteXLS.
+#'
+#' @param post_dat The posterior object from the SRA model of class jagsUI
+#' @param stock numeric. See stock_id for numeric codes.
+#'
+#' @return A tibble
+#'
+#' @examples
+#' table_brood(post_dat, stock)
+#'
+#' @export
+table_brood <- function(post_dat, stock){
+  stopifnot(exists("year_id", .GlobalEnv))
+  
+  N_ta <- 
+    post_dat[["summary"]][grepl(paste0("^N.tas\\[\\d+,\\d,", stock, "\\]"), rownames(post_dat$summary)), c("mean", "50%")] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>%
+    dplyr::mutate(age_n = post$data$a.min - 1 + as.numeric(gsub("N.tas\\[\\d+,(\\d),\\d\\]", "\\1", rowname)),
+                  year = as.numeric(year_id[1]) - 1 + as.numeric(gsub("N.tas\\[(\\d+),\\d,\\d\\]", "\\1", rowname)) - age_n,
+                  age_c = paste0("age", age_n)) %>%
+    dplyr::select(year, age_c, median = "50%") %>%
+    tidyr::spread(age_c, median)
+  
+  post_dat[["summary"]][grepl(paste0("^S\\[\\d+,", stock, "|^R\\[\\d+,", stock), rownames(post_dat$summary)), c("mean", "50%")] %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column() %>%
+    dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
+                  index = as.numeric(gsub(".\\[(\\d+),\\d]", "\\1", rowname)),
+                  year = (name == "S") * (as.numeric(year_id[1]) - 1 + index) + (name == "R") * (as.numeric(year_id[1]) - 1 - post$data$a.max + index)) %>%
+    dplyr::select(year, median = "50%", name) %>%
+    tidyr::spread(name, median) %>%
+    dplyr::select(year, S, R) %>%
+    dplyr::full_join(N_ta, by = "year") %>%
+    dplyr::mutate_all(as.integer)
+}
 
 #' Table of SR analysis paramerater estimates
 #'
