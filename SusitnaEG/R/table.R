@@ -95,25 +95,25 @@ table_airerror <- function(post_dat){
 #' @export
 table_brood <- function(post_dat, stock){
   stopifnot(exists("year_id", .GlobalEnv))
-  
-  N_ta <- 
-    post_dat[["summary"]][grepl(paste0("^N.tas\\[\\d+,\\d,", stock, "\\]"), rownames(post_dat$summary)), c("mean", "50%")] %>%
-    as.data.frame() %>%
-    tibble::rownames_to_column() %>%
-    dplyr::mutate(age_n = post$data$a.min - 1 + as.numeric(gsub("N.tas\\[\\d+,(\\d),\\d\\]", "\\1", rowname)),
-                  year = as.numeric(year_id[1]) - 1 + as.numeric(gsub("N.tas\\[(\\d+),\\d,\\d\\]", "\\1", rowname)) - age_n,
+    
+  N_ta <- #q50 because when written N.tas was calculated from p and R posterior sims and then ammended JagsUI object   
+    data.frame(mean = post_dat$mean$N.tas[, , stock],
+               cyr = as.numeric(year_id[1]) - 1 + as.vector(slice.index(post_dat$mean$N.tas[, 1, stock], 1))) %>%
+    tidyr::gather(key, mean, -cyr) %>%
+    dplyr::mutate(age_n = as.numeric(gsub(".*\\.(\\d)", "\\1", key)) + post_dat$data$a.min - 1,
+                  year = cyr - age_n,
                   age_c = paste0("age", age_n)) %>%
-    dplyr::select(year, age_c, median = "50%") %>%
-    tidyr::spread(age_c, median)
-  
+    dplyr::select(year, age_c, mean) %>%
+    tidyr::spread(age_c, mean)
+    
   post_dat[["summary"]][grepl(paste0("^S\\[\\d+,", stock, "|^R\\[\\d+,", stock), rownames(post_dat$summary)), c("mean", "50%")] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
                   index = as.numeric(gsub(".\\[(\\d+),\\d]", "\\1", rowname)),
-                  year = (name == "S") * (as.numeric(year_id[1]) - 1 + index) + (name == "R") * (as.numeric(year_id[1]) - 1 - post$data$a.max + index)) %>%
-    dplyr::select(year, median = "50%", name) %>%
-    tidyr::spread(name, median) %>%
+                  year = (name == "S") * (as.numeric(year_id[1]) - 1 + index) + (name == "R") * (as.numeric(year_id[1]) - 1 - post_dat$data$a.max + index)) %>%
+    dplyr::select(year, mean, name) %>%
+    tidyr::spread(name, mean) %>%
     dplyr::select(year, S, R) %>%
     dplyr::full_join(N_ta, by = "year") %>%
     dplyr::mutate_all(as.integer)
@@ -294,7 +294,7 @@ table_stock <- function(post_dat){
                    stringsAsFactors = FALSE)
   
   est <- 
-    post_dat[["summary"]][grepl("p.S", rownames(post$summary)), c("mean", "sd")] %>%
+    post_dat[["summary"]][grepl("p.S", rownames(post_dat$summary)), c("mean", "sd")] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
