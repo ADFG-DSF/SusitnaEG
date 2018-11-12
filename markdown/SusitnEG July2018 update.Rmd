@@ -2,7 +2,9 @@
 title: "SusitnaEG_July2018"
 author: "Adam Reimer"
 date: "July 18, 2018"
-output: html_document
+output: 
+  html_document: 
+    keep_md: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -185,6 +187,7 @@ table_params(summary)
 The standard procedure at this point would be to use Optimum Yield profiles to select a goal for each stock. The profiles show the probability of reaching some percentage of maximum sustained yield at various escapement levels. Lines that spend a lot of time near 1 indicate a fairly high level of information about the yield relationship. This approach will work for the Deshka River.  
 ```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 24.- Optimal yield profiles for Susitana River Chinook salmon. OYPs show probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield. Shaded areas bracket the existing goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
 profiles <- lapply(stock_id, get_profile, post_dat = post)
+chinBEGs <- dat_chinBEGs #patch to leave BEG file in environment with an outdated name
 profile <- mapply(plot_profile, 
                   profile_dat = profiles, 
                   goal_range = list(c(13000, 28000), NA, NA, NA, NA), 
