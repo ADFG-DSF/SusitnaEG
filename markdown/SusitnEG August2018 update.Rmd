@@ -2,7 +2,9 @@
 title: "SusitnaEG_August2018"
 author: "Adam Reimer"
 date: "August 11, 2018"
-output: html_document
+output: 
+  html_document: 
+    keep_md: TRUE
 ---
 
 ```{r setup, include=FALSE}
@@ -27,7 +29,7 @@ fit[[1]]
 ***
 Total run estimates (Figure 2 second panel) are marginally more precisely than escapement estimates because harvest is relatively well estimated. Coefficients of variation for total run are generally greater than 0.2 prior to 1995 and less than 0.1 after 1995. Coefficients of variation for recruitment (Figure 2 third panel) were larger (0.1 – 0.4) presumably because stock specific age composition data is unavailable and there is considerable variation around the stock-recruit relationship. Harvest rates for Deshka River Chinook salmon have been below levels that would maximize yield but have approached levels that would maximize recruitment during 1991-1993 and again during 2006-2008 (Figure 2 fourth panel).
 ```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 2.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of spawning escapement, total run abundance, recruitment by brood year, harvest rate, and Ricker productivity residuals from a state-space model of Deshka River Chinook salmon, 1979-2017. Posterior medians of $S_{MSY}$ and $U_{MSY}$ are plotted as short dash horizontal reference lines while posterior medians of $S_{MSR}$ and $U_{MSR}$ are plotted as long dash horizontal reference lines."}
-state <- lapply(stock_id[-5], function(x) plot_state(post, stock = x, S_msr = TRUE))
+state <- lapply(stock_id[-5], function(x) plot_state(post, stock = x, rp = c("msy", "msr")))
 state[[1]]
 ```
 ***
