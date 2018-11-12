@@ -254,17 +254,18 @@ plot_fit <- function(post_dat, stock_name){
     dplyr::left_join(id, by = c("stock", "tribn")) %>%
     dplyr::select(year, stock, trib, ex_weir, ex_as)
   
-  weirs <- weir %>%
+  weirs <- 
+    weir %>%
     as.data.frame() %>%
     tibble::rownames_to_column(var = "year") %>%
     dplyr::mutate(year = year_id[year]) %>%
     tidyr::gather(trib, count, -year) %>%
     dplyr::left_join(expand, by = c("year", "trib")) %>% 
     dplyr::mutate(value = count / ex_weir,
-                  name = trib,
+                  name = paste0(trib, " weir"),
                   type = "weir",
                   name_f = "S") %>%
-    dplyr::select(year, name, stock, type, name_f, value)
+    dplyr::select(year, name, stock, name_f, trib, type, value)
   
   surveys <- lapply(1:5, function(x) data.frame(stock = factor(unname(stock_id[x]), levels = stock_id),
                                                 year = rep(unname(year_id), times = dim(as[[stock_id[x]]])[2]),
@@ -274,10 +275,10 @@ plot_fit <- function(post_dat, stock_name){
     do.call(rbind, .) %>%
     dplyr::left_join(expand, by = c("year", "stock", "trib")) %>%
     dplyr::mutate(value = count / ex_as,
-                  name = trib,
-                  type ="survey",
+                  name = paste0(trib, " survey"),
+                  type = "survey",
                   name_f = "S") %>%
-    dplyr::select(year, stock, name, type, name_f, value)
+    dplyr::select(year, stock, name, name_f, trib, type, value)
   
   markrecap <- 
     mr[[1]] %>%
@@ -285,24 +286,22 @@ plot_fit <- function(post_dat, stock_name){
     dplyr::mutate(year = year_id) %>%
     tidyr::gather(stock, value, -year) %>%
     dplyr::mutate(name = "Mark-Recapture",
-                  type = "Mark-Recapture",
                   name_f = "IR") %>%
-    dplyr::select(year, stock, name, type, name_f, value)
+    dplyr::select(year, stock, name, name_f, value)
   
   indicies <- 
     rbind(weirs, surveys) %>%
     dplyr::mutate(name_f = factor(name_f,
                                   levels = c("S", "IR"),
                                   labels = c("Escapement", "Inriver Run")),
-                  type = factor(type, levels = c("survey", "weir", "Mark-Recapture")),
                   year = as.numeric(year)) %>%
     dplyr::filter(!is.na(value))
   
   indicies2 <-
     dplyr::left_join(post_dat[["data"]][["MR"]] %>% 
-                      as.data.frame() %>%
-                      tibble::rownames_to_column(var = "yr") %>%
-                      tidyr::gather(stock, value, -yr),
+                       as.data.frame() %>%
+                       tibble::rownames_to_column(var = "yr") %>%
+                       tidyr::gather(stock, value, -yr),
                      post_dat[["data"]][["cv.MR"]] %>% 
                        as.data.frame() %>%
                        tibble::rownames_to_column(var = "yr") %>%
@@ -310,27 +309,29 @@ plot_fit <- function(post_dat, stock_name){
                      by = c("yr", "stock")) %>%
     dplyr::mutate(year = yr0 + as.numeric(yr),
                   name = "Mark-Recapture",
-                  type = "Mark-Recapture",
                   name_f = "Inriver Run",
                   ub = exp(log(value) + 1.96 * sqrt(log(cv * cv + 1))),
                   lb = exp(log(value) - 1.96 * sqrt(log(cv * cv + 1)))) %>%
     dplyr::filter(!is.na(value))
   
   pal <- RColorBrewer::brewer.pal(6, "Paired")
+  shapes <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
   breaks <- 
-    id %>% 
-    dplyr::select(-tribn2) %>%
-    dplyr::mutate(name = factor(trib, levels = c(trib, "Mark-Recapture")),
-                  color = unlist(lapply(sapply(1:5, function(x) sum(stock == stock_id[x])), function(x) pal[1:x]))) %>%
-    dplyr::select(-tribn, - trib) %>%
+    indicies[!duplicated(indicies$name), c("stock", "name", "trib", "type")] %>%
+    dplyr::left_join(id[, c("trib", "tribn")], by = "trib") %>%
+    dplyr::mutate(name = as.factor(name),
+                  color = unlist(pal[tribn])) %>%
+    dplyr::select(-trib, -tribn) %>%
     dplyr::filter(stock == stock_name) %>%
     rbind(data.frame(name = "Mark-Recapture",
+                     type = "Mark-Recapture",
                      stock = stock_name,
                      color = "black",
                      stringsAsFactors = FALSE)) %>%
+    dplyr::mutate(shape = shapes[type]) %>%
     dplyr::arrange(stock, name, color)
   col <-setNames(breaks$color, breaks$name)
-  sha <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
+  sha <- setNames(breaks$shape, breaks$name)
   
   post_dat$summary %>%
     as.data.frame() %>%
@@ -348,14 +349,15 @@ plot_fit <- function(post_dat, stock_name){
     ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
     ggplot2::facet_grid(name_f ~ ., scales = "free_y", switch = "y") +
     ggplot2::labs(x = NULL, y = NULL) +
-    ggplot2::geom_jitter(data = indicies[indicies$stock == stock_name, ], ggplot2::aes(color = name, shape = type), size = 3, width = .3) +
+    ggplot2::geom_jitter(data = indicies[indicies$stock == stock_name, ], ggplot2::aes(color = name, shape = name), size = 3, width = .3) +
     ggplot2::geom_pointrange(data = indicies2[indicies2$stock == stock_name, ], 
-                             ggplot2::aes(ymin = lb, ymax = ub, color = "Mark-Recapture", shape = "Mark-Recapture")) +
+                             ggplot2::aes(ymin = lb, ymax = ub, color = "Mark-Recapture", shape = "Mark-Recapture"),
+                             show.legend = FALSE) +
     ggplot2::scale_color_manual(name ="Index",
                                 breaks = breaks$name,
                                 values = col) +
     ggplot2::scale_shape_manual(name ="Index",
-                                breaks = names(sha),
+                                breaks = breaks$name,
                                 values = sha) +
     ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
@@ -572,7 +574,7 @@ plot_rickeryear <- function(post_dat, stock_name){
 #'
 #' @param post_dat The posterior object from the SRA model of class jagsUI
 #' @param stock_name A character element specifying the stock to plot.
-#' @param S_msr Logical (TRUE) indicating if S_msr shoud be included in the escapement panel.  Defaults to FALSE.
+#' @param rp NULL omits biological refence points, "msr" or "msy" include reference points for harvest rate and spawning abundance.
 #'
 #' @return A figure
 #'
@@ -582,10 +584,11 @@ plot_rickeryear <- function(post_dat, stock_name){
 #' lapply(stock_id, plot_state, post_dat = post)
 #'
 #' @export
-plot_state <- function(post_dat, stock_name, S_msr = FALSE){
+plot_state <- function(post_dat, stock_name, rp = NULL){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
-            exists("stock_id", .GlobalEnv))
+            exists("stock_id", .GlobalEnv),
+            rp %in% c(NULL, "msy", "msr"))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
   stock <- unname(which(stock_id == stock_name))
@@ -635,13 +638,13 @@ plot_state <- function(post_dat, stock_name, S_msr = FALSE){
     ggplot2::labs(x = NULL, y = NULL) +
     ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
-    ggplot2::geom_hline(data = msy50, ggplot2::aes(yintercept = median), color = "red", linetype = 2) +
     ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
     ggplot2::theme_bw() +
     ggplot2::ggtitle(stock_name) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
   
-  if(S_msr == TRUE) {plot <- plot +     ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5)}
+  if("msr" %in% rp) {plot <- plot + ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5)}
+  if("msy" %in% rp) {plot <- plot + ggplot2::geom_hline(data = msy50, ggplot2::aes(yintercept = median), color = "red", linetype = 2)}
   
   plot
 }
