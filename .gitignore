@@ -6,12 +6,10 @@ SusitnaEG/data-raw/*.xlsx
 SusitnaEG/data-raw/*.xlsm
 SusitnaEG/data-raw/*.xls
 SusitnaEG/data-raw/comm fish data/
-SusitnaEG/NAMESPACE
-SusitnaEG/.gitignore
 SusitnaEG/.Rbuildignore
-SusitnaEG/man/
 April26_2018 meeting/
 data_requests/
 posts/
 *.xlsx
 *.docx
+*.html
