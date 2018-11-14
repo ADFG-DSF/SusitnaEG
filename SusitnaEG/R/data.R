@@ -48,6 +48,17 @@
 #' @source SWHS
 "Ha"
 
+#' Deshka Harvest data
+#'
+#' Deshka River Chinook salmon harvest upstream of the weir 
+#'
+#' @docType data
+#'  
+#' @format tibble
+#' 
+#' @source SWHS
+"Hm"
+
 #' Aerial Survey data
 #'
 #' Aerial survey data by stock and tributary.

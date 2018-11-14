@@ -301,7 +301,7 @@ for(trib in 1:3) {
   tau.weir ~ dgamma(50, 0.5)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
-    log.11S1[y] <- log(S[y, 1])						#Deshka one trib in stock
+    log.11S1[y] <- log(IR_d[y])		#Deshka one trib in stock but harvest above weir
 	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir) 
 	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])		#Montana
       weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)
@@ -315,13 +315,18 @@ for (y in 1:Y) {
   Hmarine[y] <- mu.Hmarine[y] * sum(N[y, ])
   logHm[y] <- log(Hmarine[y])
   tau.logHm[y] <- 1 / log(cv.Hm[y]*cv.Hm[y] + 1)
-  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])             
+  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y]) 
+  # Harvest upstream of Deshka weir
+  mu.HDeshka[y] ~ dbeta(0.5,0.5)
+  HDeshka[y] <- mu.HDeshka[y] * IR_deshka[y]
+  logHd[y] <- log(HDeshka[y])
+  tau.logH[y] <- 1 / log(cv.H[y]*cv.H[y] + 1)
+  Hd.hat[y] ~ dlnorm(logHd[y],tau.logH[y])  
   # MR estimates gt 500mm fish, reduce IR to same size class
   p.small3[y] ~ dbeta(1,1)
   p.small4[y] ~ dbeta(1,1)
   small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
-  tau.logHa[y] <- 1 / log(cv.Ha[y]*cv.Ha[y] + 1)
   for (stock in 1:5){
     IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y])
 	IRlt500[y, stock] <- IR[y, stock] * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y])
@@ -331,8 +336,12 @@ for (y in 1:Y) {
 	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
 	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
 	logHa[y, stock] <- log(Habove[y, stock])
-	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logHa[y])       
-	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
-    }
+	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logH[y])       
   }
+  IR_deshka[y] <- max(IR[y, 1] - Habove[y, 1], 1)
+  S[y, 1] <- max(IR_deshka[y] - HDeshka[y], 1)
+  for (stock in 2:5){
+	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
+  }
+}
 } 

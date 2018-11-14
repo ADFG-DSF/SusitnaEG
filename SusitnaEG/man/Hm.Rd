@@ -3,12 +3,20 @@
 \docType{data}
 \name{Hm}
 \alias{Hm}
+\alias{Hm}
 \title{Marine Harvest data}
 \format{tibble}
+\source{
+SWHS
+}
 \usage{
+Hm
+
 Hm
 }
 \description{
 Commercial and Substance harvest of Chinook salmon in North Cook inlet. Apportioned by GSI.
+
+Deshka River Chinook salmon harvest upstream of the weir
 }
 \keyword{datasets}

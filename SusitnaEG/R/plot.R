@@ -835,9 +835,18 @@ plot_theta <- function(post_dat){
     dplyr::left_join(id, by = "tribn2") %>%
     dplyr::select(year, stock, trib, theta = mean)
   
-  theta_obs1 <- data.frame(year = as.numeric(year_id), stock = unname(stock_id[1]), trib = "Deshka", theta = as[["Deshka"]][, "Deshka"] / weir[, "Deshka"])
-  theta_obs2 <- data.frame(year = as.numeric(year_id), stock = unname(stock_id[2]), trib = "Montana", theta = as[["East Susitna"]][, "Montana"] / weir[, "Montana"])
-  theta_obs3 <- data.frame(year = as.numeric(year_id), stock = unname(stock_id[2]), trib = "Willow", theta = as[["East Susitna"]][, "Willow"] / weir[, "Willow"])
+  theta_obs1 <- data.frame(year = as.numeric(year_id), 
+                           stock = unname(stock_id[1]), 
+                           trib = "Deshka", 
+                           theta = as[["Deshka"]][, "Deshka"] / (weir[, "Deshka"] - Hd[["Deshka_up"]]))
+  theta_obs2 <- data.frame(year = as.numeric(year_id), 
+                           stock = unname(stock_id[2]), 
+                           trib = "Montana", 
+                           theta = as[["East Susitna"]][, "Montana"] / weir[, "Montana"])
+  theta_obs3 <- data.frame(year = as.numeric(year_id), 
+                           stock = unname(stock_id[2]), 
+                           trib = "Willow", 
+                           theta = as[["East Susitna"]][, "Willow"] / weir[, "Willow"])
   theta_obs <- 
     rbind(theta_obs1, theta_obs2, theta_obs3) %>%
     dplyr::filter(!is.na(theta))

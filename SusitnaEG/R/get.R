@@ -98,6 +98,36 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
 }
 
 
+#' Adds 3-year average to harvest matrix
+#'
+#' This function creates a matrix containing harvest data for use in jags. If the SRA includes years without statewide harvest 
+#' survey data a 3-year average is used for the missing years.
+#'
+#' @param dat 
+#'
+#' @return A matrix
+#'
+#' @examples
+#' Ha.hat <- get_Hhat(Ha)
+#' Hd.hat <- get_hhat(Hd)
+#'
+#' @export
+get_Hhat <- function(dat){
+  stopifnot(exists("trib_id", .GlobalEnv),
+            "package:SusitnaEG" %in% search())
+  if(dim(dat)[1] < length(year_id)){
+    Ha.hat <- 
+      as.matrix(dat[, -which(names(Ha) == "year")]) %>% 
+      rbind(matrix(apply(dat[(dim(dat)[1] - 2):dim(dat)[1], -1], MARGIN = 2, mean),
+                   byrow = TRUE,
+                   nrow = length(year_id) - dim(dat)[1], 
+                   ncol = dim(dat[, -1])[2])
+      )
+  } else {Ha.hat <- as.matrix(dat[, -which(names(dat) == "year")])}
+  Ha.hat
+}
+
+
 #' Lookup tables for year, age and stock
 #'
 #' Creates lookup tables to switch between informative names and jags array locations.

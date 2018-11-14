@@ -5,15 +5,8 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-range(Ha$year)
-#3yr average for 2016 and 2017
-Ha.hat <- 
-  as.matrix(Ha[, -1]) %>% 
-  rbind(matrix(apply(Ha[(dim(Ha)[1] - 2):dim(Ha)[1], -1], MARGIN = 2, mean),
-               byrow = TRUE,
-               nrow = length(year_id) - dim(Ha)[1], 
-               ncol = dim(Ha[, -1])[2])
-        )
+Ha.hat <- get_Hhat(Ha)
+Hd.hat <- get_Hhat(Hd)
 
 a <- 
   age %>%
@@ -37,7 +30,8 @@ dat = list(
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna, Ntele.S5 = telemetry$N_Other,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
   Hm.hat = Hm$Susitna, cv.Hm = rep(0.05, length(year_id)),
-  Ha.hat = Ha.hat, cv.Ha = rep(0.2, dim(Ha.hat)[1]),
+  Ha.hat = Ha.hat, cv.H = rep(0.2, dim(Ha.hat)[1]),
+  Hd.hat = Hd.hat, 
   MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
@@ -48,16 +42,16 @@ dat = list(
 parameters=c(
 'sigma.white', 'sigma.R0', 'sigma.air', 'B', 'sigma.weir',
 'beta', 'lnalpha', 'mu.lnalpha', 'sigma.lnalpha', 'lnalpha.c', 'alpha', 'lnalpha.vec', 
-'phi', 'mu.phi', 'sigma.phi', 'log.resid.0', 'log.resid.vec',
+'phi', 'log.resid.0', 'log.resid.vec',
 'S.eq', 'S.max', 'S.msy', 'U.msy',
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star', 'N.tas',
-'Dsum.S2', 'ML1.S2', 'Dsum.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
+'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
 'p.S2', 'p.S3', 'p.S4', 'p.S5', 'Bsum.So',
 'theta', 'b1.theta',
 'p.small3', 'p.small4', 
-'mu.Hmarine', 'mu.Habove'
+'mu.Hmarine', 'mu.Habove', 'mu.HDeshka', 'HDeshka', 'IR_deshka'
 )
 
 #MCMC settings
@@ -67,10 +61,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-nc <- 3
-nb <- 3000
-nt <- 30
-ns <- 8000
+nc <- 1
+nb <- 1000
+nt <- 5
+ns <- 2000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
