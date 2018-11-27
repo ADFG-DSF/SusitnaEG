@@ -55,7 +55,7 @@ model{
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
 # GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
   Dscale.age ~ dunif(0.01,1)
-  Dsum.age <- 1 / (Dscale.age * Dscale.age)  
+  Dsum.age <- 1 / (Dscale.age * Dscale.age)
   ML1[A] <- 0  
   ML2[A] <- 0
 for (a in 1:(A-1)) { 
@@ -301,7 +301,7 @@ for(trib in 1:3) {
   tau.weir ~ dgamma(50, 0.5)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
-    log.11S1[y] <- log(IR_d[y])		#Deshka one trib in stock but harvest above weir
+    log.11S1[y] <- log(IR_deshka[y])		#Deshka one trib in stock but harvest above weir
 	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir) 
 	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])		#Montana
       weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)
@@ -329,7 +329,7 @@ for (y in 1:Y) {
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
   for (stock in 1:5){
     IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y])
-	IRlt500[y, stock] <- IR[y, stock] * (1 - q[y, 1] * p.small3[y]) * (1 - q[y, 2] * p.small4[y])
+	IRlt500[y, stock] <- IR[y, stock] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))
     logIRlt500[y, stock] <- log(IRlt500[y, stock])
 	tau.logMR[y, stock] <- 1 / log(cv.MR[y, stock]*cv.MR[y, stock] + 1)
     MR[y, stock] ~ dlnorm(logIRlt500[y, stock], tau.logMR[y, stock])    

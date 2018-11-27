@@ -682,6 +682,7 @@ plot_statepairs <- function(post_dat, plot){
 #'
 #' @param input_dat telemetry data matrix
 #' @param post_dat The posterior object from the SRA model of class jagsUI
+#' @param plot_stocks The stocks to include in the plot. The default c("East Susitna", "Talkeetna", "Yentna") can be modified to include "Other".
 #'
 #' @return A figure
 #'
@@ -689,11 +690,12 @@ plot_statepairs <- function(post_dat, plot){
 #' plot_stock(telemetry, post)
 #'
 #' @export
-plot_stock <- function(input_dat, post_dat){
+plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Talkeetna", "Yentna")){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
             exists("trib_id", .GlobalEnv),
+            plot_stocks %in% c("East Susitna", "Talkeetna", "Yentna", "Other"),
             "package:SusitnaEG" %in% search())
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
@@ -725,23 +727,24 @@ plot_stock <- function(input_dat, post_dat){
   }
   
   obs <- 
-    lapply(stock_id[-1], obs_f) %>% do.call(rbind, .) %>%
+    lapply(plot_stocks, obs_f) %>% do.call(rbind, .) %>%
     dplyr::mutate(stock = factor(stock, levels = stock_id))
   
   est <- 
-    post_dat[["summary"]][grepl("p.S", rownames(post$summary)), "mean"] %>%
+    post_dat[["summary"]][grepl("p.S", rownames(post_dat$summary)), "mean"] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,
                   stock = factor(unname(stock_id[gsub("p.S(\\d).*", "\\1", rowname)]), levels = stock_id),
                   tribn = as.numeric(gsub("^.*,(\\d)]$", "\\1", rowname))) %>%
     dplyr::left_join(id, by = c("stock", "tribn")) %>%
-    dplyr::select(stock, year, trib, mean = ".") 
+    dplyr::select(stock, year, trib, mean = ".") %>%
+    dplyr::filter(stock %in% plot_stocks)
   
   pal <- RColorBrewer::brewer.pal(7, "Paired")
-  breaks <- id[!id$stock == "Deshka", ] %>% 
-    dplyr::mutate(color = unlist(lapply(sapply(2:5, function(x) sum(stock == stock_id[x]) - 1), function(x) c(pal[1:x], "black"))),
-                  alpha = 1.25 - (as.numeric(stock) - 1)/length(stock_id[-1])) %>%
+  breaks <- id[id$stock %in% plot_stocks, ] %>% 
+    dplyr::mutate(color = unlist(lapply(sapply(which(stock_id %in% plot_stocks), function(x) sum(stock == stock_id[x]) - 1), function(x) c(pal[1:x], "black"))),
+                  alpha = 1 + min(as.numeric(stock)) / max(as.numeric(stock)) - as.numeric(stock) / max(as.numeric(stock))) %>%
     dplyr::select(-tribn) %>%
     dplyr::arrange(stock, trib, color, alpha)
   col <-setNames(breaks$color, breaks$trib)
@@ -753,8 +756,8 @@ plot_stock <- function(input_dat, post_dat){
     ggplot2::facet_grid(stock ~ ., switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::percent) +
-    ggplot2::scale_fill_manual(breaks = breaks$trib, values = col) +
-    ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp) +
+    ggplot2::scale_fill_manual(breaks = breaks$trib, values = col, name = "Sub-stock") +
+    ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp, "Sub-stock") +
     ggplot2::geom_point(data = obs, ggplot2::aes(fill = trib), size = 3, shape = 21, color = "white") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")

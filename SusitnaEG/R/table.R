@@ -63,19 +63,24 @@ table_airerror <- function(post_dat){
     dplyr::arrange(stock, tribn)
   
   temp <-
-    post_dat[["summary"]][grepl("sigma.air", rownames(post_dat$summary)), c("mean", "sd", "2.5%", "97.5%")]  %>% 
+    post_dat[["summary"]][grepl("sigma.air|theta\\[\\d+,1\\]", rownames(post_dat$summary)), c("mean", "sd", "2.5%", "97.5%")]  %>% 
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::mutate(cv = sd / mean,
-                  tribn = gsub("^.*\\[(\\d+)\\]", "\\1", rowname),
-                  trib = id$trib[as.numeric(tribn)]) %>%
+                  param = gsub("(^.*)\\[.*", "\\1", rowname),
+                  tribn = ifelse(param == "sigma.air", 
+                                 gsub("^.*\\[(\\d+)\\]", "\\1", rowname),  
+                                 gsub("^.*\\[(\\d+).*\\]", "\\1", rowname)),
+                  trib = id$trib[as.numeric(tribn)],
+                  stock = id$stock[as.numeric(tribn)]) %>%
     dplyr::mutate_if(is.numeric, digits) %>%
     dplyr::rename(q2.5 = "2.5%", q97.5 = "97.5%") %>%
-    dplyr::mutate(print1 = paste0(mean, " (", q2.5, " - ", q97.5, ")"),
-                  print2 = paste0(mean, " (", cv, ")")) %>%
-    dplyr::select(trib, print1)
+    dplyr::mutate(print1 = paste0(mean, " (", q2.5, " - ", q97.5, ")")) %>%
+    dplyr::select(stock, trib, param, print1) %>%
+    tidyr::spread(param, print1) %>%
+    dplyr::select(stock, trib, theta, sigma.air)
   
-  colnames(temp)  <- c("Tributary", "$\\sigma_{air}$(95% CI)")
+  colnames(temp)  <- c("Stock Group", "Tributary", "$\\theta_s$(95% CI)", "$\\sigma_{ASs}$(95% CI)")
   knitr::kable(temp, escape = FALSE, align = "r")
 }
 
@@ -248,7 +253,7 @@ table_state <- function(post_dat, display){
       dplyr::mutate_all(nareplace) %>%
       dplyr::arrange(stock, year)
    
-    out <- split(temp2, temp2$stock) %>% knitr::kable(row.names = FALSE, align = "r", escape = FALSE)
+    out <- split(temp2, temp2$stock)
   }
 
   if(display == "bystate"){
@@ -261,7 +266,7 @@ table_state <- function(post_dat, display){
       dplyr::mutate_all(nareplace) %>%
       dplyr::arrange(name, year)
     
-    out <- split(temp3, temp3$name) %>% knitr::kable(row.names = FALSE, align = "r", escape = FALSE)
+    out <- split(temp3, temp3$name)
   }
   out
 }
