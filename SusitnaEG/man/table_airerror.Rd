@@ -2,7 +2,7 @@
 % Please edit documentation in R/table.R
 \name{table_airerror}
 \alias{table_airerror}
-\title{Table of Aerial Survey Standard Deviations.}
+\title{Table of Aerial Survey Observability and Standard Deviations.}
 \usage{
 table_airerror(post_dat)
 }
@@ -13,7 +13,7 @@ table_airerror(post_dat)
 A table
 }
 \description{
-Produces a table of standard deviations for each flown tributary.
+Produces a table of air survey observability and standard deviations for each flown tributary.
 }
 \examples{
 table_airerror(post)

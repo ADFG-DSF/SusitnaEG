@@ -4,12 +4,15 @@
 \alias{plot_stock}
 \title{Plots of composition by stock}
 \usage{
-plot_stock(input_dat, post_dat)
+plot_stock(input_dat, post_dat, plot_stocks = c("East Susitna", "Talkeetna",
+  "Yentna"))
 }
 \arguments{
 \item{input_dat}{telemetry data matrix}
 
 \item{post_dat}{The posterior object from the SRA model of class jagsUI}
+
+\item{plot_stocks}{The stocks to include in the plot. The default c("East Susitna", "Talkeetna", "Yentna") can be modified to include "Other".}
 }
 \value{
 A figure

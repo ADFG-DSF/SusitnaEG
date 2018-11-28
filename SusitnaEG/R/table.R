@@ -35,9 +35,9 @@ table_age <- function(post_dat, node){
 }
 
 
-#' Table of Aerial Survey Standard Deviations.
+#' Table of Aerial Survey Observability and Standard Deviations.
 #'
-#' Produces a table of standard deviations for each flown tributary.
+#' Produces a table of air survey observability and standard deviations for each flown tributary.
 #'
 #' @param post_dat The posterior object from the SRA model of class jagsUI
 #'
@@ -63,19 +63,18 @@ table_airerror <- function(post_dat){
     dplyr::arrange(stock, tribn)
   
   temp <-
-    post_dat[["summary"]][grepl("sigma.air|theta\\[\\d+,1\\]", rownames(post_dat$summary)), c("mean", "sd", "2.5%", "97.5%")]  %>% 
+    post_dat[["summary"]][grepl("sigma.air|theta\\[\\d+,1\\]", rownames(post_dat$summary)), c("50%", "sd", "2.5%", "97.5%")]  %>% 
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
-    dplyr::mutate(cv = sd / mean,
-                  param = gsub("(^.*)\\[.*", "\\1", rowname),
+    dplyr::mutate(param = gsub("(^.*)\\[.*", "\\1", rowname),
                   tribn = ifelse(param == "sigma.air", 
                                  gsub("^.*\\[(\\d+)\\]", "\\1", rowname),  
                                  gsub("^.*\\[(\\d+).*\\]", "\\1", rowname)),
                   trib = id$trib[as.numeric(tribn)],
                   stock = id$stock[as.numeric(tribn)]) %>%
     dplyr::mutate_if(is.numeric, digits) %>%
-    dplyr::rename(q2.5 = "2.5%", q97.5 = "97.5%") %>%
-    dplyr::mutate(print1 = paste0(mean, " (", q2.5, " - ", q97.5, ")")) %>%
+    dplyr::rename(median = "50%", q2.5 = "2.5%", q97.5 = "97.5%") %>%
+    dplyr::mutate(print1 = paste0(median, " (", q2.5, " - ", q97.5, ")")) %>%
     dplyr::select(stock, trib, param, print1) %>%
     tidyr::spread(param, print1) %>%
     dplyr::select(stock, trib, theta, sigma.air)
