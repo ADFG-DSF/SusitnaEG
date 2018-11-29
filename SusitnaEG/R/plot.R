@@ -369,7 +369,7 @@ plot_fit <- function(post_dat, stock_name){
 
 #' Horsetail plot of plausible spawn-recruit relationships
 #'
-#' Produces a horsetail plot of the median Spawn-Recruit relationship.  Plot also shows 40 plausible Spawn-Recruit relationships in the background and Spawner and Recruit estimates with associated 90% CIs.
+#' Produces a horsetail plot of the mean Spawn-Recruit relationship.  Plot also shows 40 plausible Spawn-Recruit relationships in the background and Spawner and Recruit estimates with associated 90% CIs.
 #'
 #' @param post_dat SRA model mcmc.list output
 #' @param stock_name A character element specifying the stock to plot.
@@ -403,10 +403,10 @@ plot_horse <- function(post_dat, stock_name){
     tibble::rownames_to_column()
   
   temp <- 
-    post_dat[["summary"]][ , c("2.5%", "50%", "97.5%"), drop = FALSE] %>%
+    post_dat[["summary"]][ , c("2.5%", "mean", "97.5%"), drop = FALSE] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
-    dplyr::rename(lb = "2.5%", median = "50%", ub = "97.5%") %>%
+    dplyr::rename(lb = "2.5%", mean = mean, ub = "97.5%") %>%
     dplyr::filter(grepl(paste0("^R\\[\\d+,", stock_n, "\\]|S\\[\\d+,", stock_n, "\\]"), rowname)) %>%
     dplyr::mutate(name = gsub("(^.*)\\[.*", "\\1", rowname),
                   index = as.numeric(gsub(".*\\[(\\d+),\\d\\]", "\\1", rowname)),
@@ -414,10 +414,10 @@ plot_horse <- function(post_dat, stock_name){
   
   v_dat <-  temp %>% dplyr::filter(name == "R") %>% dplyr::select(vlb = lb, vub = ub, year)
   h_dat <-  temp %>% dplyr::filter(name == "S") %>% dplyr::select(hlb = lb, hub = ub, year)
-  upper = max(quantile(c(v_dat$vub, h_dat$hub), 0.95), temp$median)
+  upper = max(quantile(c(v_dat$vub, h_dat$hub), 0.95), temp$mean)
   text_dat <-  temp %>%
-    dplyr::select(median, name, year) %>%
-    tidyr::spread(name, median) %>%
+    dplyr::select(mean, name, year) %>%
+    tidyr::spread(name, mean) %>%
     dplyr::filter(!is.na(R) & ! is.na(S)) %>%
     dplyr::inner_join(v_dat, by = "year") %>%
     dplyr::inner_join(h_dat, by = "year")

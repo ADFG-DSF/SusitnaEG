@@ -15,7 +15,7 @@ plot_horse(post_dat, stock_name)
 A figure
 }
 \description{
-Produces a horsetail plot of the median Spawn-Recruit relationship.  Plot also shows 40 plausible Spawn-Recruit relationships in the background and Spawner and Recruit estimates with associated 90% CIs.
+Produces a horsetail plot of the mean Spawn-Recruit relationship.  Plot also shows 40 plausible Spawn-Recruit relationships in the background and Spawner and Recruit estimates with associated 90% CIs.
 }
 \examples{
 get_ids()
