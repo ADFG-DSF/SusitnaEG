@@ -392,13 +392,13 @@ plot_horse <- function(post_dat, stock_name){
   
   stock_n <- which(stock_id == stock_name)
   coeflines <- 
-    data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], lnalpha = post_dat$sims.list[["lnalpha"]][, stock_n]) %>%
+    data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], lnalpha = post_dat$sims.list[["lnalpha.c"]][, stock_n]) %>%
     dplyr::sample_n(40) %>%
     as.matrix() %>%
     plyr::alply(1, function(coef) {ggplot2::stat_function(fun=function(x){x * exp(coef[2] - coef[1] * x)}, colour="grey", alpha = 0.5)})
   
   param_50 <- 
-    post_dat[["summary"]][paste0(c("beta", "lnalpha"), "[", stock_n, "]"), "50%", drop = FALSE] %>%
+    post_dat[["summary"]][paste0(c("beta", "lnalpha.c"), "[", stock_n, "]"), "50%", drop = FALSE] %>%
     as.data.frame() %>%
     tibble::rownames_to_column()
   
