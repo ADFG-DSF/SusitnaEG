@@ -8,7 +8,7 @@ SusitnaEG/data-raw/*.xls
 SusitnaEG/data-raw/comm fish data/
 SusitnaEG/.Rbuildignore
 April26_2018 meeting/
-data_requests/
+data_requests/*.xlsx
 posts/
 *.xlsx
 *.docx
