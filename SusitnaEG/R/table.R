@@ -128,6 +128,7 @@ table_brood <- function(post_dat, stock){
 #' Produces a table of paramerater estimates for the SRA.
 #'
 #' @param post_dat The posterior object from the SRA model of class jagsUI
+#' @param stocks Numeric, stock numbers to include in the table
 #'
 #' @return A table
 #'
@@ -308,10 +309,10 @@ table_stock <- function(post_dat){
     dplyr::mutate(print = paste0(digits(mean), " (", digits(sd), ")")) %>%
     dplyr::select(stock, year, trib, print) 
   
-  list <- lapply(stock_id[2:5], function(x) est[est$stock == x, ] %>%
+  list <- lapply(stock_id[-1], function(x) est[est$stock == x, ] %>%
                    dplyr::select(-stock) %>%
                    tidyr::spread(trib, print))
   
-  names(list) <- stock_id[2:5]
+  names(list) <- stock_id[-1]
   list
 }

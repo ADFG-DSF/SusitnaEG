@@ -8,6 +8,8 @@ table_params(post_dat, stocks = 1:4)
 }
 \arguments{
 \item{post_dat}{The posterior object from the SRA model of class jagsUI}
+
+\item{stocks}{Numeric, stock numbers to include in the table}
 }
 \value{
 A table

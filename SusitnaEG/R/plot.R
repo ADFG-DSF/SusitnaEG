@@ -245,7 +245,7 @@ plot_fit <- function(post_dat, stock_name){
     dplyr::select(year, stock, tribn, theta = mean)
   
   expand <- 
-    lapply(1:5, function(x) trib(x)) %>% 
+    lapply(1:length(stock_id), function(x) trib(x)) %>% 
     do.call(rbind, .) %>%
     dplyr::left_join(theta, by = c("year", "stock", "tribn")) %>% 
     dplyr::mutate(ex_weir = ps,
@@ -267,7 +267,7 @@ plot_fit <- function(post_dat, stock_name){
                   name_f = "S") %>%
     dplyr::select(year, name, stock, name_f, trib, type, value)
   
-  surveys <- lapply(1:5, function(x) data.frame(stock = factor(unname(stock_id[x]), levels = stock_id),
+  surveys <- lapply(1:length(stock_id), function(x) data.frame(stock = factor(unname(stock_id[x]), levels = stock_id),
                                                 year = rep(unname(year_id), times = dim(as[[stock_id[x]]])[2]),
                                                 trib = rep(colnames(as[[stock_id[x]]]), each = dim(as[[stock_id[x]]])[1]), 
                                                 count = as[[stock_id[x]]] %>% as.list() %>% do.call(rbind, .),
@@ -664,14 +664,15 @@ plot_state <- function(post_dat, stock_name, rp = NULL){
 #'
 #' @export
 plot_statepairs <- function(post_dat, plot){
+  stopifnot(exists("stock_id", .GlobalEnv))
   pars = c("beta", "lnalpha", "phi", "sigma.white")  
   lb <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "2.5%"]
   ub <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "97.5%"] 
-  index <- Reduce(intersect, lapply(1:5, function(x) which(post_dat$sims.list$S.msy[, x] > lb[x] & post_dat$sims.list$S.msy[, x] < ub[x])))
+  index <- Reduce(intersect, lapply(1:length(stock_id), function(x) which(post_dat$sims.list$S.msy[, x] > lb[x] & post_dat$sims.list$S.msy[, x] < ub[x])))
   sample <- sample(index, size = 200)
   subset <- post_dat$sims.list[pars] %>% lapply(function(x){x[sample, ]})
   
-  if(plot == "bystock") lapply(1:5, function(y) pairs(lapply(subset, function(x) x[, y]), main = stock_id[y]))
+  if(plot == "bystock") lapply(1:length(stock_id), function(y) pairs(lapply(subset, function(x) x[, y]), main = stock_id[y]))
   if(plot == "byparam") lapply(1:length(pars), function(x) pairs(subset[x], labels = stock_id, main = names(subset[x])))
 }
 
@@ -858,7 +859,7 @@ plot_theta <- function(post_dat){
   breaks <- 
     id %>% 
     dplyr::select(-tribn, -tribn2) %>%
-    dplyr::mutate(color = unlist(lapply(sapply(1:5, function(x) sum(stock == stock_id[x])), function(x) pal[1:x]))) %>%
+    dplyr::mutate(color = unlist(lapply(sapply(1:length(stock_id), function(x) sum(stock == stock_id[x])), function(x) pal[1:x]))) %>%
     dplyr::arrange(stock, trib, color)
   col <-setNames(breaks$color, breaks$trib)
   

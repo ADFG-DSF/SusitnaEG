@@ -20,10 +20,9 @@ make_list <- function(stock){
     as.matrix()
 }
 
-as2 <- list(Deshka = make_list("Deshka"),
+as <- list(Deshka = make_list("Deshka"),
            'East Susitna' = make_list("East_Susitna"),
            Talkeetna = make_list("Talkeetna"),
-           Yentna = make_list("Yentna"),
-           Other = make_list("Other"))
+           Yentna = make_list("Yentna"))
 
 devtools::use_data(as, pkg = ".\\SusitnaEG", overwrite = TRUE)

@@ -24,11 +24,12 @@ x.a <- as.matrix(a[, grepl("x", names(a))])
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
-  Y = length(year_id), A = ncol(x.a), a.min = age_min, a.max = age_max, 
+  Y = length(year_id), A = ncol(x.a), SG = length(stock_id), T = sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})),
+  a.min = age_min, a.max = age_max, 
   x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, 
-  tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna, tele.S5 = telemetry$Other,
-  Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna, Ntele.S5 = telemetry$N_Other,
-  air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]], air.S5 = as[[5]], 
+  tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna,
+  Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna,
+  air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]],
   Hm.hat = Hm$Susitna, cv.Hm = rep(0.05, length(year_id)),
   Ha.hat = Ha.hat, cv.H = rep(0.2, dim(Ha.hat)[1]),
   Hd.hat = Hd.hat, 
@@ -47,8 +48,8 @@ parameters=c(
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
 'S','N','R','IR',
 'N.ta','q', 'b', 'q.star', 'N.tas',
-'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4', 'Dsum.S5', 'ML1.S5', 'ML2.S5', 
-'p.S2', 'p.S3', 'p.S4', 'p.S5', 'Bsum.So',
+'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4',
+'p.S2', 'p.S3', 'p.S4', 'Bsum.So',
 'theta', 'b1.theta',
 'p.small3', 'p.small4', 
 'mu.Hmarine', 'mu.Habove', 'mu.HDeshka', 'HDeshka', 'IR_deshka'
@@ -113,22 +114,22 @@ table_airerror(post)
 post$summary["B", ]
 
 #model fit plots
-lapply(stock_id[-5], plot_fit, post_dat = post)
+lapply(stock_id, plot_fit, post_dat = post)
 
 #state varible plots
-lapply(stock_id[-5], function(x) plot_state(post, stock = x, S_msr = TRUE))
+lapply(stock_id, function(x) plot_state(post, stock = x, rp = c("msy", "msr")))
 table_state(post, "bystock")
 plot_statepairs(post, plot = "bystock")
 
 #SR relationships
-lapply(stock_id[-5], plot_horse, post_dat = post)
-lapply(stock_id[-5], plot_rickeryear, post_dat = post)
+lapply(stock_id, plot_horse, post_dat = post)
+lapply(stock_id, plot_rickeryear, post_dat = post)
 
 #SR parameters
 table_params(post)
 
 #create profile dataset
-profiles <- lapply(stock_id[-5], get_profile, post_dat = post)
+profiles <- lapply(stock_id, get_profile, post_dat = post)
 
 #Statewide bounds as a percentage of Smsy
 quantile(chinBEGs$lb/chinBEGs$Smsy, probs = seq(0.2, 1, 0.2))

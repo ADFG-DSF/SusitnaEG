@@ -12,8 +12,6 @@
   \item{N_Talkeetna}{Row sums of the Talkeetna matrix}
   \item{Yentna}{A matrix of radio telemetry final destinations in the Yentna drainage}
   \item{N_Yentna}{Row sums of the Yentna matrix}
-  \item{Other}{A matrix of radio telemetry final destinations in the Other areas}
-  \item{N_Other}{Row sums of the Other matrix}
   }}
 \usage{
 telemetry

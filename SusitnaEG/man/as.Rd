@@ -10,7 +10,6 @@
   \item{East Susitna}{A matrix of aerial survey data from the East Susitna stock group}
   \item{Talkeetna}{A matrix of aerial survey data from the Talkeetna drainage}
   \item{Yentna}{A matrix of aerial survey data from the Yentna drainage}
-  \item{Other}{A matrix of aerial survey data from Other areas}
   }}
 \usage{
 as

@@ -152,7 +152,7 @@ get_ids <- function(year_range = 1979:2017,
   year_id <- as.character(year_range)
   names(year_id) <- 1:length(year_range)
   
-  stock_id <- c("Deshka", "East Susitna", "Talkeetna", "Yentna", "Other")
+  stock_id <- c("Deshka", "East Susitna", "Talkeetna", "Yentna")
   names(stock_id) <- 1:length(stock_id)
   
   trib_id <- 
@@ -160,8 +160,7 @@ get_ids <- function(year_range = 1979:2017,
     Deshka = c("Deshka"),
     "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other East Susitna"),
     Talkeetna = c("Clear", "Prairie", "Other Talkeetna"),
-    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna"),
-    Other = c("Chulitna", "Indian", "Portage", "Other Other")
+    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna")
   )
 
   list <- list(year_id = year_id,
@@ -192,16 +191,15 @@ get_inits <- function(){
     Dscale.S2 = runif(1, 0.1, 0.5),
     Dscale.S3 = runif(1, 0.1, 0.5),
     Dscale.S4 = runif(1, 0.1, 0.5),
-    Dscale.S5 = runif(1, 0.1, 0.5),
-    beta = rlnorm(5, log(2e-5), 0.4),
-    lnalpha = rlnorm(5, log(1.6), 0.4),
-    log.resid.0 = rnorm(5, 0, 1),
-    mean.log.R = rnorm(5, 11.3, 0.5),
-    phi = runif(5, 0.25, 0.75),
+    beta = rlnorm(length(stock_id), log(2e-5), 0.4),
+    lnalpha = rlnorm(length(stock_id), log(1.6), 0.4),
+    log.resid.0 = rnorm(length(stock_id), 0, 1),
+    mean.log.R = rnorm(length(stock_id), 11.3, 0.5),
+    phi = runif(length(stock_id), 0.25, 0.75),
     tau.R = runif(1, 1, 25),
-    tau.white = runif(5, 1, 25),
-    z.air = runif(16, 0, 0.5),
-    g.air = runif(16, 0, 0.5),
+    tau.white = runif(length(stock_id), 1, 25),
+    z.air = runif(sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})), 0, 0.5),
+    g.air = runif(sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})), 0, 0.5),
     tau.weir = runif(1, 1, 25),
     ML1 = c(runif(length(age_id) - 1, -1, 1), NA),
     ML2 = c(runif(length(age_id) - 1, -0.1, 0.1), NA)

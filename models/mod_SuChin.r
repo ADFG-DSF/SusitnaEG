@@ -4,7 +4,7 @@
 #  
 ################################################################################
 model{
-  for (stock in 1:5){
+  for (stock in 1:SG){
  	tau.white[stock] ~ dgamma(0.001,0.001)
 	tau.red[stock] <- tau.white[stock] * (1-phi[stock]*phi[stock])
 	sigma.white[stock] <- 1 / sqrt(tau.white[stock])
@@ -75,7 +75,7 @@ for (c in 1:(Y+A-1)) {
 
 # ASSIGN PRODUCT OF p AND R TO ALL CELLS IN N MATRIX
 # c SUBSCRIPT INDEXES BROOD YEAR (COHORT)
-for (stock in 1:5){
+for (stock in 1:SG){
     for (a in 1:A) {
         for (c in a:(Y + (a - 1))) {
             N.tas[c - (a - 1), (A + 1 - a), stock] <- p[c, (A + 1 - a)] * R[c, stock]
@@ -86,7 +86,7 @@ for (stock in 1:5){
 # CALENDAR YEAR AGE COMPOSITION 
   for (y in 1:Y) {
     for (a in 1:A) {
-	  N.ta[y,a] <- sum(N.tas[y,a, 1:5])
+	  N.ta[y,a] <- sum(N.tas[y,a, 1:SG])
 	  q[y,a] <- N.ta[y,a] / sum(N.ta[y, ])
       }
     }
@@ -111,7 +111,7 @@ for(s in 2:3){
 
 # ANNUAL RETURN N
 for (y in 1:Y) {
-  for (stock in 1:5) {
+  for (stock in 1:SG) {
     N[y, stock] <- sum(N.tas[y,1:A, stock])
   }
 }	
@@ -186,73 +186,47 @@ for (y in 1:Y) {
       }
 	  p.S4[y, 5] <- p.S4o[y]
     }	
-
-# Other
-# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
-# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
-  Dscale.S5 ~ dunif(0.07,1)
-  Dsum.S5 <- 1 / (Dscale.S5 * Dscale.S5)
-  ML1.S5[3] <- 0  
-  ML2.S5[3] <- 0
-for (trib in 1:2) { 
-  ML1.S5[trib] ~ dnorm(0,0.0001) 
-  ML2.S5[trib] ~ dnorm(0,0.0001) 
-  }
-
-for (y in 1:Y) {
-	for (trib in 1:3) {
-	  logistic.S5[y, trib] <- exp(ML1.S5[trib] + ML2.S5[trib] * y)
-      pi.S5[y, trib] <- logistic.S5[y, trib] / sum(logistic.S5[y, ])
-      gamma.S5[y, trib] <- Dsum.S5 * pi.S5[y, trib]
-      g.S5[y, trib] ~ dgamma(gamma.S5[y, trib], 0.1)
-      p.S5s[y, trib] <- g.S5[y, trib]/sum(g.S5[y, ])
-	  p.S5[y, trib] <- p.S5s[y, trib] * (1 - p.S5o[y])
-      }
-	  p.S5[y, 4] <- p.S5o[y]
-    }	
+	
 
 # MULTINOMIAL COUNTS OF RADIOS TRACKED TO INDIVIDUAL TRIBS
 for (y in 1:Y) { 
     tele.S2[y, 1:6] ~  dmulti(p.S2s[y, ], Ntele.S2[y] - tele.S2[y, 7])
     tele.S3[y, 1:2] ~  dmulti(p.S3s[y, ], Ntele.S3[y] - tele.S3[y, 3])
 	tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
-	tele.S5[y, 1:3] ~  dmulti(p.S5s[y, ], Ntele.S5[y] - tele.S5[y, 4])
 }
 
-for(trib in 1:4){
-  p.So.mean[trib] ~ dbeta(1, 1)
-  Bscale.So[trib] ~ dunif(0.01, 1)
-  Bsum.So[trib] <- 1 / Bscale.So[trib] / Bscale.So[trib]
-  B1.So[trib] <- Bsum.So[trib] * p.So.mean[trib]
-  B2.So[trib] <- Bsum.So[trib] - B1.So[trib]
+for(stock in 1:(SG - 1)){
+  p.So.mean[stock] ~ dbeta(1, 1)
+  Bscale.So[stock] ~ dunif(0.01, 1)
+  Bsum.So[stock] <- 1 / Bscale.So[stock] / Bscale.So[stock]
+  B1.So[stock] <- Bsum.So[stock] * p.So.mean[stock]
+  B2.So[stock] <- Bsum.So[stock] - B1.So[stock]
 }
 
 # MULTINOMIAL COUNTS OF RADIOS TRACKED TO Surveyed Areas
 for (y in 1:Y) {
   p.S2o[y] ~ dbeta(B1.So[1], B2.So[1])
   p.S3o[y] ~ dbeta(B1.So[2], B2.So[2])
-  p.S4o[y] ~ dbeta(B1.So[3], B2.So[3])
-  p.S5o[y] ~ dbeta(B1.So[4], B2.So[4]) 
+  p.S4o[y] ~ dbeta(B1.So[3], B2.So[3]) 
   tele.S2[y, 7] ~  dbinom(p.S2o[y], Ntele.S2[y])
   tele.S3[y, 3] ~  dbinom(p.S3o[y], Ntele.S3[y])
   tele.S4[y, 5] ~  dbinom(p.S4o[y], Ntele.S4[y])
-  tele.S5[y, 4] ~  dbinom(p.S5o[y], Ntele.S5[y])
 }
 
 # AIR SURVEY
 # Theta set up as a glm although I’m not sure a good covariate is accessible.
-for (trib in 1:16) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}  #trib glm param
+for (trib in 1:T) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}  #trib glm param
 mu_b1t ~ dnorm(0, 0.0001)
 tau_b1t ~ dgamma(0.001,0.001)
 
-for (trib in 1:16){
+for (trib in 1:T){
   for (y in 1:Y){
     logit(theta[trib, y]) <- b1.theta[trib]
     }
   }
 
 # Heirarchical AIR SURVEY LOGNORMAL ERRORS
-for (trib in 1:16){
+for (trib in 1:T){
 	sigma.air[trib] <- abs(z.air[trib]) / sqrt(g.air[trib]) 
 	z.air[trib] ~ dnorm(0, invBsq)
 	g.air[trib] ~ dgamma(0.5, 0.5)
@@ -289,13 +263,6 @@ for(trib in 1:4) {
 	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[trib + 9])
 	}
 }
-# Other Survey data
-for(trib in 1:3) {
-	for(y in 1:Y){
-	log.tpS5[y, trib] <- log(theta[(trib + 13), y] * p.S5[y, trib] * S[y, 5])
-	air.S5[y, trib] ~ dlnorm(log.tpS5[y, trib], tau.air[trib + 13])
-	}
-}
    
 # WEIR COUNTS W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1
   tau.weir ~ dgamma(50, 0.5)
@@ -327,7 +294,7 @@ for (y in 1:Y) {
   p.small4[y] ~ dbeta(1,1)
   small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
-  for (stock in 1:5){
+  for (stock in 1:SG){
     IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y])
 	IRlt500[y, stock] <- IR[y, stock] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))
     logIRlt500[y, stock] <- log(IRlt500[y, stock])
@@ -340,7 +307,7 @@ for (y in 1:Y) {
   }
   IR_deshka[y] <- max(IR[y, 1] - Habove[y, 1], 1)
   S[y, 1] <- max(IR_deshka[y] - HDeshka[y], 1)
-  for (stock in 2:5){
+  for (stock in 2:SG){
 	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
   }
 }

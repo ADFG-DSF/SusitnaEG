@@ -29,12 +29,11 @@ temp <-
                 Deshka_up = Deshka_up0 + nostock * Deshka_up0 / All,
                 East_Susitna = East_Susitna0 + nostock * East_Susitna0 / All,
                 Talkeetna = Talkeetna0 + nostock * Talkeetna0 / All,
-                Yentna = Yentna0 + nostock * Yentna0 / All,
-                Other = 0) %>%
+                Yentna = Yentna0 + nostock * Yentna0 / All) %>%
   dplyr::ungroup() %>%
   dplyr::mutate_all(function(x){ifelse(x == 0, 1, round(x))})
 
-Ha <- temp[, c("year", "Deshka", "East_Susitna", "Talkeetna", "Yentna", "Other")]
+Ha <- temp[, c("year", "Deshka", "East_Susitna", "Talkeetna", "Yentna")]
 devtools::use_data(Ha, pkg = ".\\SusitnaEG", overwrite = TRUE)
 Hd <- temp[, c("year", "Deshka_up")]
 devtools::use_data(Hd, pkg = ".\\SusitnaEG", overwrite = TRUE)
