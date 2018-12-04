@@ -23,7 +23,7 @@ model{
 		log.R.mean2[c, stock] <- log.R.mean1[c, stock] + phi[stock] * log.resid[c-1, stock]
 		}
 	  lnalpha[stock] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,) #dnorm(0,1.0E-6)T(0,)  
-	  beta[stock] ~ dnorm(0,1.0E-2)T(0,)
+	  beta[stock] ~ dnorm(0, tau.beta)T(0,)
 	  log.resid.0[stock] ~ dnorm(0,tau.red[stock])T(-3,3) 
 	  alpha[stock] <- exp(lnalpha[stock])
 	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white[stock] * sigma.white[stock] / 2 / (1-phi[stock]*phi[stock]) )
@@ -47,6 +47,7 @@ model{
 	#sigma.phi <- 1 / sqrt(tau.phi)
 	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
 	tau.lnalpha ~ dgamma(0.001,0.001)
+	tau.beta ~ dgamma(0.1,0.1)
 	sigma.lnalpha <- 1 / sqrt(tau.lnalpha)
 	tau.R ~ dgamma(0.001,0.001)      
 	sigma.R0 <- 1 / sqrt(tau.R)
@@ -197,7 +198,7 @@ for (y in 1:Y) {
 
 for(stock in 1:(SG - 1)){
   p.So.mean[stock] ~ dbeta(1, 1)
-  Bscale.So[stock] ~ dunif(0.01, 1)
+  Bscale.So[stock] ~ dunif(0.07, 1)
   Bsum.So[stock] <- 1 / Bscale.So[stock] / Bscale.So[stock]
   B1.So[stock] <- Bsum.So[stock] * p.So.mean[stock]
   B2.So[stock] <- Bsum.So[stock] - B1.So[stock]
@@ -265,7 +266,7 @@ for(trib in 1:4) {
 }
    
 # WEIR COUNTS W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1
-  tau.weir ~ dgamma(50, 0.5)
+  tau.weir ~ dgamma(50, 0.125)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
     log.11S1[y] <- log(IR_deshka[y])		#Deshka one trib in stock but harvest above weir

@@ -50,7 +50,7 @@ parameters=c(
 'N.ta','q', 'b', 'q.star', 'N.tas',
 'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4',
 'p.S2', 'p.S3', 'p.S4', 'Bsum.So',
-'theta', 'b1.theta',
+'theta',
 'p.small3', 'p.small4', 
 'mu.Hmarine', 'mu.Habove', 'mu.HDeshka', 'HDeshka', 'IR_deshka'
 )

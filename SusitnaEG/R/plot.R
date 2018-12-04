@@ -570,10 +570,13 @@ plot_rickeryear <- function(post_dat, stock_name){
 
 #' State Variable Plot
 #'
-#' Produces a faceted plot of escapement, recruitment, total run, Ricker residuals and harvest rate plotted with 95% confidence envelopes.
+#' Produces a plot of escapement, recruitment, total run, Ricker residuals and/or harvest rate plotted with 95% confidence envelopes
+#'  for one or all of the stock groups. 
 #'
 #' @param post_dat The posterior object from the SRA model of class jagsUI
-#' @param stock_name A character element specifying the stock to plot.
+#' @param display A character element. One of the stock group names; "Deshka", "East Susitna", "Talkeetna", "Yentna", 
+#' or state variable names: "Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals". 
+#' Choosing a stock group name will facet 5 state variables. Choosing a state variable will facet 4 stock groups.
 #' @param rp NULL omits biological refence points, "msr" or "msy" include reference points for harvest rate and spawning abundance.
 #'
 #' @return A figure
@@ -584,67 +587,107 @@ plot_rickeryear <- function(post_dat, stock_name){
 #' lapply(stock_id, plot_state, post_dat = post)
 #'
 #' @export
-plot_state <- function(post_dat, stock_name, rp = NULL){
+plot_state <- function(post_dat, display, rp = NULL){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
-            rp %in% c(NULL, "msy", "msr"))
+            rp %in% c(NULL, "msy", "msr"),
+            display %in% c(stock_id, "Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals"))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
-  stock <- unname(which(stock_id == stock_name))
   
   msy50 <- 
     post_dat$summary %>%
     as.data.frame() %>%
     dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl(paste0(".msy\\[", stock, "\\]"), rowname)) %>%
+    dplyr::filter(grepl(paste0(".msy\\[\\d\\]"), rowname)) %>%
     dplyr::mutate(name = factor(gsub("(.)\\.msy.*", "\\1", rowname),
                                 levels = c("S", "U"),
-                                labels = c("Escapement", "Harvest Rate")))
+                                labels = c("Escapement", "Harvest Rate")),
+                  stock = stock_id[gsub(".*\\[(\\d)\\]", "\\1", rowname)])
   
   msr50 <- 
     post_dat$summary %>%
     as.data.frame() %>%
     dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl(paste0("beta\\[", stock, "\\]|lnalpha\\[", stock, "\\]"), rowname)) %>%
-    dplyr::mutate(msr = ifelse(rowname == paste0("beta[", stock, "]"), 1 / median, 1-1/exp(median - 1)),
-                  name = factor(c("S", "U"),
+    dplyr::filter(grepl(paste0("beta\\[\\d\\]|lnalpha\\[\\d\\]"), rowname)) %>%
+    dplyr::mutate(msr = ifelse(grepl("^beta", rowname), 1 / median, 1-1/exp(median - 1)),
+                  name = factor(ifelse(grepl("^beta", rowname), "S", "U"),
                                 levels = c("S", "U"),
-                                labels = c("Escapement", "Harvest Rate")))
+                                labels = c("Escapement", "Harvest Rate")), 
+                  stock = stock_id[gsub(".*\\[(\\d)\\]", "\\1", rowname)])
   
-  plot <-
+  dat <-
     post_dat$summary %>%
     as.data.frame() %>%
     dplyr::select(median = "50%", lcb = "2.5%", ucb = "97.5%") %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl(paste0("^R\\[\\d+,", stock, 
-                               "\\]|S\\[\\d+,", stock, 
-                               "\\]|N\\[\\d+,", stock, 
-                               "\\]|log.resid.vec\\[\\d+,", stock, 
-                               "\\]|mu.Habove\\[\\d+,", stock, "\\]"), rowname)) %>%
+    dplyr::filter(grepl(paste0("^R\\[|S\\[|N\\[|log.resid.vec\\[|mu.Habove\\["), rowname)) %>%
     dplyr::mutate(name = factor(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname),
                                 levels = c("S", "N", "R", "mu.Habove", "log.resid.vec"),
                                 labels = c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")),
                   index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
+                  stock = stock_id[gsub(".*\\[\\d+,(\\d)\\]", "\\1", rowname)],
                   year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index)) %>%
-    dplyr::filter(year >= yr0) %>%
-    ggplot2::ggplot(ggplot2::aes(x = year, y = median)) +
-    ggplot2::geom_line() +
-    ggplot2::geom_point() +
-    ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
-    ggplot2::facet_grid(name ~ ., scales = "free_y", switch = "y") +
-    ggplot2::labs(x = NULL, y = NULL) +
-    ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
-    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
-    ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
-    ggplot2::theme_bw() +
-    ggplot2::ggtitle(stock_name) +
-    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+    dplyr::filter(year >= yr0)
   
-  if("msr" %in% rp) {plot <- plot + ggplot2::geom_hline(data = msr50, ggplot2::aes(yintercept = msr), color = "red", linetype = 5)}
-  if("msy" %in% rp) {plot <- plot + ggplot2::geom_hline(data = msy50, ggplot2::aes(yintercept = median), color = "red", linetype = 2)}
+  if(display %in% stock_id){
+    plot <-
+      dat[dat$stock == display, ] %>%
+      ggplot2::ggplot(ggplot2::aes(x = year, y = median)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point() +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
+      ggplot2::facet_grid(name ~ ., scales = "free_y", switch = "y") +
+      ggplot2::labs(x = NULL, y = NULL) +
+      ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
+      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+      ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
+      ggplot2::theme_bw() +
+      ggplot2::ggtitle(display) +
+      ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+    
+    if("msr" %in% rp) {
+      plot <- 
+        plot + 
+        ggplot2::geom_hline(data = msr50[msr50$stock == display, ], ggplot2::aes(yintercept = msr), color = "red", linetype = 5)
+    }
+    if("msy" %in% rp) {
+      plot <- 
+        plot + 
+        ggplot2::geom_hline(data = msy50[msy50$stock == display, ], ggplot2::aes(yintercept = median), color = "red", linetype = 2)
+    }
+  }
+  
+  if(display %in% c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")){
+    plot <-
+      dat[dat$name == display, ] %>%
+      ggplot2::ggplot(ggplot2::aes(x = year, y = median)) +
+      ggplot2::geom_line() +
+      ggplot2::geom_point() +
+      ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
+      ggplot2::facet_grid(stock ~ ., switch = "y") +
+      ggplot2::labs(x = NULL, y = NULL) +
+      ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
+      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+      ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
+      ggplot2::theme_bw() +
+      ggplot2::ggtitle(display) +
+      ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+    
+    if("msr" %in% rp) {
+      plot <- 
+        plot + 
+        ggplot2::geom_hline(data = msr50[msr50$name == display, ], ggplot2::aes(yintercept = msr), color = "red", linetype = 5)
+    }
+    if("msy" %in% rp) {
+      plot <- 
+        plot + 
+        ggplot2::geom_hline(data = msy50[msy50$name == display, ], ggplot2::aes(yintercept = median), color = "red", linetype = 2)
+    }
+  }
   
   plot
 }
