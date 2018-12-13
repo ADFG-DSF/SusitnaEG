@@ -99,16 +99,13 @@ for (y in 1:N.yr.a) {
   x.a[y, 1:A] ~ dmulti(q.star[y, ], n.a[y])
     for (a in 1:A) {
       q.star[y,a] <- rho[y,a] / sum(rho[y,1:A])
-	  log(rho[y,a]) <- log(N.ta[yr.a[y],a] / N.ta[yr.a[y], 1]) + b[x.samp[y], a]
+	  log(rho[y,a]) <- log(N.ta[yr.a[y],a] / N.ta[yr.a[y], 1]) + b[x.stock[y], a]
       }
   }
-for(a in 1:A){b[1,a] <- 0} #weir baseline
-for(s in 2:3){
-	b[s,1] <- 0 #age1 baseline
-	for(a in 2:A){
-		b[s,a] ~ dnorm(0, 0.0001)
-	}
-}
+for(a in 1:A){b0[1,a] <- 0} #Deshka baseline
+for(s in 2:2){b0[s,1] <- 0 for(a in 2:A){b0[s,a] ~ dnorm(0, 0.0001)}}
+for(s in 1:2){for(a in 1:A){b[s,a] <- b0[s,a] - mean(b0[,a])}}
+
 
 # ANNUAL RETURN N
 for (y in 1:Y) {

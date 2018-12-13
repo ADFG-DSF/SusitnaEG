@@ -4,12 +4,14 @@
 \alias{plot_state}
 \title{State Variable Plot}
 \usage{
-plot_state(post_dat, stock_name, rp = NULL)
+plot_state(post_dat, display, rp = NULL)
 }
 \arguments{
 \item{post_dat}{The posterior object from the SRA model of class jagsUI}
 
-\item{stock_name}{A character element specifying the stock to plot.}
+\item{display}{A character element. One of the stock group names; "Deshka", "East Susitna", "Talkeetna", "Yentna", 
+or state variable names: "Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals". 
+Choosing a stock group name will facet 5 state variables. Choosing a state variable will facet 4 stock groups.}
 
 \item{rp}{NULL omits biological refence points, "msr" or "msy" include reference points for harvest rate and spawning abundance.}
 }
@@ -17,7 +19,8 @@ plot_state(post_dat, stock_name, rp = NULL)
 A figure
 }
 \description{
-Produces a faceted plot of escapement, recruitment, total run, Ricker residuals and harvest rate plotted with 95% confidence envelopes.
+Produces a plot of escapement, recruitment, total run, Ricker residuals and/or harvest rate plotted with 95% confidence envelopes
+ for one or all of the stock groups.
 }
 \examples{
 plot_state(post, stock_id[1])

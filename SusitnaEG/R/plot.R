@@ -19,7 +19,7 @@ plot_age <- function(post_dat){
 Q.obs <- 
   as.data.frame(post_dat$data$x.a / rowSums(post_dat$data$x.a)) %>%
   setNames(paste0("age", 1:ncol(post_dat$data$x.a))) %>%
-  dplyr::mutate(sample = factor(post_dat$data$x.samp, levels = c("1", "2", "3"), labels = c("Weir", "Creel", "Other"))) %>%
+  dplyr::mutate(sample = factor(post_dat$data$x.stock, levels = c("1", "2"), labels = c("West", "East"))) %>%
   tibble::rownames_to_column(var = "yr_id") %>%
   tidyr::gather(age, prop, dplyr::starts_with("age")) %>%
   dplyr::group_by(yr_id) %>%
