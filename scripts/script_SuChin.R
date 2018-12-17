@@ -5,8 +5,11 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Ha.hat <- get_Hhat(Ha)
-Hd.hat <- get_Hhat(Hd)
+Hd.hat0 <- get_Hhat(Hd) 
+Hd.hat <- ifelse(Hd.hat0 == 1, NA, Hd.hat0)
+Ha.hat <- get_Hhat(data.frame(year = Ha$year,
+                              Deshka = Ha$Deshka + ifelse(Hd.hat0 ==  1, 0, Hd.hat0),
+                              Ha[, 3:5]))
 
 a <- 
   age %>%
@@ -53,7 +56,7 @@ parameters=c(
 'p.S2', 'p.S3', 'p.S4', 'Bsum.So',
 'theta',
 'p.small3', 'p.small4', 
-'mu.Hmarine', 'mu.Habove', 'mu.HDeshka', 'HDeshka', 'IR_deshka'
+'mu.Hmarine', 'mu.Habove', 'p.HDeshka', 'Bsum.HDeshka', 'HDeshka', 'IR_deshka'
 )
 
 #MCMC settings

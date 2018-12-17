@@ -274,19 +274,18 @@ for(trib in 1:4) {
       weir[y, 3] ~ dlnorm(log.1p6S2[y], tau.weir)
     }
 
+p.HDeshka.mean ~ dbeta(1, 1)
+Bscale.HDeshka ~ dunif(0.07, 1)
+Bsum.HDeshka <- 1 / Bscale.HDeshka / Bscale.HDeshka
+B1.HDeshka <- Bsum.HDeshka * p.HDeshka.mean
+B2.HDeshka <- Bsum.HDeshka - B1.HDeshka
 # INRIVER RUN AND HARVESTS ESTIMATED
 for (y in 1:Y) {
   mu.Hmarine[y] ~ dbeta(0.5,0.5)
   Hmarine[y] <- mu.Hmarine[y] * sum(N[y, ])
   logHm[y] <- log(Hmarine[y])
   tau.logHm[y] <- 1 / log(cv.Hm[y]*cv.Hm[y] + 1)
-  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y]) 
-  # Harvest upstream of Deshka weir
-  mu.HDeshka[y] ~ dbeta(0.5,0.5)
-  HDeshka[y] <- mu.HDeshka[y] * IR_deshka[y]
-  logHd[y] <- log(HDeshka[y])
-  tau.logH[y] <- 1 / log(cv.H[y]*cv.H[y] + 1)
-  Hd.hat[y] ~ dlnorm(logHd[y],tau.logH[y])  
+  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])   
   # MR estimates gt 500mm fish, reduce IR to same size class
   p.small3[y] ~ dbeta(1,1)
   p.small4[y] ~ dbeta(1,1)
@@ -302,11 +301,14 @@ for (y in 1:Y) {
 	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
 	logHa[y, stock] <- log(Habove[y, stock])
 	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logH[y])       
-  }
-  IR_deshka[y] <- max(IR[y, 1] - Habove[y, 1], 1)
-  S[y, 1] <- max(IR_deshka[y] - HDeshka[y], 1)
-  for (stock in 2:SG){
 	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
   }
+  # Harvest upstream of Deshka weir
+  p.HDeshka[y] ~ dbeta(B1.HDeshka, B2.HDeshka)
+  HDeshka[y] <- p.HDeshka[y] * Habove[y, 1]
+  logHd[y] <- log(HDeshka[y])
+  tau.logH[y] <- 1 / log(cv.H[y]*cv.H[y] + 1)
+  Hd.hat[y] ~ dlnorm(logHd[y], tau.logH[y])
+  IR_deshka[y] <- S[y, 1] + HDeshka[y]
 }
 } 
