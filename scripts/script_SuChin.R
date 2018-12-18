@@ -66,10 +66,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-nc <- 1
-nb <- 1000
+nc <- 3
+nb <- 5000
 nt <- 5
-ns <- 2000
+ns <- 10000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,

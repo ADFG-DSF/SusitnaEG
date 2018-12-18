@@ -103,8 +103,8 @@ for (y in 1:N.yr.a) {
       }
   }
 for(a in 1:A){b0[1,a] <- 0} #Deshka baseline
-for(s in 2:2){b0[s,1] <- 0 for(a in 2:A){b0[s,a] ~ dnorm(0, 0.0001)}}
-for(s in 1:2){for(a in 1:A){b[s,a] <- b0[s,a] - mean(b0[,a])}}
+for(s in 2:SG){b0[s,1] <- 0 for(a in 2:A){b0[s,a] ~ dnorm(0, 0.0001)}}
+for(s in 1:SG){for(a in 1:A){b[s,a] <- b0[s,a] - mean(b0[,a])}}
 
 
 # ANNUAL RETURN N
