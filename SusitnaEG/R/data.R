@@ -8,6 +8,7 @@
 #'   \describe{
 #'   \item{year}{year sampled}
 #'   \item{location}{location and type of sample}
+#'   \item{stock}{Stock group of sample}
 #'   \item{x3-x78}{Number of fish sampled by total age}
 #'   \item{n}{sample size}
 #'   }

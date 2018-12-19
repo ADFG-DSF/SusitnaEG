@@ -5,28 +5,32 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Ha.hat <- get_Hhat(Ha)
-Hd.hat <- get_Hhat(Hd)
+Hd.hat0 <- get_Hhat(Hd) 
+Hd.hat <- ifelse(Hd.hat0 == 1, NA, Hd.hat0)
+Ha.hat <- get_Hhat(data.frame(year = Ha$year,
+                              Deshka = Ha$Deshka + ifelse(Hd.hat0 ==  1, 0, Hd.hat0),
+                              Ha[, 3:5]))
 
 a <- 
   age %>%
-  dplyr::mutate(x678 = x6 + x78,
-                samp = ifelse(grepl("creel|Creel", location), 2, ifelse(grepl("weir|Weir", location), 1, 3))) %>% 
+  dplyr::rowwise() %>%
+  dplyr::mutate(stock = which(stock_id == stock)) %>%
+  dplyr::ungroup() %>%
   dplyr::left_join(data.frame(yr.a = as.numeric(names(year_id)), year = year_id, stringsAsFactors = FALSE),
                    by = "year") %>%
-  dplyr::select(yr.a, samp, x3, x4, x5, x678) %>%
-  tidyr::gather(age, n, -yr.a, -samp) %>%
-  dplyr::group_by(yr.a, samp, age) %>%
+  dplyr::select(yr.a, stock, x3, x4, x5, x678) %>%
+  tidyr::gather(age, n, -yr.a, -stock) %>%
+  dplyr::group_by(yr.a, stock, age) %>%
   dplyr::summarise(n = sum(n)) %>%
   tidyr::spread(age, n)
-table(a$yr.a, a$samp)
+table(a$yr.a, a$stock)
 x.a <- as.matrix(a[, grepl("x", names(a))]) 
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
   Y = length(year_id), A = ncol(x.a), SG = length(stock_id), T = sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})),
   a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.samp = a$samp, 
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.stock = a$stock, 
   tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna,
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]],
@@ -52,7 +56,7 @@ parameters=c(
 'p.S2', 'p.S3', 'p.S4', 'Bsum.So',
 'theta',
 'p.small3', 'p.small4', 
-'mu.Hmarine', 'mu.Habove', 'mu.HDeshka', 'HDeshka', 'IR_deshka'
+'mu.Hmarine', 'mu.Habove', 'p.HDeshka', 'Bsum.HDeshka', 'HDeshka', 'IR_deshka'
 )
 
 #MCMC settings
@@ -62,10 +66,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-nc <- 1
-nb <- 1000
+nc <- 3
+nb <- 5000
 nt <- 5
-ns <- 2000
+ns <- 10000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -117,7 +121,7 @@ post$summary["B", ]
 lapply(stock_id, plot_fit, post_dat = post)
 
 #state varible plots
-lapply(stock_id, function(x) plot_state(post, stock = x, rp = c("msy", "msr")))
+lapply(stock_id, function(x) plot_state(post, display = x, rp = c("msy", "msr")))
 table_state(post, "bystock")
 plot_statepairs(post, plot = "bystock")
 
@@ -131,13 +135,10 @@ table_params(post)
 #create profile dataset
 profiles <- lapply(stock_id, get_profile, post_dat = post)
 
-#Statewide bounds as a percentage of Smsy
-quantile(chinBEGs$lb/chinBEGs$Smsy, probs = seq(0.2, 1, 0.2))
-quantile(chinBEGs$ub/chinBEGs$Smsy, probs = seq(0.2, 1, 0.2))
-#straw dog goals
-goals_df <- data.frame(stock = stock_id[-5], 
-                       lb = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(.75, .9, .8, .8), 
-                       ub = post$summary[grepl("^S.msy\\[[1234]\\]", rownames(post$summary)), "50%"] * c(1.45, 1.8, 1.6, 1.6))
+#Nick and Sams initial proposal
+goals_df <- data.frame(stock = stock_id, 
+                       lb = c(9000, 13000, 9000, 11000), 
+                       ub = c(22000, 30000, 20000, 28000))
 goals_list <- split(goals_df[, -1], 1:nrow(goals_df))
 
 #Profiles
