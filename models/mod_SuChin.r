@@ -46,7 +46,7 @@ model{
 	#tau.phi ~ dgamma(0.001,0.001)
 	#sigma.phi <- 1 / sqrt(tau.phi)
 	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
-	tau.lnalpha ~ dgamma(0.001,0.001)
+	tau.lnalpha ~ dgamma(2,1)
 	tau.beta ~ dgamma(0.1,0.1)
 	sigma.lnalpha <- 1 / sqrt(tau.lnalpha)
 	tau.R ~ dgamma(0.001,0.001)      
@@ -55,7 +55,7 @@ model{
 # GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
 # GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
-  Dscale.age ~ dunif(0.01,1)
+  Dscale.age ~ dunif(0.07,1)
   Dsum.age <- 1 / (Dscale.age * Dscale.age)
   ML1[A] <- 0  
   ML2[A] <- 0
@@ -300,15 +300,16 @@ for (y in 1:Y) {
 	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
 	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
 	logHa[y, stock] <- log(Habove[y, stock])
-	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logH[y])       
+	tau.logHa[y, stock] <- 1 / log(cv.Ha[y, stock]*cv.Ha[y, stock] + 1)
+	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logHa[y, stock])       
 	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
   }
   # Harvest upstream of Deshka weir
   p.HDeshka[y] ~ dbeta(B1.HDeshka, B2.HDeshka)
   HDeshka[y] <- p.HDeshka[y] * Habove[y, 1]
   logHd[y] <- log(HDeshka[y])
-  tau.logH[y] <- 1 / log(cv.H[y]*cv.H[y] + 1)
-  Hd.hat[y] ~ dlnorm(logHd[y], tau.logH[y])
+  tau.logHd[y] <- 1 / log(cv.Hd[y]*cv.Hd[y] + 1)
+  Hd.hat[y] ~ dlnorm(logHd[y], tau.logHd[y])
   IR_deshka[y] <- S[y, 1] + HDeshka[y]
 }
 } 
