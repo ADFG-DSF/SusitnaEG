@@ -91,10 +91,10 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_a02eb71a.rds")
-#post <- readRDS(".\\posts\\SuChinook_a02eb71a.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_03ecf70.rds")
+#post <- readRDS(".\\posts\\SuChinook_03ecf70.rds")
 
-rhat <- get_Rhat(post)
+rhat <- get_Rhat(post, cutoff = 1.3)
 rhat
 #lapply(rownames(rhat[[1]][rhat[[1]]$Rhat >= quantile(rhat[[1]]$Rhat, .9), , drop = FALSE]), jagsUI::traceplot, x = post)
 lapply(rownames(rhat[[1]]), jagsUI::traceplot, x = post)
@@ -106,7 +106,7 @@ table_age(post, "p") #age-at-maturity
 table_age(post, "q") #age comp
 table_age(post, "N.ta") #total run by age
 
-#Survey bias
+#age comp by stock
 post$summary[grepl("b\\[", rownames(post$summary)), ]
 #age at maturity trend maintained
 post$summary[grepl("ML2\\[", rownames(post$summary)), ]

@@ -6,7 +6,7 @@ output: word_document
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-post <- readRDS("..\\..\\posts\\SuChinook_67cf1eb.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_03ecf70.rds")
 ```
 
 

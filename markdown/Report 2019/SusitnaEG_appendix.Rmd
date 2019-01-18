@@ -6,7 +6,7 @@ output: word_document
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-post <- readRDS("..\\..\\posts\\SuChinook_67cf1eb.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_03ecf70.rds")
 ```
 
 Appendix C1.- Annual abundance estimates for Deshka River Chinook salmon obtained by fitting a state-space model to data from 1979-2017. Point estimates are posterior medians, CVs are posterior standard deviations divided by posterior means.  Recruitment values are listed by brood year.  
