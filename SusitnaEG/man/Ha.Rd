@@ -4,10 +4,11 @@
 \name{Ha}
 \alias{Ha}
 \title{Inriver Harvest data}
-\format{tibble}
-\source{
-SWHS
-}
+\format{list
+  \describe{
+  \item{Ha}{Harvest estimates}
+  \item{Ha_cv}{Coefficient of variation for harvest estimates}
+  }}
 \usage{
 Ha
 }

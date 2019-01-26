@@ -40,13 +40,15 @@
 
 #' Inriver Harvest data
 #'
-#' Susitna River Chinook salmon harvest by stock 
+#' Susitna River Chinook salmon harvest by stock
 #'
 #' @docType data
-#'  
-#' @format tibble
 #' 
-#' @source SWHS
+#' @format list
+#'   \describe{
+#'   \item{Ha}{Harvest estimates}
+#'   \item{Ha_cv}{Coefficient of variation for harvest estimates}
+#'   }
 "Ha"
 
 #' Deshka Harvest data
@@ -58,7 +60,7 @@
 #' @format tibble
 #' 
 #' @source SWHS
-"Hm"
+"Hd"
 
 #' Aerial Survey data
 #'

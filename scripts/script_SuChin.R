@@ -5,19 +5,7 @@ rm(list=ls(all=TRUE))
 
 get_ids()
 
-Hd.hat0 <- get_Hhat(Hd) 
-Hd.hat <- ifelse(Hd.hat0 == 1, NA, Hd.hat0)
-Hd.cv <- rep(.32, length(Hd.hat))
-Ha.hat <- get_Hhat(data.frame(year = Ha$year,
-                              Deshka = Ha$Deshka + ifelse(Hd.hat0 ==  1, 0, Hd.hat0),
-                              Ha[, 3:5]))
-Ha.cv <- 
-  matrix(c(rep(.2, dim(Ha.hat)[1]), 
-         rep(.15, dim(Ha.hat)[1]), 
-         rep(.3, dim(Ha.hat)[1]), 
-         rep(.15, dim(Ha.hat)[1])), 
-       nrow = dim(Ha.hat)[1], 
-       ncol = dim(Ha.hat)[2])
+#recall get_Hhat()
 
 a <- 
   age %>%
@@ -42,9 +30,9 @@ dat = list(
   tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna,
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]],
-  Hm.hat = Hm$Susitna, cv.Hm = c(rep(0.13, length(year_id) - 2), .03, .04),
-  Ha.hat = Ha.hat, cv.Ha = Ha.cv,
-  Hd.hat = Hd.hat, cv.Hd = Hd.cv,
+  Hm.hat = Hm$H, cv.Hm = Hm$cv,
+  Ha.hat = Ha$Ha, cv.Ha = Ha$Ha_cv,
+  Hd.hat = Hd$H, cv.Hd = Hd$cv,
   MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
@@ -75,9 +63,9 @@ ns <- 200000
 
 #MCMC settings
 nc <- 2
-nb <- 5000
+nb <- 500
 nt <- 5
-ns <- 10000
+ns <- 1100
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -94,7 +82,7 @@ post <- jags(data = dat,
 saveRDS(post, file = ".\\posts\\SuChinook_03ecf70.rds")
 #post <- readRDS(".\\posts\\SuChinook_03ecf70.rds")
 
-rhat <- get_Rhat(post, cutoff = 1.3)
+rhat <- get_Rhat(post, cutoff = 1.1)
 rhat
 #lapply(rownames(rhat[[1]][rhat[[1]]$Rhat >= quantile(rhat[[1]]$Rhat, .9), , drop = FALSE]), jagsUI::traceplot, x = post)
 lapply(rownames(rhat[[1]]), jagsUI::traceplot, x = post)
