@@ -6,11 +6,11 @@ output: word_document
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-post <- readRDS("..\\..\\posts\\SuChinook_03ecf70.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
 goals_list <- list(Deshka = c(9000, 18000),
                    Eastside = c(13000, 25000),
                    Talkeetna = c(9000, 17500),
-                   Yentna = c(11000, 22000))
+                   Yentna = c(13000, 22000))
 ```
 
 ![Figure 1.- Susitna River Chinook salmon management areas used as stock groupings for run reconstruction and escapement goal analysis. ](SusitnaEGmap.png)

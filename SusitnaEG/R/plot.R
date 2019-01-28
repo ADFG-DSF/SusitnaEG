@@ -549,10 +549,12 @@ plot_rickeryear <- function(post_dat, stock_name){
     dplyr::select(value = mean) %>%
     tibble::rownames_to_column()  %>% 
     dplyr::filter(grepl(paste0("^lnalpha.vec\\[\\d+,", stock_n, "\\]"), rowname)) %>%
-    dplyr::mutate(beta = as.numeric(post_dat$summary[grepl(paste0("beta\\[", stock_n, "\\]"), rownames(post_dat$summary)), "mean"])) %>%
-    dplyr::select(value, beta) %>%
+    dplyr::mutate(year = round(as.numeric(year_id[as.numeric(gsub("^lnalpha.vec\\[(\\d+),\\d\\]", "\\1", rowname))]), -1), 
+                  beta = as.numeric(post_dat$summary[grepl(paste0("beta\\[", stock_n, "\\]"), rownames(post_dat$summary)), "mean"])) %>%
+    dplyr::select(year, value, beta) %>%
     as.matrix() %>%
-    plyr::alply(1, function(coef) {ggplot2::stat_function(fun = function(x){x * exp(coef[1] - coef[2] * x)}, colour="grey", alpha = 0.5)})
+    plyr::alply(1, function(coef) {ggplot2::stat_function(fun = function(x){x * exp(coef[2] - coef[3] * x)}, 
+                                                          ggplot2::aes(color = as.character(coef[1])))})
   
   upper = max(text[, c("R", "S")]) * 1.1
   
@@ -561,6 +563,7 @@ plot_rickeryear <- function(post_dat, stock_name){
     lines +
     ggplot2::scale_x_continuous("Spawners", limits = c(0, upper), minor_breaks = NULL, labels = scales::comma) +
     ggplot2::scale_y_continuous("Recruits", limits = c(0, NA), minor_breaks = NULL, labels = scales::comma) +
+    ggplot2::scale_color_discrete("Decade") +
     ggplot2::coord_cartesian(xlim = c(0, upper), ylim = c(0, upper)) +
     ggplot2::theme_bw() +
     ggplot2::ggtitle(stock_name) +

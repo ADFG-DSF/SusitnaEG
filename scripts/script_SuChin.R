@@ -79,10 +79,10 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_03ecf70.rds")
-#post <- readRDS(".\\posts\\SuChinook_03ecf70.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_8e162f9.rds")
+post <- readRDS(".\\posts\\SuChinook_8e162f9.rds")
 
-rhat <- get_Rhat(post, cutoff = 1.1)
+rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
 #lapply(rownames(rhat[[1]][rhat[[1]]$Rhat >= quantile(rhat[[1]]$Rhat, .9), , drop = FALSE]), jagsUI::traceplot, x = post)
 lapply(rownames(rhat[[1]]), jagsUI::traceplot, x = post)
@@ -131,10 +131,10 @@ table_params(post)
 #create profile dataset
 profiles <- lapply(stock_id, get_profile, post_dat = post)
 
-#Nick and Sams initial proposal
+#Jan23 UCI meeting proposal
 goals_df <- data.frame(stock = stock_id, 
-                       lb = c(9000, 13000, 9000, 11000), 
-                       ub = c(22000, 30000, 20000, 28000))
+                       lb = c(9000, 13000, 9000, 13000), 
+                       ub = c(18000, 25000, 17500, 22000))
 goals_list <- split(goals_df[, -1], 1:nrow(goals_df))
 
 #Profiles
