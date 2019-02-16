@@ -1,5 +1,7 @@
 ---
-output: word_document
+output: 
+  word_document:
+    reference_docx: ".\\doc_styles\\word_styles_FDS.docx"
 ---
 
 ```{r setup, include=FALSE}
