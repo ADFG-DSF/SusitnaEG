@@ -47,3 +47,7 @@ knitr::kable(matrix(1:3, 3, 3), col.names = c("Made", "up", "table"))
 ```
   
 Table: Table 1.- Table Caption
+
+Appendix A1.- Code.  
+```{r  code = paste0(readLines("..\\..\\..\\models\\mod_SuChin.R", n = 10), "\r\n"), echo = T, eval = F}
+```

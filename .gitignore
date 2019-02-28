@@ -11,7 +11,9 @@ April26_2018 meeting/
 data_requests/*.xlsx
 posts/
 *.xlsx
+*.xls
 *.docx
 *.html
 *.pdf
+*.png
 Thumbs.db
