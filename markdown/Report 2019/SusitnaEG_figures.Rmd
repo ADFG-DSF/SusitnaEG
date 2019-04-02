@@ -8,28 +8,35 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
+#post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
+post <- readRDS("C:\\postsC\\SuChinook_8e162f9.rds")
 goals_list <- list(Deshka = c(9000, 18000),
                    Eastside = c(13000, 25000),
                    Talkeetna = c(9000, 17500),
                    Yentna = c(13000, 22000))
 ```
 
-![Figure 1.- Susitna River Chinook salmon management areas. ](management_units.png)
+![Figure 1.- Susitna River Chinook salmon management units.](management_units.png)
+  
+*Source*: Adapted from Southcentral Alaska Sport Fishing Regulations Summary (http://www.adfg.alaska.gov/index.cfm?adfg=fishregulations.sc_sportfish).
   
 ![Figure 2.- Susitna River Chinook salmon stock groups for run reconstruction and escapement goal analysis. ](stock_groups.png)
   
-```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 3.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Deshka River Chinook salmon as reconstructed from aerial survey counts, weir counts, and capture-recapture estimates. For plotting, aerial survey counts were expanded by the inverse of survey detectability. Points are jittered along the x-axis."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock group (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
 fit <- lapply(stock_id[-5], plot_fit, post_dat = post)
 fit[[1]]
 ```
+  
+*Note*: For plotting, aerial survey counts were expanded by the inverse of survey detectability. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 4.- Plausible spawner-recruit relationships for Deshka River Chinook salmon, as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979-2014. Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\\alpha\\prime$) and $\\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\\alpha\\prime$) and $\\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 4.- Plausible spawner-recruit relationships for the Deshka River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
 horse <- lapply(stock_id[-5], plot_horse, post_dat = post)
 horse[[1]]
 ```
+  
+*Note*: Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\alpha\prime$) and $\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\alpha\prime$) and $\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line.
 
-```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 5.- Optimal yield, Overfishing, and Optimum Recruitment profiles for Deshka River Chinook salmon. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and Overfishing) or maximum sustained recruitment (ORP). Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 5.- Optimal yield (OYP), overfishing, and optimum recruitment (ORP) profiles for the Deshka River Chinook salmon stock group. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and overfishing) or maximum sustained recruitment (ORP)."}
 profiles <- lapply(stock_id[-5], get_profile, post_dat = post)
 profile <- mapply(plot_profile, 
                   profile_dat = profiles, 
@@ -38,76 +45,110 @@ profile <- mapply(plot_profile,
                   SIMPLIFY = FALSE)
 profile[[1]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 6.- Expected sustained yield plots for Deshka River Chinook salmon. ESY median (solid black line), and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979-2014. Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 6.- Expected sustained yield (ESY) plots for the Deshka River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979--2014."}
 ey <- mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
 ey[[1]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 7.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of East Susitna Chinook salmon as reconstructed from aerial survey counts, weir counts, and capture-recapture estimates. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition while weir counts were expanded by the inverse of stock composition. Points are jittered along the x-axis."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 7.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna Chinook salmon stock group (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
 fit[[2]]
 ```
+  
+*Note*: For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition whereas weir counts were expanded by the inverse of stock composition. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 8.- Estimated stock composition estimates by calendar year from the state-space model fitted to data from Susitna River Chinook salmon. Each panel is an area graph, in which distance between lines represent stock composition proportions. Dots are telemetry-based estimates of stock composition."}
+```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 8.- Estimated stock composition estimates by calendar year from the state-space model fitted to data from Susitna River drainage Chinook salmon in the Eastside Susitna, Talkeetna River, and Yentna River stock groups."}
 plot_stock(telemetry, post)
 ```
+  
+*Note*: Each panel is an area graph in which distances between lines represent stock composition proportions. Dots are telemetry-based estimates of stock composition.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 9.- Plausible spawner-recruit relationships for East Susitna Chinook salmon, as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979-2014. Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\\alpha\\prime$) and $\\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\\alpha\\prime$) and $\\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 9.- Plausible spawner-recruit relationships for the Eastside Susitna Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
 horse[[2]]
 ```
+  
+*Note*: Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\alpha\prime$) and $\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\alpha\prime$) and $\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line.
 
-```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 10.- Optimal yield, Overfishing, and Optimum Recruitment profiles for East Susitna Chinook salmon. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and Overfishing) or maximum sustained recruitment (ORP). Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 10.- Optimal yield (OYP), overfishing, and optimum recruitment (ORP) profiles for the Eastside Susitna Chinook salmon stock group. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and overfishing) or maximum sustained recruitment (ORP)."}
 profile[[2]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 11.- Expected sustained yield plots for East Susitna River Chinook salmon. ESY median (solid black line), and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973-2014. Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 11.- Expected sustained yield (ESY) plots for the Eastside Susitna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973--2014."}
 ey[[2]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 12.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Talkeetna Drainage Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition. Points are jittered along the x-axis.."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 12.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River Chinook salmon stock group (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts and capture-recapture estimates."}
 fit[[3]]
 ```
+  
+*Note*: For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 13.- Plausible spawner-recruit relationships for Talkeetna drainage Chinook salmon, as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979-2014. Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\\alpha\\prime$) and $\\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\\alpha\\prime$) and $\\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 13.- Plausible spawner-recruit relationships for the Talkeetna River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
 horse[[3]]
 ```
+  
+*Note*: Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\alpha\prime$) and $\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\alpha\prime$) and $\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line.
 
-```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 14.- Optimal yield, Overfishing, and Optimum Recruitment profiles for Talkeetna drainage Chinook salmon. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and Overfishing) or maximum sustained recruitment (ORP). Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 14.- Optimal yield (OYP), 0verfishing, and optimum recruitment (ORP) profiles for the Talkeetna River Chinook salmon stock group. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and overfishing) or maximum sustained recruitment (ORP)."}
 profile[[3]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 15.- Expected sustained yield plots for Talkeetna drainage Chinook salmon. ESY median (solid black line), and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979-2014. Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 15.- Expected sustained yield (ESY) plots for the Talkeetna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979--2014."}
 ey[[3]]
 ``` 
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 16.- Escapement and Inriver run abundance (black lines show the median while shaded areas show 95% credibility intervals) of Yentna Drainage Chinook salmon as reconstructed from aerial survey counts and capture-recapture estimates. For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition. Points are jittered along the x-axis."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 16.-  Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock group (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts and mark-recapture estimates."}
 fit[[4]]
 ```
+  
+*Note*: For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 17.- Plausible spawner-recruit relationships for Yentna River Chinook salmon, as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979-2014. Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\\alpha\\prime$) and $\\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\\alpha\\prime$) and $\\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 17.- Plausible spawner-recruit relationships for the Yentna River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
 horse[[4]]
 ```
+  
+*Note*: Posterior means of R and S are plotted as brood year labels with 95% credibility intervals plotted as light dashed lines. The heavy dashed line is the Ricker relationship constructed from ln($\alpha\prime$) and $\beta$ posterior medians. Ricker relationships are also plotted (light grey lines) for 40 paired values of ln($\alpha\prime$) and $\beta$ sampled from the posterior probability distribution, representing plausible Ricker relationships that could have generated the observed data. Recruits replace spawners (R = S) on the diagonal line.
 
-```{r, fig.width = 8, fig.height = 8, fig.cap = "Figure 18.- Optimal yield, Overfishing, and Optimum Recruitment profiles for Yentna River Chinook salmon. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and Overfishing) or maximum sustained recruitment (ORP). Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 18.- Optimal yield (OYP), overfishing, and optimum recruitment (ORP) profiles for the Yentna River Chinook salmon stock group. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield (OYP and overfishing) or maximum sustained recruitment (ORP)."}
 profile[[4]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 19.- Expected sustained yield plots for Yentna River Chinook salmon. ESY median (solid black line), and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979-2014. Pink shaded areas bracket the proposed goal range; grey and black marks along the x-axis show comparable lower and upper bounds for other Alaskan Chinook salmon stocks scaled by $S_{MSY}$ ratios (see Methods)."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 19.- Expected sustained yield (ESY) plots for the Yentna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979-2014."}
 ey[[4]]
 ```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 20.- Estimated age-at-maturity proportions by brood year (top), age composition proportions by calendar year (middle), and total run by age (bottom), from the state-space model fitted to data from Susitna River Chinook salmon. Top and middle are area graphs, in which distance between lines represent age proportions. Dots in middle plot are data-based estimates of age composition."}
+```{r, fig.width = 8, fig.height = 9, fig.cap = "Figure 20.- Estimated age-at-maturity proportions by brood year (top), age composition proportions by calendar year (middle), and total run by age (bottom) from the state-space model fitted to data from Susitna River Chinook salmon."}
 plot_age(post)
 ```
   
-```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 21.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of total run abundance from a state-space model by stock group, 1979-2017."}
+*Note*: Top and middle are area graphs, in which distance between lines represent age proportions. Dots in middle plot are data-based estimates of age composition.
+  
+```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 21.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of total run abundance from a state-space model by stock group, 1979--2017."}
 plot_state(post, "Total Run")
 ```
   
-```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of Ricker productivity residuals from a state-space model by stock group, 1979-2017."}
+```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of Ricker productivity residuals from a state-space model by stock group, 1979--2017."}
 plot_state(post, "Ricker Residuals")
 ```
   
-```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 23.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of harvest rate from a state-space model by stock group, 1979-2017. The posterior median of $U_{MSY}$ is plotted as short dash horizontal reference line while posterior median of $U_{MSR}$ is plotted as long dash horizontal reference line."}
+```{r, fig.width = 7, fig.height = 8.5, fig.cap = "Figure 23.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of harvest rate from a state-space model by stock group, 1979--2017."}
 plot_state(post, "Harvest Rate", c("msy", "msr"))
 ```
+  
+*Note*: The posterior median of $U_{MSY}$ is plotted as short dash horizontal reference line and the posterior median of $U_{MSR}$ is plotted as long dash horizontal reference line.

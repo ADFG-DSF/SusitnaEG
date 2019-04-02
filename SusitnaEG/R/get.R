@@ -154,17 +154,19 @@ get_ids <- function(year_range = 1979:2017,
   
   stock_id <- c("Deshka", "East Susitna", "Talkeetna", "Yentna")
   names(stock_id) <- 1:length(stock_id)
+  stock_print <- c("Deshka River", "Eastside Susitna", "Talkeetna River", "Yentna River")
   
   trib_id <- 
   list(
     Deshka = c("Deshka"),
-    "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other East Susitna"),
-    Talkeetna = c("Clear", "Prairie", "Other Talkeetna"),
-    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna")
+    "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other Eastside Susitna"),
+    Talkeetna = c("Clear", "Prairie", "Other Talkeetna River"),
+    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna River")
   )
 
   list <- list(year_id = year_id,
                stock_id = stock_id,
+               stock_print = stock_print,
                trib_id = trib_id,
                age_id = age_id,
                age_min = age_min,

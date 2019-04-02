@@ -13,7 +13,8 @@
 #' @export
 table_age <- function(post_dat, node){
   stopifnot(exists("year_id", .GlobalEnv),
-            exists("age_max", .GlobalEnv))
+            exists("age_max", .GlobalEnv),
+            exists("age_min", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_p <- yr0 - age_max
   
@@ -29,7 +30,7 @@ table_age <- function(post_dat, node){
     tidyr::spread(age, print) %>%
     dplyr::mutate_if(is.numeric, dplyr::funs(if(node == "p") {yr0_p + .} else(yr0 + .)))
   
-  colnames(temp) <- c(if(node =="p") "Brood Year" else("Calendar Year"), paste0(names(age_id), " (", if(node == "N.ta") "CV)" else("sd)")))
+  colnames(temp) <- c(if(node =="p") "Brood year" else("Calendar year"), paste0("Age ", age_id - 1 + age_min, " (", if(node == "N.ta") "CV)" else("SD)")))
   
   knitr::kable(temp, escape = FALSE, align = "r")
 }
@@ -74,12 +75,12 @@ table_airerror <- function(post_dat){
                   stock = id$stock[as.numeric(tribn)]) %>%
     dplyr::mutate_if(is.numeric, digits) %>%
     dplyr::rename(median = "50%", q2.5 = "2.5%", q97.5 = "97.5%") %>%
-    dplyr::mutate(print1 = paste0(median, " (", q2.5, " - ", q97.5, ")")) %>%
+    dplyr::mutate(print1 = paste0(median, " (", q2.5, "\U{2013}", q97.5, ")")) %>%
     dplyr::select(stock, trib, param, print1) %>%
     tidyr::spread(param, print1) %>%
     dplyr::select(stock, trib, theta, sigma.air)
   
-  colnames(temp)  <- c("Stock Group", "Tributary", "$\\theta_s$(95% CI)", "$\\sigma_{ASs}$(95% CI)")
+  colnames(temp)  <- c("Stock group", "Tributary", "$\\theta_s$(95% CI)", "$\\sigma_{ASs}$(95% CI)")
   knitr::kable(temp, escape = FALSE, align = "r")
 }
 
@@ -188,7 +189,7 @@ table_params <- function(post_dat, stocks = 1:4){
                                 sd / abs(median)),
                     stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname)) %>%
       dplyr::mutate_at(c("median", "q2.5", "q97.5", "cv"), digits) %>%
-      dplyr::mutate(print1 = paste0(median, " (", q2.5, " - ", q97.5, ")"),
+      dplyr::mutate(print1 = paste0(median, " (", q2.5, "\U{2013}", q97.5, ")"),
                     print2 = paste0(median, " (", cv, ")"))
   
   if(stock_n != 1){
@@ -202,7 +203,7 @@ table_params <- function(post_dat, stocks = 1:4){
       temp %>%
       dplyr::select(Parameter, print1, stock) %>%
       tidyr::spread(stock, print1)
-    colnames(print) <- c("Parameter", "median(95% CI)")}
+    colnames(print) <- c("Parameter", "Median (95% CI)")}
   
   knitr::kable(print, escape = FALSE, align = "r")
 }
@@ -237,7 +238,7 @@ table_state <- function(post_dat, display){
     dplyr::filter(grepl("^R\\[|S\\[|N\\[|IR\\[", rowname)) %>%
     dplyr::mutate(name = factor(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname),
                                 levels = c("N", "IR", "S", "R"),
-                                labels = c("Total Run", "Inriver Run", "Escapement", "Recruitment")),
+                                labels = c("Total run", "Inriver run", "Escapement", "Recruitment")),
                   index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
                   year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index),
                   stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id),
@@ -251,7 +252,8 @@ table_state <- function(post_dat, display){
       tidyr::spread(name, print) %>%
       dplyr::rowwise() %>%
       dplyr::mutate_all(nareplace) %>%
-      dplyr::arrange(stock, year)
+      dplyr::arrange(stock, year) %>%
+      dplyr::rename(Year = year)
    
     out <- split(temp2, temp2$stock)
   }
@@ -264,7 +266,8 @@ table_state <- function(post_dat, display){
       dplyr::select(year, name, Deshka, 'East Susitna', Talkeetna, Yentna, Other) %>%
       dplyr::rowwise() %>%
       dplyr::mutate_all(nareplace) %>%
-      dplyr::arrange(name, year)
+      dplyr::arrange(name, year) %>%
+      dplyr::rename(Year = year)
     
     out <- split(temp3, temp3$name)
   }
@@ -311,7 +314,8 @@ table_stock <- function(post_dat){
   
   list <- lapply(stock_id[-1], function(x) est[est$stock == x, ] %>%
                    dplyr::select(-stock) %>%
-                   tidyr::spread(trib, print))
+                   tidyr::spread(trib, print) %>%
+                   dplyr::rename(Year = year))
   
   names(list) <- stock_id[-1]
   list
