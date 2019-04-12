@@ -49,7 +49,7 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
   ggplot2::ggplot(ggplot2::aes(x = year, y = mean, alpha = age)) +
     ggplot2::geom_area(position = ggplot2::position_stack(reverse = TRUE)) +
     ggplot2::facet_grid(plot ~ ., scales = "free", switch = "y") +
-    ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 3), minor_breaks = NULL) +
+    ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 4), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::geom_point(data = Q.obs, size = 3, ggplot2::aes(shape = sample)) +
     ggplot2::geom_line(data = pi.mn, ggplot2::aes(alpha = NULL, color = age), size = 0.75, linetype = "dashed") +
@@ -58,8 +58,10 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
     ggplot2::scale_shape_discrete(name = "Sample") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme_bw() +
+    ggplot2::ggtitle("Susitna River Chinook salmon Age Composition") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), 
-                   strip.placement = "outside")
+                   strip.placement = "outside") +
+    ggplot2::theme_bw(base_size = 14)
 }
 
 
@@ -358,10 +360,12 @@ plot_fit <- function(post_dat, stock_name){
                              show.legend = FALSE) +
     ggplot2::scale_color_manual(name ="Index",
                                 breaks = breaks$name,
-                                values = col) +
+                                values = col,
+                                guide = ggplot2::guide_legend(ncol = 4)) +
     ggplot2::scale_shape_manual(name ="Index",
                                 breaks = breaks$name,
-                                values = sha) +
+                                values = sha,
+                                guide = ggplot2::guide_legend(ncol = 4)) +
     ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::theme_bw(base_size = 17) +

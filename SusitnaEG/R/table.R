@@ -14,6 +14,7 @@
 table_age <- function(post_dat, node){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
+            exists("age_id", .GlobalEnv),
             exists("age_min", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_p <- yr0 - age_max
@@ -30,7 +31,8 @@ table_age <- function(post_dat, node){
     tidyr::spread(age, print) %>%
     dplyr::mutate_if(is.numeric, dplyr::funs(if(node == "p") {yr0_p + .} else(yr0 + .)))
   
-  colnames(temp) <- c(if(node =="p") "Brood year" else("Calendar year"), paste0("Age ", age_id - 1 + age_min, " (", if(node == "N.ta") "CV)" else("SD)")))
+  colnames(temp) <- c(if(node =="p") "Brood year" else("Calendar year"), 
+                      paste0(names(age_id), if(node == "N.ta") " (CV)" else(" (SD)")))
   
   knitr::kable(temp, escape = FALSE, align = "r")
 }

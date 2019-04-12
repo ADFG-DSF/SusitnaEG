@@ -145,9 +145,9 @@ get_Hhat <- function(dat){
 #'
 #' @export
 get_ids <- function(year_range = 1979:2017,
-                    age_id = c("age3" = 1, "age4" = 2, "age5" = 3, "age678" = 4)){
-  age_min <- as.numeric(gsub("^age.*(\\d$)", "\\1", names(age_id)[1]))
-  age_max <- as.numeric(gsub("^age(\\d).*", "\\1", names(age_id)[length(age_id)]))
+                    age_id = c("Age 3" = 1, "Age 4" = 2, "Age 5" = 3, "Age 6+" = 4)){
+  age_min <- as.numeric(gsub("^Age.*(\\d$)", "\\1", names(age_id)[1]))
+  age_max <- as.numeric(gsub("^Age.*(\\d).*", "\\1", names(age_id)[length(age_id)]))
 
   year_id <- as.character(year_range)
   names(year_id) <- 1:length(year_range)
