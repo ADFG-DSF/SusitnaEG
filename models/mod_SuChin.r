@@ -14,24 +14,24 @@ model{
 	  for (c in (A+a.min):(Y+A-1)) {
 		log.R[c, stock] ~ dt(log.R.mean2[c, stock],tau.white[stock],500)
 		R[c, stock] <- exp(log.R[c, stock])
-		log.R.mean1[c, stock] <- log(S[c-a.max, stock]) + lnalpha[stock] - beta[stock] * S[c-a.max, stock] 
-		log.resid[c, stock] <- log(R[c, stock]) - log.R.mean1[c, stock]
+		log.R.mean1[c, stock] <- log(S[c-a.max, stock]) + lnalpha[stock] - beta[stock] * S[c-a.max, stock]  #Eq. 1
+		log.resid[c, stock] <- log(R[c, stock]) - log.R.mean1[c, stock]  #Eq. 3
 		lnalpha.y[c, stock] <- lnalpha[stock] + log.resid[c, stock] 
 		}
-	  log.R.mean2[A+a.min, stock] <- log.R.mean1[A+a.min, stock] + phi[stock] * log.resid.0[stock]
+	  log.R.mean2[A+a.min, stock] <- log.R.mean1[A+a.min, stock] + phi[stock] * log.resid.0[stock]  #Eq. 2
 	  for (c in (A+a.min+1):(Y+A-1)) {
 		log.R.mean2[c, stock] <- log.R.mean1[c, stock] + phi[stock] * log.resid[c-1, stock]
 		}
-	  lnalpha[stock] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,) #dnorm(0,1.0E-6)T(0,)  
+	  lnalpha[stock] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,)  
 	  beta[stock] ~ dnorm(0, tau.beta)T(0,)
 	  log.resid.0[stock] ~ dnorm(0,tau.red[stock])T(-3,3) 
 	  alpha[stock] <- exp(lnalpha[stock])
-	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white[stock] * sigma.white[stock] / 2 / (1-phi[stock]*phi[stock]) )
-	  phi[stock] ~ dunif(-0.95, 0.95) #dnorm(mu.phi, tau.phi)T(-0.95, 0.95)
-	  S.max[stock] <- 1 / beta[stock]
-	  S.eq[stock] <- lnalpha.c[stock] * S.max[stock]
-	  S.msy[stock] <- S.eq[stock] * (0.5 - 0.07*lnalpha.c[stock])
-	  U.msy[stock] <- lnalpha.c[stock] * (0.5 - 0.07*lnalpha.c[stock])
+	  lnalpha.c[stock] <- lnalpha[stock] + (sigma.white[stock] * sigma.white[stock] / 2 / (1-phi[stock]*phi[stock]))  #Eq. 28
+	  phi[stock] ~ dunif(-0.95, 0.95)
+	  S.max[stock] <- 1 / beta[stock]  #Eq. 31
+	  S.eq[stock] <- lnalpha.c[stock] * S.max[stock]  #Eq. 32
+	  S.msy[stock] <- S.eq[stock] * (0.5 - 0.07*lnalpha.c[stock])  #Eq. 27
+	  U.msy[stock] <- lnalpha.c[stock] * (0.5 - 0.07*lnalpha.c[stock])  #Eq. 30
 
 	# BROOD YEAR RETURNS W/O SR LINK DRAWN FROM COMMON LOGNORMAL DISTN
 	  mean.log.R[stock] ~ dnorm(0,1.0E-4)T(0,)       
@@ -41,10 +41,7 @@ model{
 		R[c, stock] <- exp(log.R[c, stock])
 		}
 	}
-	#Hierarchical phi and lnalpha
-	#mu.phi ~ dunif(-0.95, 0.95)
-	#tau.phi ~ dgamma(0.001,0.001)
-	#sigma.phi <- 1 / sqrt(tau.phi)
+	#Hierarchical lnalpha
 	mu.lnalpha ~ dnorm(0, 1E-6)T(0,)
 	tau.lnalpha ~ dgamma(2,1)
 	tau.beta ~ dgamma(0.1,0.1)
@@ -52,7 +49,7 @@ model{
 	tau.R ~ dgamma(0.001,0.001)      
 	sigma.R0 <- 1 / sqrt(tau.R)
        
-# GENERATE MLD MATURITY SCHEDULES, ONE PER BROOD YEAR
+### GENERATE MATURITY SCHEDULES, ONE PER BROOD YEAR
 # MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF EXPECTED MATURITY
 # GIVEN EXPECTED MATURITY, ANNUAL MATURITY SCHEDULES DIRICHLET DISTRIB AT COHORT (BROOD YEAR) c
   Dscale.age ~ dunif(0.07,1)
@@ -66,39 +63,38 @@ for (a in 1:(A-1)) {
 
 for (c in 1:(Y+A-1)) {
   for (a in 1:A) {
-    logistic.a[c,a] <- exp(ML1[a] + ML2[a] * c)
+    logistic.a[c,a] <- exp(ML1[a] + ML2[a] * c) #Eq. 5.2
     pi[c,a] <- logistic.a[c,a] / sum(logistic.a[c,])
-    gamma[c,a] <- Dsum.age * pi[c,a]
+    gamma[c,a] <- Dsum.age * pi[c,a]  #Eq. 5.1
     g[c,a] ~ dgamma(gamma[c,a],0.1)
     p[c,a] <- g[c,a]/sum(g[c,])
     }
   }
 
 # ASSIGN PRODUCT OF p AND R TO ALL CELLS IN N MATRIX
-# c SUBSCRIPT INDEXES BROOD YEAR (COHORT)
 for (stock in 1:SG){
     for (a in 1:A) {
         for (c in a:(Y + (a - 1))) {
-            N.tas[c - (a - 1), (A + 1 - a), stock] <- p[c, (A + 1 - a)] * R[c, stock]
+            N.tas[c - (a - 1), (A + 1 - a), stock] <- p[c, (A + 1 - a)] * R[c, stock]  #Eq. 6
             }
         }
 	}
 
-# CALENDAR YEAR AGE COMPOSITION 
+### CALENDAR YEAR AGE COMPOSITION 
   for (y in 1:Y) {
     for (a in 1:A) {
 	  N.ta[y,a] <- sum(N.tas[y,a, 1:SG])
-	  q[y,a] <- N.ta[y,a] / sum(N.ta[y, ])
+	  q[y,a] <- N.ta[y,a] / sum(N.ta[y, ])  #Eq. 26
       }
     }
 	
 # MULTINOMIAL SCALE SAMPLING ON TOTAL ANNUAL RETURN N
 # INDEX y IS CALENDAR YEAR
-# MULTIVARIATE LOGISTIC MODEL ALLOWS SAMPLING BIAS
+# MULTIVARIATE LOGISTIC MODEL ADJUSTS FOR SAMPLE LOCATION
 for (y in 1:N.yr.a) {  
-  x.a[y, 1:A] ~ dmulti(q.star[y, ], n.a[y])
+  x.a[y, 1:A] ~ dmulti(q.star[y, ], n.a[y])  #Eq. 24
     for (a in 1:A) {
-      q.star[y,a] <- rho[y,a] / sum(rho[y,1:A])
+      q.star[y,a] <- rho[y,a] / sum(rho[y,1:A])  #Eq. 25
 	  log(rho[y,a]) <- log(N.ta[yr.a[y],a] / N.ta[yr.a[y], 1]) + b[x.stock[y], a]
       }
   }
@@ -110,14 +106,14 @@ for(s in 1:SG){for(a in 1:A){b[s,a] <- b0[s,a] - mean(b0[,a])}}
 # ANNUAL RETURN N
 for (y in 1:Y) {
   for (stock in 1:SG) {
-    N[y, stock] <- sum(N.tas[y,1:A, stock])
+    N[y, stock] <- sum(N.tas[y,1:A, stock])  #Eq. 7
   }
 }	
 
-#STOCK COMPOSITION
-# East Susitna
-# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
-# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
+### STOCK COMPOSITION ###
+### MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
+### GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT YEAR y.
+# East Susitna, T_s=7
   Dscale.S2 ~ dunif(0.07,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
   ML1.S2[6] <- 0  
@@ -134,14 +130,12 @@ for (y in 1:Y) {
       gamma.S2[y, trib] <- Dsum.S2 * pi.S2[y, trib]
       g.S2[y, trib] ~ dgamma(gamma.S2[y, trib], 0.1)
       p.S2s[y, trib] <- g.S2[y, trib]/sum(g.S2[y, ])
-	  p.S2[y, trib] <- p.S2s[y, trib] * (1 - p.S2o[y])
+	  p.S2[y, trib] <- p.S2s[y, trib] * (1 - p.S2o[y]) #Eq. 14 elements 1:(T_s-1)
       }
-	  p.S2[y, 7] <- p.S2o[y]
+	  p.S2[y, 7] <- p.S2o[y]  #Eq. 14  element T_s
     }
 
-# Talkeetna
-# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
-# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
+# Talkeetna, T_s=3
   Dscale.S3 ~ dunif(0.07,1)
   Dsum.S3 <- 1 / (Dscale.S3 * Dscale.S3)
   ML1.S3[2] <- 0  
@@ -161,9 +155,7 @@ for (y in 1:Y) {
 	  p.S3[y, 3] <- p.S3o[y]
     }
 
-# Yentna
-# MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
-# GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT year y.
+# Yentna, T_s=5
   Dscale.S4 ~ dunif(0.07,1)
   Dsum.S4 <- 1 / (Dscale.S4 * Dscale.S4)
   ML1.S4[4] <- 0  
@@ -185,10 +177,9 @@ for (y in 1:Y) {
 	  p.S4[y, 5] <- p.S4o[y]
     }	
 	
-
-# MULTINOMIAL COUNTS OF RADIOS TRACKED TO INDIVIDUAL TRIBS
+# MULTINOMIAL COUNTS OF RADIOS TRACKED TO SURVEYED AREAS
 for (y in 1:Y) { 
-    tele.S2[y, 1:6] ~  dmulti(p.S2s[y, ], Ntele.S2[y] - tele.S2[y, 7])
+    tele.S2[y, 1:6] ~  dmulti(p.S2s[y, ], Ntele.S2[y] - tele.S2[y, 7])  #Eq. 21
     tele.S3[y, 1:2] ~  dmulti(p.S3s[y, ], Ntele.S3[y] - tele.S3[y, 3])
 	tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
 }
@@ -201,19 +192,19 @@ for(stock in 1:(SG - 1)){
   B2.So[stock] <- Bsum.So[stock] - B1.So[stock]
 }
 
-# MULTINOMIAL COUNTS OF RADIOS TRACKED TO Surveyed Areas
+# MULTINOMIAL COUNTS OF RADIOS TRACKED TO UNSURVEYED AREAS
 for (y in 1:Y) {
   p.S2o[y] ~ dbeta(B1.So[1], B2.So[1])
   p.S3o[y] ~ dbeta(B1.So[2], B2.So[2])
   p.S4o[y] ~ dbeta(B1.So[3], B2.So[3]) 
-  tele.S2[y, 7] ~  dbinom(p.S2o[y], Ntele.S2[y])
+  tele.S2[y, 7] ~  dbinom(p.S2o[y], Ntele.S2[y])  #Eq. 20
   tele.S3[y, 3] ~  dbinom(p.S3o[y], Ntele.S3[y])
   tele.S4[y, 5] ~  dbinom(p.S4o[y], Ntele.S4[y])
 }
 
-# AIR SURVEY
+### AIR SURVEY
 # Theta set up as a glm although I’m not sure a good covariate is accessible.
-for (trib in 1:T) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}  #trib glm param
+for (trib in 1:T) {b1.theta[trib] ~ dnorm(mu_b1t, tau_b1t)}
 mu_b1t ~ dnorm(0, 0.0001)
 tau_b1t ~ dgamma(0.001,0.001)
 
@@ -223,7 +214,7 @@ for (trib in 1:T){
     }
   }
 
-# Heirarchical AIR SURVEY LOGNORMAL ERRORS
+# HEIRARCHICAL AIR SURVEY LOGNORMAL ERRORS
 for (trib in 1:T){
 	sigma.air[trib] <- abs(z.air[trib]) / sqrt(g.air[trib]) 
 	z.air[trib] ~ dnorm(0, invBsq)
@@ -233,45 +224,43 @@ for (trib in 1:T){
 B ~ dunif(0,1)
 invBsq <- 1 / B / B
 
-
-# Deshka survey data
-# one trib in the stock
+# Deshka
 for(y in 1:Y){
-	log.t1S1[y] <- log(theta[1, y] * S[y, 1])
+	log.t1S1[y] <- log(theta[1, y] * S[y, 1])  #Eq. 22
 	air.S1[y] ~ dlnorm(log.t1S1[y], tau.air[1])
 	}
-# East Susitna Survey data	
+# East Susitna, T_s-1=6	
 for(trib in 1:6) {
 	for(y in 1:Y){
-	log.tpS2[y, trib] <- log(theta[(trib + 1), y] * p.S2[y, trib] * S[y, 2])
+	log.tpS2[y, trib] <- log(theta[(trib + 1), y] * p.S2[y, trib] * S[y, 2])  #Eq. 22
 	air.S2[y, trib] ~ dlnorm(log.tpS2[y, trib], tau.air[trib + 1])
 	}
 }
 # Talkeetna Survey data
 for(trib in 1:2) {
 	for(y in 1:Y){
-	log.tpS3[y, trib] <- log(theta[(trib + 7), y] * p.S3[y, trib] * S[y, 3])
+	log.tpS3[y, trib] <- log(theta[(trib + 7), y] * p.S3[y, trib] * S[y, 3])  #Eq. 22
 	air.S3[y, trib] ~ dlnorm(log.tpS3[y, trib], tau.air[trib + 7])
 	}
 }
 # Yentna Survey data
 for(trib in 1:4) {
 	for(y in 1:Y){
-	log.tpS4[y, trib] <- log(theta[(trib + 9), y] * p.S4[y, trib] * S[y, 4])
+	log.tpS4[y, trib] <- log(theta[(trib + 9), y] * p.S4[y, trib] * S[y, 4])  #Eq. 22
 	air.S4[y, trib] ~ dlnorm(log.tpS4[y, trib], tau.air[trib + 9])
 	}
 }
    
-# WEIR COUNTS W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1
+### WEIR COUNTS W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1
   tau.weir ~ dgamma(50, 0.125)
   sigma.weir <- 1 / sqrt(tau.weir)
   for (y in 1:Y) {
-    log.11S1[y] <- log(IR_deshka[y])		#Deshka one trib in stock but harvest above weir
-	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir) 
-	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])		#Montana
-      weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)
-	log.1p6S2[y] <- log(p.S2[y, 6] * S[y, 2])		#Willow/Deception total
-      weir[y, 3] ~ dlnorm(log.1p6S2[y], tau.weir)
+    log.11S1[y] <- log(IR_deshka[y])
+	  weir[y, 1] ~ dlnorm(log.11S1[y], tau.weir)  #Eq. 23 when s=1, Deshka
+	log.1p4S2[y] <- log(p.S2[y, 4] * S[y, 2])
+      weir[y, 2] ~ dlnorm(log.1p4S2[y], tau.weir)  #Eq. 23 when s=2, Montana
+	log.1p6S2[y] <- log(p.S2[y, 6] * S[y, 2])
+      weir[y, 3] ~ dlnorm(log.1p6S2[y], tau.weir)  #Eq. 23 when s=2, Willow/Deception
     }
 
 p.HDeshka.mean ~ dbeta(1, 1)
@@ -282,34 +271,34 @@ B2.HDeshka <- Bsum.HDeshka - B1.HDeshka
 # INRIVER RUN AND HARVESTS ESTIMATED
 for (y in 1:Y) {
   mu.Hmarine[y] ~ dbeta(0.5,0.5)
-  Hmarine[y] <- mu.Hmarine[y] * sum(N[y, ])
+  Hmarine[y] <- mu.Hmarine[y] * sum(N[y, ])  #Eq. 8
   logHm[y] <- log(Hmarine[y])
   tau.logHm[y] <- 1 / log(cv.Hm[y]*cv.Hm[y] + 1)
-  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])   
+  Hm.hat[y] ~ dlnorm(logHm[y],tau.logHm[y])  #Eq. 19   
   # MR estimates gt 500mm fish, reduce IR to same size class
   p.small3[y] ~ dbeta(1,1)
   p.small4[y] ~ dbeta(1,1)
-  small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])
+  small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])  #Eq. 17
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
   for (stock in 1:SG){
-    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y])
-	IRlt500[y, stock] <- IR[y, stock] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))
-    logIRlt500[y, stock] <- log(IRlt500[y, stock])
-	tau.logMR[y, stock] <- 1 / log(cv.MR[y, stock]*cv.MR[y, stock] + 1)
-    MR[y, stock] ~ dlnorm(logIRlt500[y, stock], tau.logMR[y, stock])    
+    IR[y, stock] <- N[y, stock] * (1 - mu.Hmarine[y])  #Eq. 9
+	IR500[y, stock] <- IR[y, stock] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))  #Eq. 18
+    logIR500[y, stock] <- log(IR500[y, stock])
+	tau.logMR[y, stock] <- 1 / log(cv.MR[y, stock]*cv.MR[y, stock] + 1)  #Eq. 16
+    MR[y, stock] ~ dlnorm(logIR500[y, stock], tau.logMR[y, stock])  #Eq. 15    
 	mu.Habove[y, stock] ~ dbeta(0.5,0.5)
-	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]
+	Habove[y, stock] <- mu.Habove[y, stock] * IR[y, stock]  #Eq. 10
 	logHa[y, stock] <- log(Habove[y, stock])
 	tau.logHa[y, stock] <- 1 / log(cv.Ha[y, stock]*cv.Ha[y, stock] + 1)
 	Ha.hat[y, stock] ~ dlnorm(logHa[y, stock], tau.logHa[y, stock])       
-	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)
+	S[y, stock] <- max(IR[y, stock] - Habove[y, stock], 1)  #Eq. 12
   }
   # Harvest upstream of Deshka weir
   p.HDeshka[y] ~ dbeta(B1.HDeshka, B2.HDeshka)
-  HDeshka[y] <- p.HDeshka[y] * Habove[y, 1]
+  HDeshka[y] <- p.HDeshka[y] * Habove[y, 1]  #Eq. 11
   logHd[y] <- log(HDeshka[y])
   tau.logHd[y] <- 1 / log(cv.Hd[y]*cv.Hd[y] + 1)
   Hd.hat[y] ~ dlnorm(logHd[y], tau.logHd[y])
-  IR_deshka[y] <- S[y, 1] + HDeshka[y]
+  IR_deshka[y] <- S[y, 1] + HDeshka[y]  #Eq. 13
 }
 } 
