@@ -628,7 +628,7 @@ plot_state <- function(post_dat, display, rp = NULL){
     as.data.frame() %>%
     dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl(paste0("beta\\[\\d\\]|lnalpha\\[\\d\\]"), rowname)) %>%
+    dplyr::filter(grepl(paste0("beta\\[\\d\\]|lnalpha.c\\[\\d\\]"), rowname)) %>%
     dplyr::mutate(msr = ifelse(grepl("^beta", rowname), 1 / median, 1-1/exp(median - 1)),
                   name = factor(ifelse(grepl("^beta", rowname), "S", "U"),
                                 levels = c("S", "U"),

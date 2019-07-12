@@ -24,9 +24,9 @@ x.a <- as.matrix(a[, grepl("x", names(a))])
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
-  Y = length(year_id), A = ncol(x.a), SG = length(stock_id), T = sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})),
+  Y = length(year_id), A = ncol(x.a), SG = length(stock_id), I = sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})),
   a.min = age_min, a.max = age_max, 
-  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, N.yr.a = length(a$yr.a), x.stock = a$stock, 
+  x.a = x.a, n.a = rowSums(x.a), yr.a = a$yr.a, J = length(a$yr.a), x.stock = a$stock, 
   tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna,
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]],
@@ -41,7 +41,7 @@ dat = list(
 
 ####  Define the parameters (nodes) of interest  ##### 
 parameters=c(
-'sigma.white', 'sigma.R0', 'sigma.air', 'B', 'sigma.weir',
+'sigma.white', 'sigma.R0', 'sigma.air', 'C_as', 'sigma.weir',
 'beta', 'lnalpha', 'mu.lnalpha', 'sigma.lnalpha', 'lnalpha.c', 'alpha', 'lnalpha.vec', 
 'phi', 'log.resid.0', 'log.resid.vec',
 'S.eq', 'S.max', 'S.msy', 'U.msy',

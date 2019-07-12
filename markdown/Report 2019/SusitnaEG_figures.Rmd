@@ -79,7 +79,7 @@ profile[[2]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 11.- Expected sustained yield (ESY) plots for the Eastside Susitna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973--2014."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 11.- Expected sustained yield (ESY) plots for the Eastside Susitna Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973--2014."}
 ey[[2]]
 ```
   
