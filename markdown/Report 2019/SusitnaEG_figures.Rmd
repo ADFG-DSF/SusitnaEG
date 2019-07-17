@@ -29,7 +29,7 @@ fit[[1]]
   
 *Note*: For plotting, aerial survey counts were expanded by the inverse of survey detectability. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 4.- Plausible spawner-recruit relationships for the Deshka River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 4.- Plausible spawner-recruit relationships for the Deshka River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2017."}
 horse <- lapply(stock_id[-5], plot_horse, post_dat = post)
 horse[[1]]
 ```
@@ -48,7 +48,7 @@ profile[[1]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 6.- Expected sustained yield (ESY) plots for the Deshka River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979--2014."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 6.- Expected sustained yield (ESY) plots for the Deshka River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973--2014."}
 ey <- mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
 ey[[1]]
 ```
@@ -67,7 +67,7 @@ plot_stock(telemetry, post)
   
 *Note*: Each panel is an area graph in which distances between lines represent stock composition proportions. Dots are telemetry-based estimates of stock composition.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 9.- Plausible spawner-recruit relationships for the Eastside Susitna Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 9.- Plausible spawner-recruit relationships for the Eastside Susitna Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2017."}
 horse[[2]]
 ```
   
@@ -91,7 +91,7 @@ fit[[3]]
   
 *Note*: For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 13.- Plausible spawner-recruit relationships for the Talkeetna River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 13.- Plausible spawner-recruit relationships for the Talkeetna River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2017."}
 horse[[3]]
 ```
   
@@ -103,7 +103,7 @@ profile[[3]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 15.- Expected sustained yield (ESY) plots for the Talkeetna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979--2014."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 15.- Expected sustained yield (ESY) plots for the Talkeetna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973--2014."}
 ey[[3]]
 ``` 
   
@@ -115,7 +115,7 @@ fit[[4]]
   
 *Note*: For plotting, aerial survey counts were expanded by the inverse of the product of survey detectability and stock composition. Points are jittered along the *x*-axis.
 
-```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 17.- Plausible spawner-recruit relationships for the Yentna River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2014."}
+```{r, fig.width = 7, fig.height = 7, fig.cap = "Figure 17.- Plausible spawner-recruit relationships for the Yentna River Chinook salmon stock group as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2017."}
 horse[[4]]
 ```
   
@@ -127,7 +127,7 @@ profile[[4]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 19.- Expected sustained yield (ESY) plots for the Yentna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1979-2014."}
+```{r fig.width = 7, fig.height = 5, fig.cap = "Figure 19.- Expected sustained yield (ESY) plots for the Yentna River Chinook salmon stock group. ESY median (solid black line) and 50% interval (grey-shaded area around the line) assume average productivity for brood years 1973-2014."}
 ey[[4]]
 ```
   
@@ -143,7 +143,7 @@ plot_age(post)
 plot_state(post, "Total Run")
 ```
   
-```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of Ricker productivity residuals from a state-space model by stock group, 1979--2017."}
+```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of Ricker productivity residuals from a state-space model by stock group, 1979--2014 brood years."}
 plot_state(post, "Ricker Residuals")
 ```
   

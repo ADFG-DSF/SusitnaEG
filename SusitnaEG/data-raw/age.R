@@ -9,10 +9,10 @@ age_deshka <-
                 x5 = as.integer(p5 * n),
                 x6 = as.integer(p6 * n),
                 x78 = as.integer(p78 *n),
-                location = ifelse(grepl("creel|Creel", source), "Deshka creel", "Deshka weir"),
+                location = ifelse(grepl("creel|Creel", source), "Deshka harvest", "Deshka weir"),
                 stock = "Deshka") %>%
   dplyr::select(-dplyr::starts_with("p"), -source) 
-age_deshkaearly <- age_deshka0 %>% dplyr::filter(year < "1986") %>% dplyr::select(-location, stock)  # <1986 data dulicated in age_alex
+age_deshkaearly <- age_deshka %>% dplyr::filter(year < "1986") %>% dplyr::select(-location, -stock)  # <1986 data dulicated in age_alex
 
 age_yentna <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
@@ -26,7 +26,7 @@ age_yentna <-
                 x5 = as.integer(p5 / 100  * n),
                 x6 = as.integer(p6 / 100  * n),
                 x78 = as.integer(p7 / 100  * n),
-                location = ifelse(grepl("combined", location), gsub("combined", "creel", location), paste0(location, " creel")),
+                location = ifelse(grepl("combined", location), gsub("combined", "harvest", location), paste0(location, " harvest")),
                 stock = "Yentna") %>%
   dplyr::select(-dplyr::starts_with("p")) %>%
   dplyr::filter(n != 0) %>%
@@ -53,7 +53,7 @@ age_east <-
                 x5 = as.integer(p5 / 100  * n),
                 x6 = as.integer(p6 / 100  * n),
                 x78 = as.integer(p7 / 100  * n),
-                location = paste0(location, " creel"),
+                location = paste0(location, " harvest"),
                 stock = ifelse(grepl("Talkeetna", location), "Talkeetna", "East Susitna")) %>%
   dplyr::select(-dplyr::starts_with("p"))
 
@@ -93,4 +93,4 @@ xage %>%
 age <- 
   xage %>% 
   dplyr::select(-dplyr::starts_with("p"))
-devtools::use_data(age, pkg = ".\\SusitnaEG", overwrite = TRUE)
+save(age, file=".\\SusitnaEG\\data\\age.rda")

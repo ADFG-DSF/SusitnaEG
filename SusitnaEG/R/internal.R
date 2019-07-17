@@ -11,10 +11,11 @@ NULL
 
 #format tables with numbers of very different magnitude
 digits <- function(p){
-  ps <- ifelse(p < 0.01, format(p, TRUE, digits = 2, scientific = TRUE),
-               ifelse(p < 2, format(round(p, 2), TRUE, nsmall = 2),
-                      ifelse(p < 100, format(round(p, 1), TRUE, nsmall = 1),
-                             format(round(p, 0), TRUE, nsmall = 0, width = 5, scientific = FALSE, big.mark = ","))))
+  ps <- ifelse(p == 0 , format(p, TRUE, digits = 0),
+               ifelse(abs(p) < 0.01, format(p, TRUE, digits = 2, scientific = TRUE),
+                      ifelse(abs(p) < 2, format(round(p, 2), TRUE, nsmall = 2),
+                             ifelse(abs(p) < 100, format(round(p, 1), TRUE, nsmall = 1),
+                                    format(round(p, 0), TRUE, nsmall = 0, width = 5, scientific = FALSE, big.mark = ",")))))
   return(ps)
 }
 

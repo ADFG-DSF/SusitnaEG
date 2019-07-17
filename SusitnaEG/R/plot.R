@@ -54,7 +54,7 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
     ggplot2::geom_point(data = Q.obs, size = 3, ggplot2::aes(shape = sample)) +
     ggplot2::geom_line(data = pi.mn, ggplot2::aes(alpha = NULL, color = age), size = 0.75, linetype = "dashed") +
     ggplot2::scale_color_manual(values = rep("black", 4), guide = FALSE) +
-    ggplot2::scale_alpha_discrete(name = "Age", labels = names(age_id)) +
+    ggplot2::scale_alpha_discrete(name = "Age", labels = names(age_id), guide = ggplot2::guide_legend(reverse = TRUE)) +
     ggplot2::scale_shape_discrete(name = "Sample") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme_bw() +
@@ -319,7 +319,7 @@ plot_fit <- function(post_dat, stock_name){
                   lb = exp(log(value) - 1.96 * sqrt(log(cv * cv + 1)))) %>%
     dplyr::filter(!is.na(value))
   
-  pal <- RColorBrewer::brewer.pal(6, "Paired")
+  pal <- RColorBrewer::brewer.pal(6, "Set1")
   shapes <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
   breaks <- 
     indicies[!duplicated(indicies$name), c("stock", "name", "trib", "type")] %>%
@@ -493,7 +493,7 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
     ggplot2::geom_line() +
     ggplot2::scale_x_continuous("Spawners", limits = c(0, xmax), labels = scales::comma) +
     ggplot2::scale_y_continuous("Probability", breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
-    ggplot2::scale_linetype_discrete(name = "Percent of Max.")+
+    ggplot2::scale_linetype_manual(name = "Percent of Max.", values = c("dotted", "dashed", "solid"))+
     ggplot2::facet_grid(profile ~ ., labeller = profile_label) +
     ggplot2::theme_bw(base_size = 13) +
     ggplot2::ggtitle(stock_name) +
@@ -659,7 +659,7 @@ plot_state <- function(post_dat, display, rp = NULL){
       ggplot2::facet_grid(name ~ ., scales = "free_y", switch = "y") +
       ggplot2::labs(x = NULL, y = NULL) +
       ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
-      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = digits)  +
       ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
       ggplot2::theme_bw() +
       ggplot2::ggtitle(display) +
@@ -677,6 +677,7 @@ plot_state <- function(post_dat, display, rp = NULL){
     }
   }
   
+  if(display %in% c("Recruitment", "Ricker Residuals")) {x_label <- "Brood Year"} else {x_label = "Year"}
   if(display %in% c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")){
     plot <-
       dat[dat$name == display, ] %>%
@@ -686,8 +687,8 @@ plot_state <- function(post_dat, display, rp = NULL){
       ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
       ggplot2::facet_grid(stock ~ ., switch = "y") +
       ggplot2::labs(x = NULL, y = NULL) +
-      ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
-      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+      ggplot2::scale_x_continuous(x_label, breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
+      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = digits)  +
       ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
       ggplot2::theme_bw() +
       ggplot2::ggtitle(display) +
@@ -755,7 +756,7 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
             exists("trib_id", .GlobalEnv),
-            plot_stocks %in% c("East Susitna", "Talkeetna", "Yentna", "Other"),
+            plot_stocks %in% c("East Susitna", "Talkeetna", "Yentna"),
             "package:SusitnaEG" %in% search())
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
@@ -803,17 +804,17 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
     dplyr::filter(stock %in% plot_stocks)
   est$stock <- factor(est$stock, labels = stock_print[which(stock_id %in% plot_stocks)])
   
-  pal <- RColorBrewer::brewer.pal(7, "Paired")
+  pal <- RColorBrewer::brewer.pal(6, "Set1")
   breaks <- id[id$stock %in% plot_stocks, ] %>% 
     dplyr::mutate(color = unlist(lapply(sapply(which(stock_id %in% plot_stocks), function(x) sum(stock == stock_id[x]) - 1), function(x) c(pal[1:x], "black"))),
-                  alpha = 1 + min(as.numeric(stock)) / max(as.numeric(stock)) - as.numeric(stock) / max(as.numeric(stock))) %>%
+                  alpha = 1 + min(as.numeric(stock) - 1) / max(as.numeric(stock) - 1) - (as.numeric(stock) - 1) / max(as.numeric(stock) - 1)) %>%
     dplyr::select(-tribn) %>%
     dplyr::arrange(stock, trib, color, alpha)
   
-  lev <- gsub("\\s\\w*$", "", id$trib[id$trib!="Deshka"])
-  breaks$trib <- factor(gsub("\\s\\w*$", "", breaks$trib), levels = lev)
-  est$trib <- factor(gsub("\\s\\w*$", "", est$trib), levels = lev)
-  obs$trib <- factor(gsub("\\s\\w*$", "", obs$trib), levels = lev)
+  lev <- gsub("\\sRiver|\\sSusitna", "", id$trib[id$trib!="Deshka"])
+  breaks$trib <- factor(gsub("\\sRiver|\\sSusitna", "", breaks$trib), levels = lev)
+  est$trib <- factor(gsub("\\sRiver|\\sSusitna", "", est$trib), levels = lev)
+  obs$trib <- factor(gsub("\\sRiver|\\sSusitna", "", obs$trib), levels = lev)
   col <-setNames(breaks$color, lev)
   alp <-setNames(breaks$alpha, lev)
   

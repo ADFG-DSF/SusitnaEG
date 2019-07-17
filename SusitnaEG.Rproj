@@ -13,7 +13,6 @@ RnwWeave: Sweave
 LaTeX: pdfLaTeX
 
 BuildType: Package
-PackageUseDevtools: Yes
-PackagePath: SusitnaEG
+PackagePath: H:/My Documents/SusitnaEG/SusitnaEG
 PackageInstallArgs: --no-multiarch --with-keep.source
 PackageRoxygenize: rd,collate,namespace
