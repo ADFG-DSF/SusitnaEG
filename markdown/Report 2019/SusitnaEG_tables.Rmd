@@ -8,8 +8,8 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-#post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
-post <- readRDS("C:\\postsC\\SuChinook_8e162f9.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
+#post <- readRDS("C:\\postsC\\SuChinook_8e162f9.rds")
 ```
 
 
@@ -18,7 +18,7 @@ Table: Table 1.- Aerial survey observability and lognormal standard deviation wi
 table_airerror(post)
 ``` 
 
-Table: Table 2.- State-space model parameter estimates for Susitna River Chinook salmon by stock group, calendar years 1979--2017. 
+Table: Table 2.- State-space model parameter estimates for Susitna River Chinook salmon by stock, calendar years 1979--2017. 
 ```{r}
 table_params(post)
 ```

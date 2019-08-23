@@ -12,11 +12,11 @@ get_ids()
 post <- readRDS("C:\\postsC\\SuChinook_8e162f9.rds")
 ```
 
-Appendix B1.- RJAGS code for the Susitna River Chinook salmon run reconstruction and rscapement goal analysis.  
+Appendix B1.- RJAGS code for the Susitna River Chinook salmon run reconstruction and escapement goal analysis.  
 ```{r code = readLines("..\\..\\models\\mod_SuChin.R"), echo = T, eval = F}
 ```
 
-Table: Appendix C1.- Annual abundance estimates for the Deshka River Chinook salmon stock group obtained by fitting a state-space model to data from 1979 to 2017.
+Table: Appendix C1.- Annual abundance estimates for the Deshka River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2017.
 ```{r}
 tab_state <- table_state(post, "bystock")
 knitr::kable(tab_state[[1]][-2], row.names = FALSE, align = "r", escape = FALSE)
@@ -24,14 +24,14 @@ knitr::kable(tab_state[[1]][-2], row.names = FALSE, align = "r", escape = FALSE)
   
 *Note*: Point estimates are posterior medians, CVs are posterior standard deviations divided by posterior means.  Recruitment values are listed by brood year.
   
-Table: Appendix C2.- Annual abundance estimates for the Eastside Susitna Chinook salmon stock group obtained by fitting a state-space model to data from 1979 to 2017.  
+Table: Appendix C2.- Annual abundance estimates for the Eastside Susitna Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2017.  
 ```{r}
 knitr::kable(tab_state[[2]][-2], row.names = FALSE, align = "r", escape = FALSE)
 ```
   
 *Note*: Point estimates are posterior medians, CVs are posterior standard deviations divided by posterior means.  Recruitment values are listed by brood year.
   
-Table: Appendix C3.- Annual abundance estimates for the Talkeetna River Chinook salmon stock group obtained by fitting a state-space model to data from 1979 to 2017.  
+Table: Appendix C3.- Annual abundance estimates for the Talkeetna River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2017.  
 ```{r}
 knitr::kable(tab_state[[3]][-2], row.names = FALSE, align = "r", escape = FALSE)
 ```
@@ -45,7 +45,7 @@ knitr::kable(tab_state[[4]][-2], row.names = FALSE, align = "r", escape = FALSE)
   
 *Note*: Point estimates are posterior medians, CVs are posterior standard deviations divided by posterior means.  Recruitment values are listed by brood year.
   
-Table: Appendix D1.- Annual stock composition estimates for the Eastside Susitna Chinook salmon stock group obtained by fitting a state-space model to data from 1979 to 2017.  
+Table: Appendix D1.- Annual stock composition estimates for the Eastside Susitna Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2017.  
 ```{r}
 tab_stock <- table_stock(post)
 knitr::kable(tab_stock[[1]], row.names = FALSE, align = "r", escape = FALSE)
@@ -53,14 +53,14 @@ knitr::kable(tab_stock[[1]], row.names = FALSE, align = "r", escape = FALSE)
   
 *Note*: Point estimates are posterior means with posterior standard deviations in parentheses.
   
-Table: Appendix D2.- Annual stock composition estimates for the Talkeetna River Chinook salmon stock group obtained by fitting a state-space model to data from 1979 to 2017.  
+Table: Appendix D2.- Annual stock composition estimates for the Talkeetna River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2017.  
 ```{r}
 knitr::kable(tab_stock[[2]], row.names = FALSE, align = "r", escape = FALSE)
 ```
   
 *Note*: Point estimates are posterior means with posterior standard deviations in parentheses.
  
-Table: Appendix D3.- Annual stock composition estimates for the Yentna River Chinook salmon stock group obtained by fitting a state-space model to data from 1979 to 2017. 
+Table: Appendix D3.- Annual stock composition estimates for the Yentna River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2017. 
 ```{r}
 knitr::kable(tab_stock[[3]], row.names = FALSE, align = "r", escape = FALSE)
 ```
