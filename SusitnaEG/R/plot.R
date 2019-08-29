@@ -824,8 +824,8 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
     ggplot2::facet_grid(stock ~ ., switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 4), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::percent) +
-    ggplot2::scale_fill_manual(breaks = breaks$trib, values = col, name = "Tributary") +
-    ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp, "Tributary") +
+    ggplot2::scale_fill_manual(breaks = breaks$trib, values = col, name = "Population") +
+    ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp, "Population") +
     ggplot2::geom_point(data = obs, ggplot2::aes(fill = trib), size = 3, shape = 21, color = "white") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme_bw(base_size = 12) +

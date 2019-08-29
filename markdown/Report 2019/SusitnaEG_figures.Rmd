@@ -22,7 +22,7 @@ goals_list <- list(Deshka = c(9000, 18000),
   
 ![Figure 2.- Susitna River Chinook salmon stocks for run reconstruction and escapement goal analysis. ](stocks.png)
   
-*Note*: Labeled tributaries are flown during annual aerial surveys. Red labels indicate the tributary has an existing SEG. 
+*Note*: Labeled tributaries are flown during annual aerial surveys. Red labels indicate the population has an existing SEG. 
   
 ```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Susitna River Chinook salmon data by stock, 1979-2017."}
 dates_weir <-

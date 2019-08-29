@@ -82,7 +82,7 @@ table_airerror <- function(post_dat){
     tidyr::spread(param, print1) %>%
     dplyr::select(stock, trib, theta, sigma.air)
   
-  colnames(temp)  <- c("Stock", "Tributary", "$\\theta_i$(95% CI)", "$\\sigma_{ASi}$(95% CI)")
+  colnames(temp)  <- c("Stock", "Population", "$\\theta_i$(95% CI)", "$\\sigma_{ASi}$(95% CI)")
   knitr::kable(temp, escape = FALSE, align = "r")
 }
 

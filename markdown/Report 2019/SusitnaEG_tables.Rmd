@@ -13,7 +13,7 @@ post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
 ```
 
 
-Table: Table 1.- Aerial survey observability and lognormal standard deviation with 95% confidence interval for each surveyed spawning area tributary in the Susitna River drainage, calendar years 1979--2017.
+Table: Table 1.- Aerial survey observability and lognormal standard deviation with 95% confidence interval for each population in the Susitna River drainage, calendar years 1979--2017.
 ```{r}
 table_airerror(post)
 ``` 
