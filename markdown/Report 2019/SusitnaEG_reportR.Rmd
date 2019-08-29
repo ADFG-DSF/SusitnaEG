@@ -12,8 +12,7 @@ output:
 library(bookdown)
 knitr::opts_chunk$set(echo = TRUE)
 library(SusitnaEG)
-post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
-#post <- readRDS("C:\\postsC\\SuChinook_8e162f9.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_134cf92.rds")
 get_ids()
 goals_list <- list(Deshka = c(9000, 18000),
                    Eastside = c(13000, 25000),

@@ -142,7 +142,7 @@ plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
   stopifnot(exists("stock_id", .GlobalEnv),
             exists("stock_print", .GlobalEnv))
   rug_dat <- get_BEGbounds(median(profile_dat$S.msy))
-  stock_name <- paste0(stock_print[which(stock_id == unique(profile_dat[["name"]]))], " Stock Group Expected Sustained Yield")
+  stock_name <- paste0(stock_print[which(stock_id == unique(profile_dat[["name"]]))], " Stock Expected Sustained Yield")
   
   plot_dat <- profile_dat %>%
     dplyr::select(s, dplyr::starts_with("SY")) %>%
@@ -369,7 +369,7 @@ plot_fit <- function(post_dat, stock_name){
     ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::theme_bw(base_size = 17) +
-    ggplot2::ggtitle(paste0(stock_print[which(stock_id == stock_name)], " Stock Group Escapement and Inriver Run")) +
+    ggplot2::ggtitle(paste0(stock_print[which(stock_id == stock_name)], " Stock Escapement and Inriver Run")) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"),
                    legend.position = "bottom",
                    strip.placement = "outside")
@@ -443,7 +443,7 @@ plot_horse <- function(post_dat, stock_name){
     ggplot2::coord_cartesian(xlim = c(0, upper), ylim = c(0, upper)) +
     ggplot2::geom_abline(slope = 1, size = 1) +
     ggplot2::theme_bw(base_size = 11) +
-    ggplot2::ggtitle(paste0(stock_print[which(stock_id == stock_name)], " Stock Group Spawner-Recruit Relationship")) +
+    ggplot2::ggtitle(paste0(stock_print[which(stock_id == stock_name)], " Stock Spawner-Recruit Relationship")) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"))
 }
 
@@ -473,7 +473,7 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
                                           'ORP' = "Optimum Recruitment Profile"))
   S.msy50 <- median(profile_dat$S.msy) 
   rug_dat <- get_BEGbounds(S.msy50)
-  stock_name <- paste0(stock_print[which(stock_id == unique(profile_dat[["name"]]))], " Stock Group Probability Profiles")
+  stock_name <- paste0(stock_print[which(stock_id == unique(profile_dat[["name"]]))], " Stock Probability Profiles")
   
   if(is.null(limit)){
     xmax <- S.msy50 * 2.25
@@ -829,7 +829,7 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
     ggplot2::geom_point(data = obs, ggplot2::aes(fill = trib), size = 3, shape = 21, color = "white") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme_bw(base_size = 12) +
-    ggplot2::ggtitle("Susitna River Chinook Salmon Stock Group Composition") +
+    ggplot2::ggtitle("Susitna River Chinook Salmon Stock Composition") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), 
                    strip.placement = "outside")
 }

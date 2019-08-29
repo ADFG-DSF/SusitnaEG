@@ -8,8 +8,7 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
-#post <- readRDS("C:\\postsC\\SuChinook_8e162f9.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_134cf92.rds")
 ```
 
 
