@@ -286,16 +286,16 @@ plot_age(post)
   
 *Note*: Top and middle are area graphs, in which distance between lines represent age proportions. Dots in middle plot are data-based estimates of age composition.
   
-```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of total run abundance from a state-space model by stock, 1979--2017."}
+```{r, fig.width = 7, fig.height = 8.5, fig.cap = "Figure 22.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of harvest rate from a state-space model by stock, 1979--2017."}
+plot_state(post, "Harvest Rate", "msy")
+```
+  
+*Note*: The posterior median of $U_{MSY}$ is plotted as short dash horizontal reference line.
+  
+```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 23.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of total run abundance from a state-space model by stock, 1979--2017."}
 plot_state(post, "Total Run")
 ```
   
-```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 23.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of Ricker productivity residuals from a state-space model by stock, 1979--2014 brood years."}
+```{r, fig.width = 7, fig.height = 9, fig.cap = "Figure 24.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of Ricker productivity residuals from a state-space model by stock, 1979--2014 brood years."}
 plot_state(post, "Ricker Residuals")
 ```
-  
-```{r, fig.width = 7, fig.height = 8.5, fig.cap = "Figure 24.- Point estimates (posterior medians; solid lines) and 95% credibility intervals (shaded areas) of harvest rate from a state-space model by stock, 1979--2017."}
-plot_state(post, "Harvest Rate", c("msy", "msr"))
-```
-  
-*Note*: The posterior median of $U_{MSY}$ is plotted as short dash horizontal reference line and the posterior median of $U_{MSR}$ is plotted as long dash horizontal reference line.

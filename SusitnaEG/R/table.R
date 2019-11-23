@@ -230,7 +230,7 @@ table_state <- function(post_dat, display){
     dplyr::filter(grepl("^R\\[|S\\[|N\\[|IR\\[", rowname)) %>%
     dplyr::mutate(name = factor(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname),
                                 levels = c("N", "IR", "S", "R"),
-                                labels = c("Total run (CV)", "Inriver run (CV)", "Escapement(CV)", "Recruitment(Cv)")),
+                                labels = c("Total run (CV)", "Inriver run (CV)", "Escapement(CV)", "Recruitment(CV)")),
                   index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
                   year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index),
                   stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], 

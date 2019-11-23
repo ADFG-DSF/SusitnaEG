@@ -112,7 +112,7 @@ for (y in 1:Y) {
 ### STOCK COMPOSITION ###
 ### MULTIVARIATE LOGISTIC MODEL CONTROLS TIME-TREND OF STOCK COMPOSITION
 ### GIVEN EXPECTED COMPOSITION, ANNUAL COMPOSITION DIRICHLET DISTRIB AT YEAR y.
-### note p.S# is rho# in report
+### note p.S# is rho.# in report
 # East Susitna, T_s=7
   Dscale.S2 ~ dunif(0.07,1)
   Dsum.S2 <- 1 / (Dscale.S2 * Dscale.S2)
