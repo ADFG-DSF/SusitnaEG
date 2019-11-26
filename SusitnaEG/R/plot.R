@@ -49,17 +49,19 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
   ggplot2::ggplot(ggplot2::aes(x = year, y = mean, alpha = age)) +
     ggplot2::geom_area(position = ggplot2::position_stack(reverse = TRUE)) +
     ggplot2::facet_grid(plot ~ ., scales = "free", switch = "y") +
-    ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 3), minor_breaks = NULL) +
+    ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 4), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
     ggplot2::geom_point(data = Q.obs, size = 3, ggplot2::aes(shape = sample)) +
     ggplot2::geom_line(data = pi.mn, ggplot2::aes(alpha = NULL, color = age), size = 0.75, linetype = "dashed") +
     ggplot2::scale_color_manual(values = rep("black", 4), guide = FALSE) +
-    ggplot2::scale_alpha_discrete(name = "Age", labels = names(age_id)) +
+    ggplot2::scale_alpha_discrete(name = "Age", labels = names(age_id), guide = ggplot2::guide_legend(reverse = TRUE)) +
     ggplot2::scale_shape_discrete(name = "Sample") +
     ggplot2::labs(y = NULL, x = "Year") +
     ggplot2::theme_bw() +
+    ggplot2::ggtitle("Susitna River Chinook salmon Age Composition") +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), 
-                   strip.placement = "outside")
+                   strip.placement = "outside") +
+    ggplot2::theme_bw(base_size = 14)
 }
 
 
@@ -137,8 +139,10 @@ plot_countprofile <- function(profile_dat, limit = NULL, goal_range = NA, profil
 #'
 #' @export
 plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
+  stopifnot(exists("stock_id", .GlobalEnv),
+            exists("stock_print", .GlobalEnv))
   rug_dat <- get_BEGbounds(median(profile_dat$S.msy))
-  stock_name <- unique(profile_dat$name)
+  stock_name <- paste0(stock_print[which(stock_id == unique(profile_dat[["name"]]))], " Stock Expected Sustained Yield")
   
   plot_dat <- profile_dat %>%
     dplyr::select(s, dplyr::starts_with("SY")) %>%
@@ -166,7 +170,7 @@ plot_ey <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA){
     ggplot2::coord_cartesian(xlim = c(0, xmax), ylim = c(0, ymax)) +
     ggplot2::scale_color_manual(guide = FALSE, values = "black") +
     ggplot2::ggtitle(stock_name) +
-    ggplot2::theme_bw()
+    ggplot2::theme_bw(base_size = 11)
   
   if(rug == TRUE) {
     plot2 <- plot +
@@ -206,6 +210,7 @@ plot_fit <- function(post_dat, stock_name){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
+            exists("stock_print", .GlobalEnv),
             exists("trib_id", .GlobalEnv),
             "package:SusitnaEG" %in% search())
   yr0 <- as.numeric(min(year_id)) - 1
@@ -314,7 +319,7 @@ plot_fit <- function(post_dat, stock_name){
                   lb = exp(log(value) - 1.96 * sqrt(log(cv * cv + 1)))) %>%
     dplyr::filter(!is.na(value))
   
-  pal <- RColorBrewer::brewer.pal(6, "Paired")
+  pal <- RColorBrewer::brewer.pal(6, "Set1")
   shapes <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
   breaks <- 
     indicies[!duplicated(indicies$name), c("stock", "name", "trib", "type")] %>%
@@ -355,15 +360,19 @@ plot_fit <- function(post_dat, stock_name){
                              show.legend = FALSE) +
     ggplot2::scale_color_manual(name ="Index",
                                 breaks = breaks$name,
-                                values = col) +
+                                values = col,
+                                guide = ggplot2::guide_legend(ncol = 4)) +
     ggplot2::scale_shape_manual(name ="Index",
                                 breaks = breaks$name,
-                                values = sha) +
+                                values = sha,
+                                guide = ggplot2::guide_legend(ncol = 4)) +
     ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
-    ggplot2::theme_bw() +
-    ggplot2::ggtitle(stock_name) +
-    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
+    ggplot2::theme_bw(base_size = 17) +
+    ggplot2::ggtitle(paste0(stock_print[which(stock_id == stock_name)], " Stock Escapement and Inriver Run")) +
+    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"),
+                   legend.position = "bottom",
+                   strip.placement = "outside")
 }
 
 
@@ -386,6 +395,7 @@ plot_fit <- function(post_dat, stock_name){
 plot_horse <- function(post_dat, stock_name){
   stopifnot(exists("year_id", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
+            exists("stock_print", .GlobalEnv),
             exists("age_max", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
@@ -432,8 +442,8 @@ plot_horse <- function(post_dat, stock_name){
     ggplot2::scale_y_continuous("Recruits", minor_breaks = NULL, labels = scales::comma) +
     ggplot2::coord_cartesian(xlim = c(0, upper), ylim = c(0, upper)) +
     ggplot2::geom_abline(slope = 1, size = 1) +
-    ggplot2::theme_bw() +
-    ggplot2::ggtitle(stock_name) +
+    ggplot2::theme_bw(base_size = 11) +
+    ggplot2::ggtitle(paste0(stock_print[which(stock_id == stock_name)], " Stock Spawner-Recruit Relationship")) +
     ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"))
 }
 
@@ -455,13 +465,15 @@ plot_horse <- function(post_dat, stock_name){
 #'
 #' @export
 plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA, profiles = c("OYP", "ORP", "OFP")){
+  stopifnot(exists("stock_id", .GlobalEnv),
+            exists("stock_print", .GlobalEnv))
   temp <-unlist(lapply(profiles, function(x){paste0(x, c("70", "80", "90"))}))
   profile_label <- ggplot2::as_labeller(c('OYP' = "Optimum Yield Profile",
                                           'OFP' = "Overfishing Profile",
                                           'ORP' = "Optimum Recruitment Profile"))
   S.msy50 <- median(profile_dat$S.msy) 
   rug_dat <- get_BEGbounds(S.msy50)
-  stock_name <- unique(profile_dat$name)
+  stock_name <- paste0(stock_print[which(stock_id == unique(profile_dat[["name"]]))], " Stock Probability Profiles")
   
   if(is.null(limit)){
     xmax <- S.msy50 * 2.25
@@ -481,10 +493,11 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
     ggplot2::geom_line() +
     ggplot2::scale_x_continuous("Spawners", limits = c(0, xmax), labels = scales::comma) +
     ggplot2::scale_y_continuous("Probability", breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
-    ggplot2::scale_linetype_discrete(name = "Percent of Max.")+
+    ggplot2::scale_linetype_manual(name = "Percent of Max.", values = c("dotted", "dashed", "solid"))+
     ggplot2::facet_grid(profile ~ ., labeller = profile_label) +
+    ggplot2::theme_bw(base_size = 13) +
     ggplot2::ggtitle(stock_name) +
-    ggplot2::theme_bw()
+    ggplot2::theme(legend.position = "bottom")
   
   if(rug == TRUE) {
     plot2 <- plot +     
@@ -615,7 +628,7 @@ plot_state <- function(post_dat, display, rp = NULL){
     as.data.frame() %>%
     dplyr::select(median = "50%") %>%
     tibble::rownames_to_column() %>%
-    dplyr::filter(grepl(paste0("beta\\[\\d\\]|lnalpha\\[\\d\\]"), rowname)) %>%
+    dplyr::filter(grepl(paste0("beta\\[\\d\\]|lnalpha.c\\[\\d\\]"), rowname)) %>%
     dplyr::mutate(msr = ifelse(grepl("^beta", rowname), 1 / median, 1-1/exp(median - 1)),
                   name = factor(ifelse(grepl("^beta", rowname), "S", "U"),
                                 levels = c("S", "U"),
@@ -646,7 +659,7 @@ plot_state <- function(post_dat, display, rp = NULL){
       ggplot2::facet_grid(name ~ ., scales = "free_y", switch = "y") +
       ggplot2::labs(x = NULL, y = NULL) +
       ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
-      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = digits)  +
       ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
       ggplot2::theme_bw() +
       ggplot2::ggtitle(display) +
@@ -664,6 +677,7 @@ plot_state <- function(post_dat, display, rp = NULL){
     }
   }
   
+  if(display %in% c("Recruitment", "Ricker Residuals")) {x_label <- "Brood Year"} else {x_label = "Year"}
   if(display %in% c("Escapement", "Total Run", "Recruitment", "Harvest Rate", "Ricker Residuals")){
     plot <-
       dat[dat$name == display, ] %>%
@@ -673,8 +687,8 @@ plot_state <- function(post_dat, display, rp = NULL){
       ggplot2::geom_ribbon(ggplot2::aes(ymin = lcb, ymax = ucb), inherit.aes = TRUE, alpha = 0.3) +
       ggplot2::facet_grid(stock ~ ., switch = "y") +
       ggplot2::labs(x = NULL, y = NULL) +
-      ggplot2::scale_x_continuous("Year", breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
-      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma)  +
+      ggplot2::scale_x_continuous(x_label, breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL)  +
+      ggplot2::scale_y_continuous(minor_breaks = NULL, labels = digits)  +
       ggplot2::geom_hline(ggplot2::aes(yintercept = 0), color = "black", linetype = 1) +
       ggplot2::theme_bw() +
       ggplot2::ggtitle(display) +
@@ -725,11 +739,11 @@ plot_statepairs <- function(post_dat, plot){
 
 #' Plots of composition by stock
 #'
-#' Faceted plot of stock composition for Susitna Drainage. (Need to add observations)
+#' Faceted plot of stock composition for Susitna Drainage.
 #'
 #' @param input_dat telemetry data matrix
 #' @param post_dat The posterior object from the SRA model of class jagsUI
-#' @param plot_stocks The stocks to include in the plot. The default c("East Susitna", "Talkeetna", "Yentna") can be modified to include "Other".
+#' @param plot_stocks The stocks to include in the plot. The default c("East Susitna", "Talkeetna", "Yentna").
 #'
 #' @return A figure
 #'
@@ -742,7 +756,7 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
             exists("age_max", .GlobalEnv),
             exists("stock_id", .GlobalEnv),
             exists("trib_id", .GlobalEnv),
-            plot_stocks %in% c("East Susitna", "Talkeetna", "Yentna", "Other"),
+            plot_stocks %in% c("East Susitna", "Talkeetna", "Yentna"),
             "package:SusitnaEG" %in% search())
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_R <- yr0 - age_max
@@ -756,12 +770,13 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
     dplyr::arrange(stock, tribn)
   
   obs_f <- function(stock){
+    stock2 <- stock_print[stock == stock_id]
     input_dat[[stock]] %>%
       (function(x) {x/rowSums(x)}) %>%
       as.data.frame() %>%
       tibble::rownames_to_column() %>%
       tidyr::gather(trib0, p0, -rowname) %>%
-      dplyr::mutate(trib = factor(ifelse(trib0 == "Other", paste0(trib0, " ", stock), trib0), 
+      dplyr::mutate(trib = factor(ifelse(trib0 == "Other", paste0(trib0, " ", stock2), trib0), 
                                   levels = id$trib[id$stock == stock]),
                     year = unname(year_id[rowname]),
                     stock = stock) %>%
@@ -775,7 +790,7 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
   
   obs <- 
     lapply(plot_stocks, obs_f) %>% do.call(rbind, .) %>%
-    dplyr::mutate(stock = factor(stock, levels = stock_id))
+    dplyr::mutate(stock = factor(stock, levels = stock_id[stock_id %in% plot_stocks], labels =  stock_print[stock_id %in% plot_stocks]))
   
   est <- 
     post_dat[["summary"]][grepl("p.S", rownames(post_dat$summary)), "mean"] %>%
@@ -787,28 +802,36 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
     dplyr::left_join(id, by = c("stock", "tribn")) %>%
     dplyr::select(stock, year, trib, mean = ".") %>%
     dplyr::filter(stock %in% plot_stocks)
+  est$stock <- factor(est$stock, labels = stock_print[which(stock_id %in% plot_stocks)])
   
-  pal <- RColorBrewer::brewer.pal(7, "Paired")
+  pal <- RColorBrewer::brewer.pal(6, "Set1")
   breaks <- id[id$stock %in% plot_stocks, ] %>% 
     dplyr::mutate(color = unlist(lapply(sapply(which(stock_id %in% plot_stocks), function(x) sum(stock == stock_id[x]) - 1), function(x) c(pal[1:x], "black"))),
-                  alpha = 1 + min(as.numeric(stock)) / max(as.numeric(stock)) - as.numeric(stock) / max(as.numeric(stock))) %>%
+                  alpha = 1 + min(as.numeric(stock) - 1) / max(as.numeric(stock) - 1) - (as.numeric(stock) - 1) / max(as.numeric(stock) - 1)) %>%
     dplyr::select(-tribn) %>%
     dplyr::arrange(stock, trib, color, alpha)
-  col <-setNames(breaks$color, breaks$trib)
-  alp <-setNames(breaks$alpha, breaks$trib)
+  
+  lev <- gsub("\\sRiver|\\sSusitna", "", id$trib[id$trib!="Deshka"])
+  breaks$trib <- factor(gsub("\\sRiver|\\sSusitna", "", breaks$trib), levels = lev)
+  est$trib <- factor(gsub("\\sRiver|\\sSusitna", "", est$trib), levels = lev)
+  obs$trib <- factor(gsub("\\sRiver|\\sSusitna", "", obs$trib), levels = lev)
+  col <-setNames(breaks$color, lev)
+  alp <-setNames(breaks$alpha, lev)
   
   est %>%
     ggplot2::ggplot(ggplot2::aes(x = as.numeric(year), y = mean, fill = trib, alpha = trib)) +
     ggplot2::geom_area() +
     ggplot2::facet_grid(stock ~ ., switch = "y") +
-    ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 3), minor_breaks = NULL) +
+    ggplot2::scale_x_continuous(breaks = seq(min(year_id), max(year_id), 4), minor_breaks = NULL) +
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::percent) +
-    ggplot2::scale_fill_manual(breaks = breaks$trib, values = col, name = "Sub-stock") +
-    ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp, "Sub-stock") +
+    ggplot2::scale_fill_manual(breaks = breaks$trib, values = col, name = "Population") +
+    ggplot2::scale_alpha_manual(breaks = breaks$trib, values = alp, "Population") +
     ggplot2::geom_point(data = obs, ggplot2::aes(fill = trib), size = 3, shape = 21, color = "white") +
     ggplot2::labs(y = NULL, x = "Year") +
-    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), strip.placement = "outside")
-  
+    ggplot2::theme_bw(base_size = 12) +
+    ggplot2::ggtitle("Susitna River Chinook Salmon Stock Composition") +
+    ggplot2::theme(strip.background = ggplot2::element_rect(colour="white", fill="white"), 
+                   strip.placement = "outside")
 }
 
 

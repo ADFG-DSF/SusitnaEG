@@ -8,41 +8,28 @@ output:
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
 library(SusitnaEG)
 get_ids()
-post <- readRDS("..\\..\\posts\\SuChinook_8e162f9.rds")
+post <- readRDS("..\\..\\posts\\SuChinook_134cf92.rds")
 ```
 
 
-Table: Table 1.- Aerial Survey observability and lognormal standard deviation with 95% confidence interval for each surveyed spawning area tributary in the Susitna River drainage.
+Table: Table 1.- Aerial survey observability and lognormal standard deviation with 95% confidence interval for each population in the Susitna River drainage, calendar years 1979--2017.
 ```{r}
 table_airerror(post)
 ``` 
 
-Table: Table 2.- State-space model parameter estimates for Deshka River Chinook salmon, calendar years 1979-2017. Posterior medians are point estimates while 95% credibility intervals are shown in parentheses. Parameter definitions are in the Methods section. 
+Table: Table 2.- State-space model parameter estimates for Susitna River Chinook salmon by stock, calendar years 1979--2017. 
 ```{r}
-table_params(post, 1)
+table_params(post)
 ```
-
-Table: Table 3.- State-space model parameter estimates for East Susitna Chinook salmon, calendar years 1979-2017. Posterior medians are point estimates while 95% credibility intervals are shown in parentheses. Parameter definitions are in the Methods section. 
-```{r}
-table_params(post, 2)
-```
-
-Table: Table 4.- State-space model parameter estimates for Talkeetna River Chinook salmon, calendar years 1979-2017. Posterior medians are point estimates while 95% credibility intervals are shown in parentheses. Parameter definitions are in the Methods section. 
-```{r}
-table_params(post, 3)
-```
-
-Table: Table 5.- State-space model parameter estimates for Yentna River Chinook salmon, calendar years 1979-2017. Posterior medians are point estimates while 95% credibility intervals are shown in parentheses. Parameter definitions are in the Methods section. 
-```{r}
-table_params(post, 4)
-```
-
-Table: Table 6.- Age composition estimates obtained by fitting a state-space model to data from Susitna River Chinook salmon, calendar years 1979-2017.
+  
+*Note*: Posterior medians are point estimates and 95% credibility intervals are shown in parentheses. Parameter definitions are in the Methods section.
+  
+Table: Table 3.- Age composition estimates obtained by fitting a state-space model to data from Susitna River drainage Chinook salmon, calendar years 1979--2017.
 ```{r}
 table_age(post, "q")
 ```
 
-Table: Table 7.- Age-at-maturity estimates obtained by fitting a state-space model to data from Susitna River Chinook salmon, brood years 1973-2014.
+Table: Table 4.- Age-at-maturity estimates obtained by fitting a state-space model to data from Susitna River drainage Chinook salmon, brood years 1973--2014.
 ```{r}
 table_age(post, "p")
 ```

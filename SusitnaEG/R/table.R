@@ -13,7 +13,9 @@
 #' @export
 table_age <- function(post_dat, node){
   stopifnot(exists("year_id", .GlobalEnv),
-            exists("age_max", .GlobalEnv))
+            exists("age_max", .GlobalEnv),
+            exists("age_id", .GlobalEnv),
+            exists("age_min", .GlobalEnv))
   yr0 <- as.numeric(min(year_id)) - 1
   yr0_p <- yr0 - age_max
   
@@ -29,7 +31,8 @@ table_age <- function(post_dat, node){
     tidyr::spread(age, print) %>%
     dplyr::mutate_if(is.numeric, dplyr::funs(if(node == "p") {yr0_p + .} else(yr0 + .)))
   
-  colnames(temp) <- c(if(node =="p") "Brood Year" else("Calendar Year"), paste0(names(age_id), " (", if(node == "N.ta") "CV)" else("sd)")))
+  colnames(temp) <- c(if(node =="p") "Brood year" else("Calendar year"), 
+                      paste0(names(age_id), if(node == "N.ta") " (CV)" else(" (SD)")))
   
   knitr::kable(temp, escape = FALSE, align = "r")
 }
@@ -74,12 +77,12 @@ table_airerror <- function(post_dat){
                   stock = id$stock[as.numeric(tribn)]) %>%
     dplyr::mutate_if(is.numeric, digits) %>%
     dplyr::rename(median = "50%", q2.5 = "2.5%", q97.5 = "97.5%") %>%
-    dplyr::mutate(print1 = paste0(median, " (", q2.5, " - ", q97.5, ")")) %>%
+    dplyr::mutate(print1 = paste0(median, " (", q2.5, "\U{2013}", q97.5, ")")) %>%
     dplyr::select(stock, trib, param, print1) %>%
     tidyr::spread(param, print1) %>%
     dplyr::select(stock, trib, theta, sigma.air)
   
-  colnames(temp)  <- c("Stock Group", "Tributary", "$\\theta_s$(95% CI)", "$\\sigma_{ASs}$(95% CI)")
+  colnames(temp)  <- c("Stock", "Population", "$\\theta_i$(95% CI)", "$\\sigma_{ASi}$(95% CI)")
   knitr::kable(temp, escape = FALSE, align = "r")
 }
 
@@ -148,8 +151,7 @@ table_params <- function(post_dat, stocks = 1:4){
                                 paste0("U.msy[", stocks, "]"),
                                 rep("Dsum.age", stock_n),
                                 if(stock_n == 1 & (1 %in%stocks)){}else{paste0("Dsum.S", intersect(stocks, 2:5))},
-                                if(stock_n == 1 & (1 %in%stocks) == 1){}else{paste0("Bsum.So[", intersect(stocks - 1, 1:4), "]")},
-                                rep("sigma.weir", length(intersect(stocks, 1:2)))),
+                                if(stock_n == 1 & (1 %in%stocks) == 1){}else{paste0("Bsum.So[", intersect(stocks - 1, 1:4), "]")}),
                     Parameter = factor(c(rep("ln($\\alpha$)", stock_n),
                                         rep("$\\beta$", stock_n),
                                         rep("$\\phi$", stock_n),
@@ -160,13 +162,11 @@ table_params <- function(post_dat, stocks = 1:4){
                                         rep("$U_{MSY}$", stock_n),
                                         rep("$D_{age}$", stock_n),
                                         rep("$D_{comp}$", length(intersect(stocks, 2:5))),
-                                        rep("$B_{survey}$", length(intersect(stocks - 1, 1:4))),
-                                        rep("$\\sigma_{weir}$", length(intersect(stocks, 1:2)))),
+                                        rep("$B_{survey}$", length(intersect(stocks - 1, 1:4)))),
                                       levels = c("ln($\\alpha$)", 
                                                 "$\\beta$", 
                                                 "$\\phi$", 
-                                                "$\\sigma_{w}$", 
-                                                "$\\sigma_{weir}$",
+                                                "$\\sigma_{w}$",
                                                 "$D_{age}$",
                                                 "$D_{comp}$",
                                                 "$B_{survey}$",
@@ -174,7 +174,7 @@ table_params <- function(post_dat, stocks = 1:4){
                                                 "$S_{EQ}$",
                                                 "$S_{MSY}$",
                                                 "$U_{MSY}$")),
-                    stock = c(rep(stocks, times = 9), rep(intersect(stocks, 2:5), times = 2), intersect(stocks, 1:2)),
+                    stock = c(rep(stocks, times = 9), rep(intersect(stocks, 2:5), times = 2)),
                     stringsAsFactors = FALSE)
   
   temp <-
@@ -188,21 +188,14 @@ table_params <- function(post_dat, stocks = 1:4){
                                 sd / abs(median)),
                     stock0 = gsub("^.*\\[(\\d)\\]", "\\1", rowname)) %>%
       dplyr::mutate_at(c("median", "q2.5", "q97.5", "cv"), digits) %>%
-      dplyr::mutate(print1 = paste0(median, " (", q2.5, " - ", q97.5, ")"),
+      dplyr::mutate(print1 = paste0(median, " (", q2.5, "\U{2013}", q97.5, ")"),
                     print2 = paste0(median, " (", cv, ")"))
   
-  if(stock_n != 1){
-    print <- 
-      temp %>%
-      dplyr::select(Parameter, print2, stock) %>%
-      tidyr::spread(stock, print2)
-    colnames(print) <- c("Parameter", stock_id[stocks])} 
-  else{
-    print <- 
-      temp %>%
-      dplyr::select(Parameter, print1, stock) %>%
-      tidyr::spread(stock, print1)
-    colnames(print) <- c("Parameter", "median(95% CI)")}
+  print <- 
+    temp %>%
+    dplyr::select(Parameter, print1, stock) %>%
+    tidyr::spread(stock, print1)
+    colnames(print) <- c("Parameter", paste0(stock_id[stocks], " (95% CI)"))
   
   knitr::kable(print, escape = FALSE, align = "r")
 }
@@ -237,10 +230,12 @@ table_state <- function(post_dat, display){
     dplyr::filter(grepl("^R\\[|S\\[|N\\[|IR\\[", rowname)) %>%
     dplyr::mutate(name = factor(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname),
                                 levels = c("N", "IR", "S", "R"),
-                                labels = c("Total Run", "Inriver Run", "Escapement", "Recruitment")),
+                                labels = c("Total run (CV)", "Inriver run (CV)", "Escapement (CV)", "Recruitment (CV)")),
                   index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
                   year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index),
-                  stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id),
+                  stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], 
+                                 levels = stock_id,
+                                 labels = paste0(stock_id, " (CV)")),
                   cv = sd/mean,
                   print = paste0(format(round(median, 0), big.mark = ","), " (", format(round(cv, 2), nsmall = 2), ")"))
   
@@ -251,7 +246,8 @@ table_state <- function(post_dat, display){
       tidyr::spread(name, print) %>%
       dplyr::rowwise() %>%
       dplyr::mutate_all(nareplace) %>%
-      dplyr::arrange(stock, year)
+      dplyr::arrange(stock, year) %>%
+      dplyr::rename(Year = year)
    
     out <- split(temp2, temp2$stock)
   }
@@ -261,10 +257,11 @@ table_state <- function(post_dat, display){
       temp %>%
       dplyr::select(year, name, stock, print) %>%
       tidyr::spread(stock, print) %>%
-      dplyr::select(year, name, Deshka, 'East Susitna', Talkeetna, Yentna, Other) %>%
+      #dplyr::select(year, name, Deshka, 'East Susitna', Talkeetna, Yentna) %>%
       dplyr::rowwise() %>%
       dplyr::mutate_all(nareplace) %>%
-      dplyr::arrange(name, year)
+      dplyr::arrange(name, year) %>%
+      dplyr::rename(Year = year)
     
     out <- split(temp3, temp3$name)
   }
@@ -295,7 +292,9 @@ table_stock <- function(post_dat){
   
   id <- data.frame(stock = factor(rep(names(trib_id), sapply(trib_id, length)), levels = stock_id), 
                    tribn = unlist(sapply(trib_id, function(x) 1:length(x)), use.names = FALSE), 
-                   trib = factor(unlist(trib_id, use.names = FALSE), levels = unlist(trib_id, use.names = FALSE)),
+                   trib = factor(unlist(trib_id, use.names = FALSE), 
+                                 levels = unlist(trib_id, use.names = FALSE),
+                                 labels = paste0(unlist(trib_id, use.names = FALSE), " (SD)")),
                    stringsAsFactors = FALSE)
   
   est <- 
@@ -311,7 +310,8 @@ table_stock <- function(post_dat){
   
   list <- lapply(stock_id[-1], function(x) est[est$stock == x, ] %>%
                    dplyr::select(-stock) %>%
-                   tidyr::spread(trib, print))
+                   tidyr::spread(trib, print) %>%
+                   dplyr::rename(Year = year))
   
   names(list) <- stock_id[-1]
   list

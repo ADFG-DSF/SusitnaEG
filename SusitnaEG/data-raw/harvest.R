@@ -96,12 +96,13 @@ Hd <-
 
 Hm <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG Hm.xlsx",
-                     range = "Marine!ab4:ae45",
+                     range = "Marine!ab4:ah45",
                      col_names = TRUE) %>%
-  dplyr::mutate_at(.funs = as.integer, .vars = c("year", "Susitna", "SE_Susitna")) %>%
+  dplyr::mutate_at(.funs = as.integer, .vars = c("year", "SusitnaSR")) %>%
+  dplyr::mutate_at(.funs = as.double, .vars = c("CV_SusitnaSR")) %>%
   dplyr::filter(year >= 1979) %>%
-  dplyr::select(year, H = Susitna, cv = CV_Susitna)
+  dplyr::select(year, H = SusitnaSR, cv = CV_SusitnaSR)
 
 devtools::use_data(Ha, pkg = ".\\SusitnaEG", overwrite = TRUE)
 devtools::use_data(Hd, pkg = ".\\SusitnaEG", overwrite = TRUE)
-devtools::use_data(Hm, pkg = ".\\SusitnaEG", overwrite = TRUE)
+save(Hm, file=".\\SusitnaEG\\data\\Hm.rda")

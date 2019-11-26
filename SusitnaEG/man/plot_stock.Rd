@@ -12,13 +12,13 @@ plot_stock(input_dat, post_dat, plot_stocks = c("East Susitna", "Talkeetna",
 
 \item{post_dat}{The posterior object from the SRA model of class jagsUI}
 
-\item{plot_stocks}{The stocks to include in the plot. The default c("East Susitna", "Talkeetna", "Yentna") can be modified to include "Other".}
+\item{plot_stocks}{The stocks to include in the plot. The default c("East Susitna", "Talkeetna", "Yentna").}
 }
 \value{
 A figure
 }
 \description{
-Faceted plot of stock composition for Susitna Drainage. (Need to add observations)
+Faceted plot of stock composition for Susitna Drainage.
 }
 \examples{
 plot_stock(telemetry, post)
