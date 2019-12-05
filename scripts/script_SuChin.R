@@ -20,7 +20,10 @@ a <-
   dplyr::summarise(n = sum(n)) %>%
   tidyr::spread(age, n)
 table(a$yr.a, a$stock)
-x.a <- as.matrix(a[, grepl("x", names(a))]) 
+x.a <- as.matrix(a[, grepl("x", names(a))])
+#2019 MR is prelim so read in here.
+mr[[1]][41,] <- c(8071, 15475, 7400, NA)
+mr[[2]][41,] <- c(3173/8071, 4209/15475, 2937/7400, 0.1)
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
@@ -62,10 +65,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-nc <- 2
-nb <- 500
-nt <- 5
-ns <- 1100
+nc <- 3
+nb <- 5000
+nt <- 100
+ns <- 20000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -79,8 +82,8 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_134cf92.rds")
-post <- readRDS(".\\posts\\SuChinook_134cf92.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_adddata_fb451a7.rds")
+post <- readRDS(".\\posts\\SuChinook_adddata_fb451a7.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
