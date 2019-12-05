@@ -1,6 +1,6 @@
 age_deshka <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
-                     range = "Deshka!A11:I49",
+                     range = "Deshka!A11:I51",
                      col_names = c("year", "p3", "p4", "p5", "p6", "p78", "pall", "n", "source"),
                      col_types = c("text", rep("numeric", 7), "text")) %>%
   dplyr::filter(!is.na(n)) %>%  # 1990 no sampling

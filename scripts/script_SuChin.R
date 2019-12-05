@@ -3,7 +3,7 @@ lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
 
-get_ids()
+get_ids(year_range = 1979:2019)
 
 #recall get_Hhat()
 

@@ -1,8 +1,7 @@
 weir <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG weirs.xlsx",
-                     range = "Annual counts!A1:D40") %>%
+                     range = "Annual counts!A1:D42") %>%
   dplyr::select(-year) %>%
   as.matrix()
 
-devtools::use_data(weir, pkg = ".\\SusitnaEG", overwrite = TRUE)
-
+save(weir, file=".\\SusitnaEG\\data\\weir.rda")

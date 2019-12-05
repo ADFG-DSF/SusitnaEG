@@ -7,9 +7,13 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 10), "Talkeetna", rep(
 
 Ha_early_raw0 <-
 readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG Ha_pre96.xlsx",
-                   range = "Inriver!A4:x23",
-                   col_names = TRUE) %>%
-  dplyr::select(-Alexander, -Deshka_up, -dplyr::starts_with("X")) %>%
+                   range = "Inriver!A5:x23",
+                   col_names = c("year", rep("skip", 2), 
+                                 "Deshka", "Deshka_up", "skip", 
+                                 "Caswell", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Birch", "Rabideux", "Sunshine", "skip",
+                                 "Talkeetna", "skip", 
+                                 "Fish", "Lake", "Peters", "Talachulitna", "Yentna")) %>%
+  dplyr::select(-Deshka_up, -dplyr::starts_with("skip")) %>%
   dplyr::filter(year >= 1979) %>%
   tidyr::gather(trib, H_trib, -year) %>%
   dplyr::left_join(lut, by = "trib")
@@ -26,7 +30,7 @@ Ha_early_raw <-
 
 Ha_late_raw0 <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\Su_ks_se.xlsx",
-                     range = "su_har!A4:H26",
+                     range = "su_har!A4:H28",
                      col_names = TRUE,
                      na = ".") %>%
   dplyr::select(-Alexander_Cr) %>%
@@ -42,7 +46,7 @@ Ha_late_raw <-
 
 Hase_late_raw <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\Su_ks_se.xlsx",
-                     range = "ks_se!A4:G26",
+                     range = "ks_se!A4:G28",
                      col_names = TRUE, na = ".") %>%
   dplyr::rename(year = Year, Deshka0 = Deshka, Deshka_above0 = Deshka_above) %>%
   dplyr::left_join(pct_up, by = "year") %>%
@@ -85,7 +89,7 @@ Ha <-
   )
 
 Hd <- 
-  dplyr::left_join(Ha["year"], 
+  dplyr::left_join(Ha0["year"], 
                    Ha_late_raw[which(names(Ha_late_raw) == c("year", "Deshka_above"))], 
                    by = "year")  %>%
   dplyr::rename(H = Deshka_above) %>%
@@ -96,13 +100,13 @@ Hd <-
 
 Hm <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG Hm.xlsx",
-                     range = "Marine!ab4:ah45",
+                     range = "Marine!ab4:ah47",
                      col_names = TRUE) %>%
   dplyr::mutate_at(.funs = as.integer, .vars = c("year", "SusitnaSR")) %>%
   dplyr::mutate_at(.funs = as.double, .vars = c("CV_SusitnaSR")) %>%
   dplyr::filter(year >= 1979) %>%
   dplyr::select(year, H = SusitnaSR, cv = CV_SusitnaSR)
 
-devtools::use_data(Ha, pkg = ".\\SusitnaEG", overwrite = TRUE)
-devtools::use_data(Hd, pkg = ".\\SusitnaEG", overwrite = TRUE)
+save(Ha, file=".\\SusitnaEG\\data\\Ha.rda")
+save(Hd, file=".\\SusitnaEG\\data\\Hd.rda")
 save(Hm, file=".\\SusitnaEG\\data\\Hm.rda")

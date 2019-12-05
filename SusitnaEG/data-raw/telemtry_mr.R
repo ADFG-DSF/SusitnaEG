@@ -45,7 +45,7 @@ tele_matrix <- function(stock){
   tele <- function(dat, stock){
     dat[dat$stock == stock, c("year", "stock", "trib", "count")] %>%
       dplyr::mutate(trib = factor(trib, 
-                                  levels = unlist(lapply(1:5, function(x) c(colnames(as[[x]]), paste0("Other ", names(as[x]))))),
+                                  levels = unlist(lapply(1:4, function(x) c(colnames(as[[x]]), paste0("Other ", names(as[x]))))),
                                   ordered = TRUE)) %>%
       tidyr::spread(trib, count)
   }
@@ -55,7 +55,7 @@ tele_matrix <- function(stock){
       do.call(rbind, .) %>%
       dplyr::ungroup() %>%
       dplyr::select(-year, -stock) %>%
-      dplyr::mutate_all(dplyr::funs(ifelse(is.na(.), 0, .))) %>%
+      dplyr::mutate_all(list(~ ifelse(is.na(.), 0, .))) %>%
       as.matrix()
   colnames(dat) <- c(colnames(dat)[-dim(dat)[2]], "Other")
 
@@ -63,15 +63,15 @@ tele_matrix <- function(stock){
         dat)
 }
 
-tele_east <- tele_matrix("East Susitna")
-tele_tal <- tele_matrix("Talkeetna")
-tele_yent <- tele_matrix("Yentna")
+tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 2, ncol = dim(.)[2]))
+tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 2, ncol = dim(.)[2]))
+tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 2, ncol = dim(.)[2]))
 
 telemetry <- list('East Susitna' = tele_east, 'N_East Susitna' = rowSums(tele_east, na.rm = TRUE),
                   'Talkeetna' = tele_tal, 'N_Talkeetna' = rowSums(tele_tal, na.rm = TRUE),
                   'Yentna' = tele_yent, 'N_Yentna' = rowSums(tele_yent, na.rm = TRUE))
 
-devtools::use_data(telemetry, pkg = ".\\SusitnaEG", overwrite = TRUE)
+save(telemetry, file=".\\SusitnaEG\\data\\telemetry.rda")
 
 #mark recapture estimates
 lut <- c("C" = "Deshka", "E+B" = "East Susitna", "F" = "Talkeetna", "1to5" = "Yentna")
@@ -95,7 +95,11 @@ mr <-
         rbind(matrix(NA, 
                      nrow = 34, 
                      ncol = 4),
-              .),
+              .) %>%
+         rbind(.,
+               matrix(NA, 
+                      nrow = 2, 
+                      ncol = 4)),
       cv_mr = temp %>%
         dplyr::select(stock, year, cv) %>%
         tidyr::spread(stock, cv) %>%
@@ -105,6 +109,10 @@ mr <-
         rbind(matrix(0.1, 
                      nrow = 34, 
                      ncol = 4),
-              .)
-  )
-devtools::use_data(mr, pkg = ".\\SusitnaEG", overwrite = TRUE)
+              .) %>%
+        rbind(.,
+              matrix(0.1, 
+                     nrow = 2, 
+                     ncol = 4)))
+
+save(mr, file=".\\SusitnaEG\\data\\mr.rda")
