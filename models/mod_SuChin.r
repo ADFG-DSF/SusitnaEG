@@ -282,6 +282,7 @@ for (y in 1:Y) {
   p.small4[y] ~ dbeta(1,1)
   small3[y, 1] ~ dbinom(p.small3[y], small3[y, 2])  #Eq. 17
   small4[y, 1] ~ dbinom(p.small4[y], small4[y, 2])
+  MR_det[y] ~ dlnorm(log(sum(IR500[y, 1:3])), tau.logMR_det[y])
   for (s in 1:SG){
     IR[y, s] <- N[y, s] * (1 - mu.Hmarine[y])  #Eq. 9
 	IR500[y, s] <- IR[y, s] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))  #Eq. 18

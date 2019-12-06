@@ -39,7 +39,8 @@ dat = list(
   MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
-  small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
+  small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
+  MR_det = c(rep(NA, 39), 30605 * 0.74, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1) #2018 MR for stocks 1:3
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -114,7 +115,7 @@ plot_theta(post)
 #survey variability
 table_airerror(post)
 #mean survey variability
-post$summary["B", ]
+post$summary["C_as", ]
 
 #model fit plots
 lapply(stock_id, plot_fit, post_dat = post)
