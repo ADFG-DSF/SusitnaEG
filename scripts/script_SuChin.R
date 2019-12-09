@@ -24,6 +24,10 @@ x.a <- as.matrix(a[, grepl("x", names(a))])
 #2019 MR is prelim so read in here.
 mr[[1]][41,] <- c(8071, 15475, 7400, NA)
 mr[[2]][41,] <- c(3173/8071, 4209/15475, 2937/7400, 0.1)
+#Missing survey for deception is a big loss in 2018. Add in Willow count * 1.32 (expand for missing Deception count based on historic prop.)
+as[[2]]
+as[[2]][40,6] <- as.integer(411 * 1.36)
+as[[2]]
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
@@ -83,8 +87,8 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_adddata_fb451a7.rds")
-post <- readRDS(".\\posts\\SuChinook_adddata_fb451a7.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_adddata_c211807.rds")
+post <- readRDS(".\\posts\\SuChinook_adddata_c211807.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
