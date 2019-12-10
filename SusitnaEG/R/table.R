@@ -61,7 +61,8 @@ table_airerror <- function(post_dat){
                    tribn = 1:length(unlist(id0)),
                    trib0 = unlist(id0, use.names = FALSE),
                    stringsAsFactors = FALSE) %>%
-    dplyr::mutate(trib = factor(trib0, levels = trib0)) %>%
+    dplyr::mutate(trib = factor(trib0, levels = trib0),
+                  stock_p = stock_print[stock]) %>%
     dplyr::select(-trib0) %>%
     dplyr::arrange(stock, tribn)
   
@@ -74,7 +75,7 @@ table_airerror <- function(post_dat){
                                  gsub("^.*\\[(\\d+)\\]", "\\1", rowname),  
                                  gsub("^.*\\[(\\d+).*\\]", "\\1", rowname)),
                   trib = id$trib[as.numeric(tribn)],
-                  stock = id$stock[as.numeric(tribn)]) %>%
+                  stock = id$stock_p[as.numeric(tribn)]) %>%
     dplyr::mutate_if(is.numeric, digits) %>%
     dplyr::rename(median = "50%", q2.5 = "2.5%", q97.5 = "97.5%") %>%
     dplyr::mutate(print1 = paste0(median, " (", q2.5, "\U{2013}", q97.5, ")")) %>%
@@ -195,7 +196,7 @@ table_params <- function(post_dat, stocks = 1:4){
     temp %>%
     dplyr::select(Parameter, print1, stock) %>%
     tidyr::spread(stock, print1)
-    colnames(print) <- c("Parameter", paste0(stock_id[stocks], " (95% CI)"))
+    colnames(print) <- c("Parameter", paste0(stock_print[stocks], " (95% CI)"))
   
   knitr::kable(print, escape = FALSE, align = "r")
 }
@@ -232,7 +233,7 @@ table_state <- function(post_dat, display){
                                 levels = c("N", "IR", "S", "R"),
                                 labels = c("Total run (CV)", "Inriver run (CV)", "Escapement (CV)", "Recruitment (CV)")),
                   index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
-                  year = (name != c("Recruitment")) * (yr0 + index) + (name == "Recruitment") * (yr0_R + index),
+                  year = ifelse(grepl("^R\\[", rowname), yr0_R + index, yr0 + index),
                   stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], 
                                  levels = stock_id,
                                  labels = paste0(stock_id, " (CV)")),
