@@ -19,7 +19,7 @@ goals_list <- list(Deshka = c(9000, 18000),
   
 *Source*: Adapted from Southcentral Alaska Sport Fishing Regulations Summary (http://www.adfg.alaska.gov/index.cfm?adfg=fishregulations.sc_sportfish).
   
-![Figure 2.- Susitna River Chinook salmon stocks (large bold text) for run reconstruction and escapement goal analysis. ](stocks.png)
+![Figure 2.- Susitna River Chinook salmon stocks (large bold text) for run reconstruction and escapement goal analysis. ](stocks2.png)
   
 *Note*: Labeled tributaries are flown during annual aerial surveys. Red labels indicate the population has an existing SEG. 
   

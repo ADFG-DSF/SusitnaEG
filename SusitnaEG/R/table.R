@@ -143,6 +143,7 @@ table_brood <- function(post_dat, stock){
 table_params <- function(post_dat, stocks = 1:4){
   stock_n <- length(stocks)
   lut <- data.frame(rowname = c(paste0("lnalpha[", stocks, "]"),
+                                paste0("alpha[", stocks, "]"),
                                 paste0("beta[", stocks, "]"),
                                 paste0("phi[", stocks, "]"),
                                 paste0("sigma.white[", stocks, "]"),
@@ -154,6 +155,7 @@ table_params <- function(post_dat, stocks = 1:4){
                                 if(stock_n == 1 & (1 %in%stocks)){}else{paste0("Dsum.S", intersect(stocks, 2:5))},
                                 if(stock_n == 1 & (1 %in%stocks) == 1){}else{paste0("Bsum.So[", intersect(stocks - 1, 1:4), "]")}),
                     Parameter = factor(c(rep("ln($\\alpha$)", stock_n),
+                                        rep("$\\alpha$", stock_n),
                                         rep("$\\beta$", stock_n),
                                         rep("$\\phi$", stock_n),
                                         rep("$\\sigma_{w}$", stock_n),
@@ -164,7 +166,8 @@ table_params <- function(post_dat, stocks = 1:4){
                                         rep("$D_{age}$", stock_n),
                                         rep("$D_{comp}$", length(intersect(stocks, 2:5))),
                                         rep("$B_{survey}$", length(intersect(stocks - 1, 1:4)))),
-                                      levels = c("ln($\\alpha$)", 
+                                      levels = c("ln($\\alpha$)",
+                                                "$\\alpha$",
                                                 "$\\beta$", 
                                                 "$\\phi$", 
                                                 "$\\sigma_{w}$",
@@ -175,7 +178,7 @@ table_params <- function(post_dat, stocks = 1:4){
                                                 "$S_{EQ}$",
                                                 "$S_{MSY}$",
                                                 "$U_{MSY}$")),
-                    stock = c(rep(stocks, times = 9), rep(intersect(stocks, 2:5), times = 2)),
+                    stock = c(rep(stocks, times = 10), rep(intersect(stocks, 2:5), times = 2)),
                     stringsAsFactors = FALSE)
   
   temp <-
