@@ -11,18 +11,17 @@ get_ids()
 post <- readRDS("..\\..\\posts\\SuChinook_134cf92.rds")
 ```
 
-
-Table: Table 1.- Aerial survey observability and lognormal standard deviation with 95% confidence interval for each population in the Susitna River drainage, calendar years 1979--2017.
-```{r}
-table_airerror(post)
-``` 
-
-Table: Table 2.- State-space model parameter estimates for Susitna River Chinook salmon by stock, calendar years 1979--2017. 
+Table: Table 1.- State-space model parameter estimates for Susitna River Chinook salmon by stock, calendar years 1979--2017. 
 ```{r}
 table_params(post)
 ```
-  
+    
 *Note*: Posterior medians are point estimates and 95% credibility intervals are shown in parentheses. Parameter definitions are in the Methods section.
+  
+Table: Table 2.- Aerial survey observability and lognormal standard deviation with 95% confidence interval for each population in the Susitna River drainage, calendar years 1979--2017.
+```{r}
+table_airerror(post)
+``` 
   
 Table: Table 3.- Age composition estimates obtained by fitting a state-space model to data from Susitna River drainage Chinook salmon, calendar years 1979--2017.
 ```{r}

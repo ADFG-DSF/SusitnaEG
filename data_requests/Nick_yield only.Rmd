@@ -1,0 +1,48 @@
+---
+output: 
+  word_document:
+    reference_docx: "..\\markdown\\Report 2019\\doc_styles\\word_styles_FDS.docx"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, fig.cap = TRUE, fig.align = 'center')
+library(SusitnaEG)
+get_ids()
+post <- readRDS("..\\posts\\SuChinook_134cf92.rds")
+goals_list <- list(Deshka = c(9000, 18000),
+                   Eastside = c(13000, 25000),
+                   Talkeetna = c(9000, 17500),
+                   Yentna = c(13000, 22000))
+```
+
+
+```{r, fig.width = 8, fig.height = 5, fig.cap = "Optimal yield (OYP) profile for the Deshka River Chinook salmon stock. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profiles <- lapply(stock_id[-5], get_profile, post_dat = post)
+profile <- mapply(plot_profile, 
+                  profile_dat = profiles, 
+                  goal_range = goals_list, 
+                  MoreArgs = list(limit = 30000), 
+                  profiles = "OYP",
+                  SIMPLIFY = FALSE)
+profile[[1]]
+```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
+
+```{r, fig.width = 8, fig.height = 5, fig.cap = "Optimal yield (OYP) profile for the Eastside Susitna Chinook salmon stock. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[2]]
+```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
+
+```{r, fig.width = 8, fig.height = 5, fig.cap = "Optimal yield (OYP) profile for the Talkeetna River Chinook salmon stock. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[3]]
+```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
+
+```{r, fig.width = 8, fig.height = 5, fig.cap = "Optimal yield (OYP) profile for the Yentna River Chinook salmon stock. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[4]]
+```
+  
+*Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).

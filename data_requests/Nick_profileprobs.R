@@ -1,5 +1,5 @@
 library(SusitnaEG)
-post <- readRDS(".\\posts\\SuChinook_a02eb71a.rds")
+post <- readRDS(".\\posts\\SuChinook_134cf92.rds")
 get_ids()
 profiles <- lapply(stock_id, get_profile, post_dat = post) %>% setNames(stock_id)
 
@@ -13,4 +13,4 @@ get_profileprobs2 <- function(profile_dat){
                   !(ORP90 <= 0.5 & as.numeric(s2) > as.numeric(s2[which.max(ORP90)])))   
 }
 out <- lapply(profiles, get_profileprobs2) 
-WriteXLS::WriteXLS(out, ".\\data_requests\\Nick_profileprobs_dec1018.xlsx")
+WriteXLS::WriteXLS(out, ".\\data_requests\\Nick_profileprobs_BOFFeb8.xlsx")

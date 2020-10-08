@@ -19,7 +19,7 @@ goals_list <- list(Deshka = c(9000, 18000),
   
 *Source*: Adapted from Southcentral Alaska Sport Fishing Regulations Summary (http://www.adfg.alaska.gov/index.cfm?adfg=fishregulations.sc_sportfish).
   
-![Figure 2.- Susitna River Chinook salmon stocks for run reconstruction and escapement goal analysis. ](stocks.png)
+![Figure 2.- Susitna River Chinook salmon stocks (large bold text) for run reconstruction and escapement goal analysis. ](stocks2.png)
   
 *Note*: Labeled tributaries are flown during annual aerial surveys. Red labels indicate the population has an existing SEG. 
   
@@ -169,7 +169,7 @@ cowplot::plot_grid(plot_d, plot_es, plot_t, plot_y,
                    rel_heights = c(6, 9, 5, 9))
 ```  
 
-```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 4.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 4.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock by year (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark--recapture estimates."}
 fit <- lapply(stock_id[-5], plot_fit, post_dat = post)
 fit[[1]]
 ```
@@ -202,7 +202,7 @@ ey[[1]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 8.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 8.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna Chinook salmon stock by year (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark--recapture estimates."}
 fit[[2]]
 ```
   
@@ -232,7 +232,7 @@ ey[[2]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 13.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts and capture-recapture estimates."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 13.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River Chinook salmon stock by year (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts and mark--recapture estimates."}
 fit[[3]]
 ```
   
@@ -256,7 +256,7 @@ ey[[3]]
   
 *Note*: Pink shaded areas bracket the proposed goal range; grey and black marks along the *x*-axis show comparable lower and upper bounds, respectively, scaled by $S_{MSY}$ ratios for other Alaskan Chinook salmon stocks (see Methods).
 
-```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 17.-  Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts and mark-recapture estimates."}
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 17.-  Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock by year (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts and mark--recapture estimates."}
 fit[[4]]
 ```
   

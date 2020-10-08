@@ -50,7 +50,7 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
     ggplot2::geom_area(position = ggplot2::position_stack(reverse = TRUE)) +
     ggplot2::facet_grid(plot ~ ., scales = "free", switch = "y") +
     ggplot2::scale_x_continuous(breaks = seq(yr0_p, max(year_id), 4), minor_breaks = NULL) +
-    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = scales::comma) +
+    ggplot2::scale_y_continuous(minor_breaks = NULL, labels = digits) +
     ggplot2::geom_point(data = Q.obs, size = 3, ggplot2::aes(shape = sample)) +
     ggplot2::geom_line(data = pi.mn, ggplot2::aes(alpha = NULL, color = age), size = 0.75, linetype = "dashed") +
     ggplot2::scale_color_manual(values = rep("black", 4), guide = FALSE) +

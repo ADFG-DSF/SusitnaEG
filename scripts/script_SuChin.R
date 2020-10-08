@@ -30,7 +30,7 @@ dat = list(
   tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna,
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]],
-  Hm.hat = Hm$H, cv.Hm = Hm$cv,
+  Hm.hat = c(Hm$H[1], Hm$H[2:39] * 1.9), cv.Hm = Hm$cv, #note change
   Ha.hat = Ha$Ha, cv.Ha = Ha$Ha_cv,
   Hd.hat = Hd$H, cv.Hd = Hd$cv,
   MR = mr[[1]], cv.MR = mr[[2]],
@@ -111,7 +111,7 @@ plot_theta(post)
 #survey variability
 table_airerror(post)
 #mean survey variability
-post$summary["B", ]
+post$summary["C_as", ]
 
 #model fit plots
 lapply(stock_id, plot_fit, post_dat = post)
