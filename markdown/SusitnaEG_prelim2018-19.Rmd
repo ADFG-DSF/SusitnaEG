@@ -1,0 +1,75 @@
+---
+title: "Susitna EG Preliminary 2018-2019 estimates"
+author: "Adam Reimer"
+date: "12/6/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(SusitnaEG)
+get_ids()
+post <- readRDS("..\\posts\\SuChinook_adddata_c211807.rds")
+table <- table_state(post, "bystock")
+plot <- lapply(stock_id, plot_fit, post_dat = post)
+```
+
+## Preliminary estimates
+  
+Adding 2018-2019 age, harvest, survey and weir data to the model was easy as those data sets were collected with unchanged sampling designs. In 2018, the mark-recapture sampling design changed, and the model required slight modification to include the data in the new format. For 2018, estimated abundance (N = 30,605: SE = 4,376) from the MR is for the Chinook salmon gt 500mm MEFT spawning within the mainstem Susitna. I used 74% of this estimate ($MR_{y[S=1:3]}$ =  22,648, CV = 0.14) as input data where 74% represent the average proportion of mainstem Susitna MR estimate abundance contained within the Deshka, Eastside Susitna and Talkeetna stocks in 2013-2017. In this format we can include the 2018 MR estimate in the model with the following sampling distribution:
+
+\begin{equation}
+MR_{y[S=1:3]}~\sim~\textrm{lognormal}(\textrm{log}(\sum_{s=1}^3 IR_{500ys}), 0.14)
+\end{equation}
+  
+The 2019 estimates can be included directly. Note that the CV's are considerable wider in 2019 than in prior years. 
+  
+## Deshka
+  
+Deshka weir data dominates the estimates for the Deshka River stock.
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 1.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[1]]
+```
+  
+Table 1.- Annual abundance estimates for the Deshka River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2019.
+```{r}
+knitr::kable(table[[1]][-2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+## Eastside Susitna
+  
+Estimates for the Eastside Susitna stock are considerably less precise than the Deshka River estimates and less precise than prior years Eastside Susitna estimates for which we had MR data. I ran the model 3 times to try and get some intuition about how each data source affects our estimate of abundance. For this stock group the 2018 abundance estimate was ~200 fish larger when run without MR data while the 2019 estimate was ~1,300 fish smaller when run without MR data. I also noticed that in 2018 Willow Creek was surveyed while Deception Creek was not. This is unfortunate because the model requires both surveys, Deception/Willow is the largest population in the Eastside Susitna stock and the 2018 Willow count was the smallest on record. Out of curiosity I expanded the Willow count (by 1.36, the historic ratio of (Deception + Willow)/Willow). This estimate was ~900 less than the estimate tabulated below.  
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 2.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside SUsitna  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[2]]
+```
+  
+Table 2.- Annual abundance estimates for the Eastside Susitna Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2019.
+```{r}
+knitr::kable(table[[2]][-2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+## Talkeetna
+  
+Estimates for the Talkeetna River stock are also less precise than the Deshka. For this stock the 2018 abundance estimate was ~800 fish larger when run without MR data while the 2019 estimate was ~1,200 fish larger when run without MR data.   
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[3]]
+```
+  
+Table 3.- Annual abundance estimates for the Talkeetna River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2019.
+```{r}
+knitr::kable(table[[3]][-2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+## Yentna
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 4.- Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[4]]
+```
+  
+Table 4.- Annual abundance estimates for the Yentna River Chinook salmon stock obtained by fitting a state-space model to data from 1979 to 2019.
+```{r}
+knitr::kable(table[[4]][-2], row.names = FALSE, align = "r", escape = FALSE)
+```

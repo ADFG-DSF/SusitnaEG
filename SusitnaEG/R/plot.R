@@ -911,7 +911,7 @@ plot_theta <- function(post_dat){
   theta_obs1 <- data.frame(year = as.numeric(year_id), 
                            stock = unname(stock_id[1]), 
                            trib = "Deshka", 
-                           theta = as[["Deshka"]][, "Deshka"] / (weir[, "Deshka"] - Hd[["Deshka_up"]]))
+                           theta = as[["Deshka"]][, "Deshka"] / (weir[, "Deshka"] - Hd[["H"]]))
   theta_obs2 <- data.frame(year = as.numeric(year_id), 
                            stock = unname(stock_id[2]), 
                            trib = "Montana", 

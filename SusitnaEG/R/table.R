@@ -236,7 +236,7 @@ table_state <- function(post_dat, display){
                                 levels = c("N", "IR", "S", "R"),
                                 labels = c("Total run (CV)", "Inriver run (CV)", "Escapement (CV)", "Recruitment (CV)")),
                   index = as.numeric(gsub("^.*\\[(\\d+),\\d\\]", "\\1", rowname)),
-                  year = ifelse(grepl("^R\\[", rowname), yr0_R + index, yr0 + index),
+                  year = ifelse(gsub("^(.*)\\[\\d+,\\d\\]", "\\1", rowname) == "R", (yr0_R + index), (yr0 + index)),
                   stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], 
                                  levels = stock_id,
                                  labels = paste0(stock_id, " (CV)")),

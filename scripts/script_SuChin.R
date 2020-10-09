@@ -3,7 +3,7 @@ lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
 
-get_ids()
+get_ids(year_range = 1979:2019)
 
 #recall get_Hhat()
 
@@ -20,7 +20,14 @@ a <-
   dplyr::summarise(n = sum(n)) %>%
   tidyr::spread(age, n)
 table(a$yr.a, a$stock)
-x.a <- as.matrix(a[, grepl("x", names(a))]) 
+x.a <- as.matrix(a[, grepl("x", names(a))])
+#2019 MR is prelim so read in here.
+mr[[1]][41,] <- c(8071, 15475, 7400, NA)
+mr[[2]][41,] <- c(3173/8071, 4209/15475, 2937/7400, 0.1)
+#Missing survey for deception is a big loss in 2018. Add in Willow count * 1.32 (expand for missing Deception count based on historic prop.)
+as[[2]]
+as[[2]][40,6] <- as.integer(411 * 1.36)
+as[[2]]
 
 ####  Bundle data to be passed to JAGS  ####
 dat = list(
@@ -36,7 +43,8 @@ dat = list(
   MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
-  small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")]))
+  small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
+  MR_det = c(rep(NA, 39), 30605 * 0.74, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1) #2018 MR for stocks 1:3
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -62,10 +70,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-nc <- 2
-nb <- 500
-nt <- 5
-ns <- 1100
+nc <- 3
+nb <- 5000
+nt <- 100
+ns <- 20000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -79,8 +87,8 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_134cf92.rds")
-post <- readRDS(".\\posts\\SuChinook_134cf92.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_adddata_c211807.rds")
+post <- readRDS(".\\posts\\SuChinook_adddata_c211807.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat

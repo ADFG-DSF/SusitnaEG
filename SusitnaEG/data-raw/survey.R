@@ -5,10 +5,21 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2
 
 survey_raw <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG survey.xlsx",
-                     range = "Single aerial survey counts!A4:X43",
-                     col_names = TRUE) %>%
+                     range = "Single aerial survey counts!A5:X45",
+                     col_names = c("year", "Alexander", "skip", 
+                                   "Deshka", "skip",
+                                   "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "skip",
+                                   "Clear", "Prairie", "skip", 
+                                   "Cache", "Lake", "Peters", "Talachulitna", "skip",
+                                   "Chulitna", "Indian", "Portage"), 
+                     col_types = c(rep("numeric", 2), "skip",
+                                   "numeric", "skip",
+                                   rep("numeric", 7), "skip",
+                                   rep("numeric", 2), "skip",
+                                   rep("numeric", 4), "skip",
+                                   rep("numeric", 3))) %>%
   dplyr::mutate(Willow = Willow + Deception) %>%
-  dplyr::select(-Alexander, -Deception, -dplyr::starts_with("X")) %>%
+  dplyr::select(-Alexander, -Deception, -dplyr::starts_with("skip")) %>%
   tidyr::gather(trib, count, -year) %>%
   dplyr::left_join(lut, by = "trib")
 
@@ -25,4 +36,5 @@ as <- list(Deshka = make_list("Deshka"),
            Talkeetna = make_list("Talkeetna"),
            Yentna = make_list("Yentna"))
 
-devtools::use_data(as, pkg = ".\\SusitnaEG", overwrite = TRUE)
+save(as, file=".\\SusitnaEG\\data\\as.rda")
+
