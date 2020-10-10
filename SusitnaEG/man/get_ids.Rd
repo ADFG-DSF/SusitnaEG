@@ -4,8 +4,8 @@
 \alias{get_ids}
 \title{Lookup tables for year, age and stock}
 \usage{
-get_ids(year_range = 1979:2017, age_id = c(age3 = 1, age4 = 2, age5 = 3,
-  age678 = 4))
+get_ids(year_range = 1979:2019, age_id = c(`Age 3` = 1, `Age 4` = 2,
+  `Age 5` = 3, `Age 6+` = 4))
 }
 \arguments{
 \item{year_range}{character vector with the indices of abundance included in the analysis.}

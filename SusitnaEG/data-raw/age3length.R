@@ -66,7 +66,17 @@ lapply(d19, table)
 d19$age <- ifelse(grepl("1.1", d19$age), 1.1, d19$age)
 d19$year <- 2019
 
-rbind(d13, d14, d15, d16, d17, d18, d19) %>%
+d20 <-
+  readxl::read_xlsx("H:\\My Documents\\DeshkaWeir\\2020\\2020 Deshka Chinook Age Analysis_DL.xlsx", ### have not reviewed
+                    sheet = 4,
+                    range = "G2:K346",
+                    col_names = c("length", "sex", "age"),
+                    col_types = c("numeric", "text", rep("skip", 2), "text"))
+lapply(d20, table)
+d20$age <- ifelse(grepl("1.1", d20$age), 1.1, d20$age)
+d20$year <- 2020
+
+rbind(d13, d14, d15, d16, d17, d18, d19, d20) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   ggplot2::ggplot(ggplot2::aes(x = length)) + 
     ggplot2::geom_histogram() + 
@@ -74,7 +84,7 @@ rbind(d13, d14, d15, d16, d17, d18, d19) %>%
     ggplot2::facet_grid(age ~ year)
 
 lt500 <- 
-  rbind(d13, d14, d15, d16, d17, d18, d19) %>%
+  rbind(d13, d14, d15, d16, d17, d18, d19, d20) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   dplyr::mutate(small = (length <= 500)) %>%
   dplyr::group_by(year, age) %>%

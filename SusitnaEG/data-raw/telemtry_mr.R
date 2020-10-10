@@ -63,9 +63,9 @@ tele_matrix <- function(stock){
         dat)
 }
 
-tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 2, ncol = dim(.)[2]))
-tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 2, ncol = dim(.)[2]))
-tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 2, ncol = dim(.)[2]))
+tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 3, ncol = dim(.)[2]))
+tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 3, ncol = dim(.)[2]))
+tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 3, ncol = dim(.)[2]))
 
 telemetry <- list('East Susitna' = tele_east, 'N_East Susitna' = rowSums(tele_east, na.rm = TRUE),
                   'Talkeetna' = tele_tal, 'N_Talkeetna' = rowSums(tele_tal, na.rm = TRUE),
@@ -86,33 +86,35 @@ temp <-
   dplyr::mutate(stock = lut[group],
                 cv = seN / N)
 
+#2020 estimate
+temp2 <-
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\MASTER_SUSITNA_2020_CHINOOK_ABUNDANCE_TELEMETRY_10_1_20_FOR_NICK.xlsx",
+                     sheet = "MAIN_DIST_SPGRP_2020",
+                     range = "B1:R4",
+                     col_names = TRUE) %>%
+  dplyr::mutate(SPGRP = ifelse(SPGRP == "E", "E+B", SPGRP)) %>%
+  dplyr::select(group = SPGRP, N = Nsmlg, seN = SENsmlg) %>%
+  dplyr::mutate(year = 2020,
+                stock = lut[group],
+                cv = seN / N)
+
+fill <-
+  data.frame(year = rep(c(1979:2012, 2018:2019), times = 4),
+             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 36),
+             N = NA, 
+             cv = 0.1, group = NA, seN = NA)
+
 mr <- 
-  list(mr = temp %>%
+  list(mr = rbind(temp, temp2, fill) %>%
         dplyr::select(stock, year, N) %>%
         tidyr::spread(stock, N) %>%
         dplyr::select(-year) %>%
-        as.matrix() %>%
-        rbind(matrix(NA, 
-                     nrow = 34, 
-                     ncol = 4),
-              .) %>%
-         rbind(.,
-               matrix(NA, 
-                      nrow = 2, 
-                      ncol = 4)),
-      cv_mr = temp %>%
+        as.matrix(),
+      cv_mr = rbind(temp, temp2, fill) %>%
         dplyr::select(stock, year, cv) %>%
         tidyr::spread(stock, cv) %>%
         dplyr::select(-year) %>%
         dplyr::mutate_all(dplyr::funs(ifelse(is.na(.), 0.1, .))) %>% 
-        as.matrix() %>%
-        rbind(matrix(0.1, 
-                     nrow = 34, 
-                     ncol = 4),
-              .) %>%
-        rbind(.,
-              matrix(0.1, 
-                     nrow = 2, 
-                     ncol = 4)))
+        as.matrix())
 
 save(mr, file=".\\SusitnaEG\\data\\mr.rda")

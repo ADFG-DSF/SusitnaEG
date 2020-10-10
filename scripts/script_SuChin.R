@@ -3,7 +3,7 @@ lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
 
-get_ids(year_range = 1979:2019)
+get_ids(year_range = 1979:2020)
 
 #recall get_Hhat()
 
@@ -37,14 +37,14 @@ dat = list(
   tele.S2 = telemetry$'East Susitna', tele.S3 = telemetry$Talkeetna, tele.S4 = telemetry$Yentna,
   Ntele.S2 = telemetry$'N_East Susitna', Ntele.S3 = telemetry$N_Talkeetna, Ntele.S4 = telemetry$N_Yentna,
   air.S1 = as.vector(as[[1]]), air.S2 = as[[2]], air.S3 = as[[3]], air.S4 = as[[4]],
-  Hm.hat = c(Hm$H[1], Hm$H[2:39] * 1.9), cv.Hm = Hm$cv, #note change
+  Hm.hat = c(Hm$H), cv.Hm = Hm$cv,
   Ha.hat = Ha$Ha, cv.Ha = Ha$Ha_cv,
   Hd.hat = Hd$H, cv.Hd = Hd$cv,
   MR = mr[[1]], cv.MR = mr[[2]],
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
-  MR_det = c(rep(NA, 39), 30605 * 0.74, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1) #2018 MR for stocks 1:3
+  MR_det = c(rep(NA, 39), 30605 * 0.74, NA, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1, 0.1) #2018 MR for stocks 1:3
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -144,6 +144,7 @@ goals_df <- data.frame(stock = stock_id,
                        lb = c(9000, 13000, 9000, 13000), 
                        ub = c(18000, 25000, 17500, 22000))
 goals_list <- split(goals_df[, -1], 1:nrow(goals_df))
+
 
 #Profiles
 mapply(plot_profile, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)

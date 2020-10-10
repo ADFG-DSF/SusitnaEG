@@ -5,7 +5,7 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2
 
 survey_raw <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG survey.xlsx",
-                     range = "Single aerial survey counts!A5:X45",
+                     range = "Single aerial survey counts!A5:X46",
                      col_names = c("year", "Alexander", "skip", 
                                    "Deshka", "skip",
                                    "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "skip",

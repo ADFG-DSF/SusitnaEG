@@ -4,8 +4,8 @@
 \alias{plot_stock}
 \title{Plots of composition by stock}
 \usage{
-plot_stock(input_dat, post_dat, plot_stocks = c("East Susitna", "Talkeetna",
-  "Yentna"))
+plot_stock(input_dat, post_dat, plot_stocks = c("East Susitna",
+  "Talkeetna", "Yentna"))
 }
 \arguments{
 \item{input_dat}{telemetry data matrix}

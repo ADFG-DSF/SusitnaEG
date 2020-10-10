@@ -15,4 +15,5 @@ LaTeX: pdfLaTeX
 BuildType: Package
 PackagePath: H:/My Documents/SusitnaEG/SusitnaEG
 PackageInstallArgs: --no-multiarch --with-keep.source
+PackageCheckArgs: R CMD check package --no-manual
 PackageRoxygenize: rd,collate,namespace

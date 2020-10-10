@@ -30,13 +30,14 @@ Ha_early_raw <-
 
 Ha_late_raw0 <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\Su_ks_se.xlsx",
-                     range = "su_har!A4:H28",
+                     range = "su_har!A4:H29",
                      col_names = TRUE,
                      na = ".") %>%
   dplyr::select(-Alexander_Cr) %>%
   dplyr::rename(year = Year, Deshka0 = Deshka, Deshka_above0 = Deshka_above)
 
-pct_up <- data.frame(year = Ha_late_raw0$year, pct_up = Ha_late_raw0$Deshka_above0 / (Ha_late_raw0$Deshka_below + Ha_late_raw0$Deshka_above0))
+pct_up <- data.frame(year = Ha_late_raw0$year, pct_up = Ha_late_raw0$Deshka_above0 / 
+                     sapply(Ha_late_raw0$Deshka_below + Ha_late_raw0$Deshka_above0, function(x) max(x, 1)))
 
 Ha_late_raw <- 
   dplyr::left_join(Ha_late_raw0, pct_up, by = "year") %>%
@@ -46,7 +47,7 @@ Ha_late_raw <-
 
 Hase_late_raw <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\Su_ks_se.xlsx",
-                     range = "ks_se!A4:G28",
+                     range = "ks_se!A4:G29",
                      col_names = TRUE, na = ".") %>%
   dplyr::rename(year = Year, Deshka0 = Deshka, Deshka_above0 = Deshka_above) %>%
   dplyr::left_join(pct_up, by = "year") %>%
@@ -95,12 +96,12 @@ Hd <-
   dplyr::rename(H = Deshka_above) %>%
   dplyr::left_join(Hase_late_raw[which(names(Hase_late_raw) == c("year", "Deshka_above"))], by = "year") %>%
   dplyr::mutate(cv = ifelse(is.na(Deshka_above / H), 0.5, Deshka_above / H),
-                H = ifelse(is.na(H), 1, H)) %>%
+                H = ifelse(is.na(H) | H == 0, 1, H)) %>%
   dplyr::select(-Deshka_above)
 
 Hm <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG Hm.xlsx",
-                     range = "Marine!ab4:ah47",
+                     range = "Marine!ab4:ah48",
                      col_names = TRUE) %>%
   dplyr::mutate_at(.funs = as.integer, .vars = c("year", "SusitnaSR")) %>%
   dplyr::mutate_at(.funs = as.double, .vars = c("CV_SusitnaSR")) %>%
