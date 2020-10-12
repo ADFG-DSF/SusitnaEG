@@ -86,8 +86,20 @@ temp <-
   dplyr::mutate(stock = lut[group],
                 cv = seN / N)
 
-#2020 estimate
+#2019 estimate
 temp2 <-
+  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of MASTER_SUSITNA_2019_CHINOOK_ABUNDANCE_TELEMETRY_9_15_20_FOR_NICK.xlsx",
+                     sheet = "MAIN_DIST_SPGRP_2019",
+                     range = "B1:R4",
+                     col_names = TRUE) %>%
+  dplyr::mutate(SPGRP = ifelse(SPGRP == "E", "E+B", SPGRP)) %>%
+  dplyr::select(group = SPGRP, N = Nsmlg, seN = SENsmlg) %>%
+  dplyr::mutate(year = 2019,
+                stock = lut[group],
+                cv = seN / N)
+
+#2020 estimate
+temp3 <-
   readxl::read_excel(".\\SusitnaEG\\data-raw\\MASTER_SUSITNA_2020_CHINOOK_ABUNDANCE_TELEMETRY_10_1_20_FOR_NICK.xlsx",
                      sheet = "MAIN_DIST_SPGRP_2020",
                      range = "B1:R4",
@@ -99,22 +111,23 @@ temp2 <-
                 cv = seN / N)
 
 fill <-
-  data.frame(year = rep(c(1979:2012, 2018:2019), times = 4),
-             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 36),
+  data.frame(year = rep(c(1979:2012, 2018), times = 4),
+             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 35),
              N = NA, 
              cv = 0.1, group = NA, seN = NA)
 
+NAreplace <- function(x) ifelse(is.na(x), 0.1, x)
 mr <- 
-  list(mr = rbind(temp, temp2, fill) %>%
+  list(mr = rbind(temp, temp2, temp3, fill) %>%
         dplyr::select(stock, year, N) %>%
         tidyr::spread(stock, N) %>%
         dplyr::select(-year) %>%
         as.matrix(),
-      cv_mr = rbind(temp, temp2, fill) %>%
+      cv_mr = rbind(temp, temp2, temp3, fill) %>%
         dplyr::select(stock, year, cv) %>%
         tidyr::spread(stock, cv) %>%
         dplyr::select(-year) %>%
-        dplyr::mutate_all(dplyr::funs(ifelse(is.na(.), 0.1, .))) %>% 
+        dplyr::mutate_all(list(NAreplace)) %>% 
         as.matrix())
 
 save(mr, file=".\\SusitnaEG\\data\\mr.rda")
