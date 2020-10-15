@@ -227,7 +227,7 @@ plot_fit <- function(post_dat, stock_name){
   
   trib <- function(node){
     temp <- 
-      post_dat[["summary"]][grepl(paste0("p.S", node, "\\["), rownames(post$summary)), c("mean", "sd")] %>%
+      post_dat[["summary"]][grepl(paste0("p.S", node, "\\["), rownames(post_dat$summary)), c("mean", "sd")] %>%
       as.data.frame() %>%
       tibble::rownames_to_column() %>%
       dplyr::mutate(year = as.numeric(gsub("^.*\\[(\\d+).*$", "\\1", rowname)) + yr0,

@@ -63,10 +63,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-# nc <- 3
-# nb <- 5000
-# nt <- 100
-# ns <- 20000
+nc <- 3
+nb <- 5000
+nt <- 100
+ns <- 20000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -80,8 +80,8 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_develop_d3ae8d.rds")
-post <- readRDS(".\\posts\\SuChinook_adddata_c211807.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_develop_580ece.rds")
+post <- readRDS(".\\posts\\SuChinook_develop_580ece.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
