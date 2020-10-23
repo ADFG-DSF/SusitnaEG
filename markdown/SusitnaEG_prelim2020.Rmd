@@ -12,7 +12,8 @@ library(magrittr)
 library(ggplot2)
 get_ids()
 post_old <- readRDS("..\\posts\\SuChinook_adddata_c211807.rds")
-post_new <- readRDS("..\\posts\\SuChinook_develop_580ece.rds")
+post_new <- readRDS("..\\posts\\SuChinook_Bparam_2sf0a9c2.rds") 
+post_ws <- readRDS("..\\posts\\SuChinook_develop_5e68ea.rds") # Posterior used in work session release 
 table_old <- table_state(post_old, "bystate")
 table_new <- table_state(post_new, "bystate")
 
@@ -21,10 +22,19 @@ plot <- lapply(stock_id, plot_fit, post_dat = post_new)
 
 ## Update history
   
-This Susitna River Chinook salmon escapement estimate represents the first release of a preliminary escapement estimate for 2020 and updates to escapement estimates for 2018 and 2019 released in December of 2019. All estimates are preliminary until publication in an ADF&G report series. Changes since the last release are listed below.
-  
+This Susitna River Chinook salmon escapement estimate represents an update to the file "SusitnaEG_prelim2020_WorkSessionOct2020.html" which was released for the 2020 BOF work session on a tight schedule. I updated the model after this release because the original model produced very wide posterior estimates of Yentna abundance associated with situations where the the proportion of the stock not encountered by our surveys (p.S#o[y]) was ~80% (when it typically runs about 45%). Variability p.S#o[y] is controlled by the Bsum.So[#] parameters, i.e. the effective sample size for the distribution of p.S#o[y]. In general, the Bsum.So parameters are poorly estimated and vary widely although I'm not aware of it causing a problem similar to what was observed in 2020. I modified the model to constrain the Bsum.So parameter. This revision was not released to the public because Nick feels single releases are appropriate unless the released estimates are obviously flawed or the inference changes due to the revision. Revised point estimates do not change wrt where they fall in the goal range. 
+
+The problem is demonstrated below.  
+```{r}
+par(mfrow = c(2,2))
+plot(post_ws$sims.list$p.S2[ , 42, 7], post_ws$sims.list$S[ , 42, 2], main = "Eastside", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_ws$sims.list$p.S3[ , 42, 3], post_ws$sims.list$S[ , 42, 3], main = "Talkeetna", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_ws$sims.list$p.S4[ , 42, 5], post_ws$sims.list$S[ , 42, 4], main = "Yentna", xlab = "Prop not surveyed", ylab = "Escapement")
+par(mfrow = c(1,1))
+```
+### Changes
   * Run Reconstruction model
-      + No Changes
+      + The parameters Bsum.SO[x] were set equal to Dsum.S(x + 1). Both parameters represent effective sample sizes for stock composition parameters, the former for the percent of the stock not monitored by our stock assessment and the later for the composition of surveyed streams within the stock. The D parameters estimates are larger and thus constrain the model with respect to the percent age of the stock which was not surveyed. While ad hoc I believe this makes intuitive sense because the estimates are generated from the same data set (which was separated in the analysis because we wished to include a trend in the surveyed stock comp, which caused the un-surveyed stock cont to trend to 0 or 1)
   * 2018 data
       + Included actual Tyonek subsistence harvest (1,308 fish) which replaced an placeholder of 500 fish used last year. 
   * 2019 data
@@ -34,6 +44,17 @@ This Susitna River Chinook salmon escapement estimate represents the first relea
       + Aerial Survey, weir, preliminary harvest and preliminary age data added.
   
 ## Updated Escapement estimates
+The model change did restrain estimates of the proportion of the stock not surveyed.  
+```{r}
+par(mfrow = c(2,2))
+plot(post_new$sims.list$p.S2[ , 42, 7], post_new$sims.list$S[ , 42, 2], main = "Eastside", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_new$sims.list$p.S3[ , 42, 3], post_new$sims.list$S[ , 42, 3], main = "Talkeetna", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_new$sims.list$p.S4[ , 42, 5], post_new$sims.list$S[ , 42, 4], main = "Yentna", xlab = "Prop not surveyed", ylab = "Escapement")
+par(mfrow = c(1,1))
+```
+  
+The rest of the document is unchanged except that the "new" estimates used the posterior from the revised model.
+  
 Table 1.- Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2020.
 ```{r}
 knitr::kable(table_new[["Escapement (CV)"]][40:42, -2], row.names = FALSE, align = "r", escape = FALSE)
