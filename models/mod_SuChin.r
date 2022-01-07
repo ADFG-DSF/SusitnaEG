@@ -184,10 +184,18 @@ for (y in 1:Y) {
 	tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
 }
 
+#for(s in 1:(SG - 1)){
+#  p.So.mean[s] ~ dbeta(1, 1)
+#  Bscale.So[s] ~ dunif(0.07, 1)
+#  Bsum.So[s] <- 1 / Bscale.So[s] / Bscale.So[s]
+#  B1.So[s] <- Bsum.So[s] * p.So.mean[s]
+#  B2.So[s] <- Bsum.So[s] - B1.So[s]
+#}
+Bsum.So[1] <- Dsum.S2
+Bsum.So[2] <- Dsum.S3
+Bsum.So[3] <- Dsum.S4
 for(s in 1:(SG - 1)){
   p.So.mean[s] ~ dbeta(1, 1)
-  Bscale.So[s] ~ dunif(0.07, 1)
-  Bsum.So[s] <- 1 / Bscale.So[s] / Bscale.So[s]
   B1.So[s] <- Bsum.So[s] * p.So.mean[s]
   B2.So[s] <- Bsum.So[s] - B1.So[s]
 }
