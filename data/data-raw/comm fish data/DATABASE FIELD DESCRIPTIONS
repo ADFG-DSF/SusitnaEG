@@ -1,0 +1,18 @@
+DESCRIPTION OF FIELDS IN 'MASTER_ASL_DATABASE_ARCHIVE_1967-2017.TXT'.
+
+ FILE - Name of file imported into database.
+ DATE - MMDD
+ YEAR - YYYY
+ TIME - HHMM
+ CREW - Crew names
+ STATCODE - see file 'STATCODES'.
+ LOCATION - Name of location
+ SCARD - Scale Card Number
+ SNUM - Scale number aka scale card position, fish number.
+ GPLT - Gene Plate
+ GNUM - Gene number
+ SPECIES - 3 digit species code.
+ MEFL -Mid Eye to Fork Length in mm
+ SEX - Single digit sex code (1-male, 2-female).
+ AGE - Double digit age code.
+ ERRCODE - Age error code.

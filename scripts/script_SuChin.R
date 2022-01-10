@@ -1,9 +1,15 @@
-packs <- c("SusitnaEG", "jagsUI")
+packs <- c("jagsUI")
 lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
+source(".\\functions\\get.R")
+source(".\\functions\\internal.R")
+source(".\\functions\\plot.R")
+source(".\\functions\\table.R")
+data_names <- list.files(path=".\\SusitnaEG\\data")
+lapply(data_names, function(x) load(paste0(".\\SusitnaEG\\data\\", x), .GlobalEnv))
 
-get_ids(year_range = 1979:2020)
+get_ids(year_range = 1979:2021)
 
 #recall get_Hhat()
 
@@ -37,7 +43,7 @@ dat = list(
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
-  MR_det = c(rep(NA, 39), 30605 * 0.74, NA, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1, 0.1) #2018 MR for stocks 1:3
+  MR_det = c(rep(NA, 39), 30605 * 0.74, NA, NA, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1, 0.1, 0.1) #2018 MR for stocks 1:3
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -63,10 +69,10 @@ nt <- 200
 ns <- 200000
 
 #MCMC settings
-nc <- 3
-nb <- 10000
-nt <- 50
-ns <- 50000
+# nc <- 3
+# nb <- 10000
+# nt <- 50
+# ns <- 50000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -80,8 +86,8 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_Bparam_2sf0a9c2.rds")
-post <- readRDS(".\\posts\\SuChinook_Bparam_2sf0a9c2.rds")
+saveRDS(post, file = ".\\posts\\SuChinook_2021.rds")
+post <- readRDS(".\\posts\\SuChinook_2021.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
@@ -147,3 +153,4 @@ mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALS
 
 #escapement vrs. proposed goals
 plot_Swgoals(post, goals_df)
+
