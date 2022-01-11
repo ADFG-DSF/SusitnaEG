@@ -6,7 +6,7 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 10), "Talkeetna", rep(
                   stringsAsFactors = FALSE)
 
 Ha_early_raw0 <-
-readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG Ha_pre96.xlsx",
+readxl::read_excel(".\\data-raw\\SusitnaEG Ha_pre96.xlsx",
                    range = "Inriver!A5:x23",
                    col_names = c("year", rep("skip", 2), 
                                  "Deshka", "Deshka_up", "skip", 
@@ -29,7 +29,7 @@ Ha_early_raw <-
   dplyr::ungroup()
 
 Ha_late_raw0 <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Su_ks_se.xlsx",
+  readxl::read_excel(".\\data-raw\\Su_ks_se.xlsx",
                      range = "su_har!A4:H30",
                      col_names = TRUE,
                      na = ".") %>%
@@ -46,7 +46,7 @@ Ha_late_raw <-
   dplyr::select(year, Deshka, East_Susitna = East_susitna, Talkeetna, Yentna, Deshka_above)
 
 Hase_late_raw <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Su_ks_se.xlsx",
+  readxl::read_excel(".\\data-raw\\Su_ks_se.xlsx",
                      range = "ks_se!A4:G30",
                      col_names = TRUE, na = ".") %>%
   dplyr::rename(year = Year, Deshka0 = Deshka, Deshka_above0 = Deshka_above) %>%
@@ -100,7 +100,7 @@ Hd <-
   dplyr::select(-Deshka_above)
 
 Hm <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG Hm.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG Hm.xlsx",
                      range = "Marine!ab4:ah49",
                      col_names = TRUE) %>%
   dplyr::mutate_at(.funs = as.integer, .vars = c("year", "SusitnaSR")) %>%
@@ -108,6 +108,6 @@ Hm <-
   dplyr::filter(year >= 1979) %>%
   dplyr::select(year, H = SusitnaSR, cv = CV_SusitnaSR)
 
-save(Ha, file=".\\SusitnaEG\\data\\Ha.rda")
-save(Hd, file=".\\SusitnaEG\\data\\Hd.rda")
-save(Hm, file=".\\SusitnaEG\\data\\Hm.rda")
+save(Ha, file=".\\data\\Ha.rda")
+save(Hd, file=".\\data\\Hd.rda")
+save(Hm, file=".\\data\\Hm.rda")

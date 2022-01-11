@@ -10,7 +10,7 @@ stockid <-names(tribid)
 
 tele_dat <- function(year){
   dat <-
-    readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG telemetry_mr_JKC_11262018.xlsx",
+    readxl::read_excel(".\\data-raw\\SusitnaEG telemetry_mr_JKC_11262018.xlsx",
                        sheet = year,
                        range = readxl::cell_limits(ul = c(2, 3), lr = c(NA, 5)),
                        col_names = c("trans", "stock", "trib")) %>%
@@ -73,12 +73,12 @@ telemetry <- list('East Susitna' = tele_east, 'N_East Susitna' = rowSums(tele_ea
 
 
 
-save(telemetry, file=".\\SusitnaEG\\data\\telemetry.rda")
+save(telemetry, file=".\\data\\telemetry.rda")
 
 #mark recapture estimates
 lut <- c("C" = "Deshka", "E+B" = "East Susitna", "F" = "Talkeetna", "1to5" = "Yentna")
 temp <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG telemetry_mr_JKC_11262018.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG telemetry_mr_JKC_11262018.xlsx",
                    sheet = "2012-2017_AB_BY_SPGRP",
                    range = readxl::cell_limits(ul = c(3, NA), lr = c(NA, 10)),
                    col_names = TRUE) %>%
@@ -90,7 +90,7 @@ temp <-
 
 #2019 estimate
 temp2 <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\Copy of MASTER_SUSITNA_2019_CHINOOK_ABUNDANCE_TELEMETRY_9_15_20_FOR_NICK.xlsx",
+  readxl::read_excel(".\\data-raw\\Copy of MASTER_SUSITNA_2019_CHINOOK_ABUNDANCE_TELEMETRY_9_15_20_FOR_NICK.xlsx",
                      sheet = "MAIN_DIST_SPGRP_2019",
                      range = "B1:R4",
                      col_names = TRUE) %>%
@@ -102,7 +102,7 @@ temp2 <-
 
 #2020 estimate
 temp3 <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\MASTER_SUSITNA_2020_CHINOOK_ABUNDANCE_TELEMETRY_10_1_20_FOR_NICK.xlsx",
+  readxl::read_excel(".\\data-raw\\MASTER_SUSITNA_2020_CHINOOK_ABUNDANCE_TELEMETRY_10_1_20_FOR_NICK.xlsx",
                      sheet = "MAIN_DIST_SPGRP_2020",
                      range = "B1:R4",
                      col_names = TRUE) %>%
@@ -132,4 +132,4 @@ mr <-
         dplyr::mutate_all(list(NAreplace)) %>% 
         as.matrix())
 
-save(mr, file=".\\SusitnaEG\\data\\mr.rda")
+save(mr, file=".\\data\\mr.rda")

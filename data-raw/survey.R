@@ -4,7 +4,7 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2
                   stringsAsFactors = FALSE)
 
 survey_raw <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG survey.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG survey.xlsx",
                      range = "Single aerial survey counts!A5:X47",
                      col_names = c("year", "Alexander", "skip", 
                                    "Deshka", "skip",
@@ -43,5 +43,5 @@ plotly::plot_ly(x =as[[4]][,2], y = as[[4]][,3], z = as[[4]][,4],
                 mode = "markers", 
                 color = c(rep("1979-2020", 42), "2021"))
 
-save(as, file=".\\SusitnaEG\\data\\as.rda")
+save(as, file=".\\data\\as.rda")
 

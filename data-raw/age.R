@@ -1,7 +1,7 @@
 library(magrittr)
 
 age_deshka <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG age.xlsx",
                      range = "Deshka!A11:I53",
                      col_names = c("year", "p3", "p4", "p5", "p6", "p78", "pall", "n", "source"),
                      col_types = c("text", rep("numeric", 7), "text")) %>%
@@ -17,7 +17,7 @@ age_deshka <-
 age_deshkaearly <- age_deshka %>% dplyr::filter(year < "1986") %>% dplyr::select(-location, -stock)  # <1986 data dulicated in age_alex
 
 age_yentna <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG age.xlsx",
                      range = "Alexander_Deshka_Yentna sport!A6:K12",
                      col_types = c("text", "skip", "text", rep("numeric", 6), "skip", "numeric"),
                      col_names = c("year", "location", "p3", "p4", "p5", "p6", "p7", "p6_2", "n")) %>%
@@ -44,7 +44,7 @@ age_yentna <-
   dplyr::mutate(location = gsub("Deshka, (.*)", "\\1", location))
 
 age_east <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG age.xlsx",
                      range = "Eastside_Talkeetna sport!A6:K44",
                      col_types = c("text", "skip", "text", rep("numeric", 5), rep("skip", 2), "numeric"),
                      col_names = c("year", "location", "p3", "p4", "p5", "p6", "p7", "n")) %>%
@@ -60,7 +60,7 @@ age_east <-
   dplyr::select(-dplyr::starts_with("p"))
 
 age_willow <-
-  readxl::read_excel(".\\SusitnaEG\\data-raw\\SusitnaEG age.xlsx",
+  readxl::read_excel(".\\data-raw\\SusitnaEG age.xlsx",
                      range = "Willow weir!A6:K8",
                      col_types = c("text", "skip", "text", rep("numeric", 5), rep("skip", 2), "numeric"),
                      col_names = c("year", "location", "p3", "p4", "p5", "p6", "p7", "n")) %>%
@@ -95,4 +95,4 @@ xage %>%
 age <- 
   xage %>% 
   dplyr::select(-dplyr::starts_with("p"))
-save(age, file=".\\SusitnaEG\\data\\age.rda")
+save(age, file=".\\data\\age.rda")

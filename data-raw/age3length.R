@@ -108,4 +108,4 @@ lt500 <-
 #                    n = sum(n),
 #                    p_small = n_small / n)
 
-save(lt500, file=".\\SusitnaEG\\data\\lt500.rda")
+save(lt500, file=".\\data\\lt500.rda")
