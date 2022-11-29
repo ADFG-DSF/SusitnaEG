@@ -1,3 +1,6 @@
+#Note: update import range annually.
+library(magrittr)
+
 lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2), rep("Yentna", 4), rep("Other", 3)),
                   trib = c("Deshka", "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Clear", "Prairie", 
                            "Cache", "Lake", "Peters", "Talachulitna", "Chulitna", "Indian", "Portage"),
@@ -5,7 +8,7 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2
 
 survey_raw <-
   readxl::read_excel(".\\data-raw\\SusitnaEG survey.xlsx",
-                     range = "Single aerial survey counts!A5:X47",
+                     range = "Single aerial survey counts!A5:X48",
                      col_names = c("year", "Alexander", "skip", 
                                    "Deshka", "skip",
                                    "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "skip",
@@ -36,12 +39,13 @@ as <- list(Deshka = make_list("Deshka"),
            Talkeetna = make_list("Talkeetna"),
            Yentna = make_list("Yentna"))
 
-# Staff had some concerns about the 2021 Peters survey but it doe snot look like an obvious outlier. 
-# That combined with the large variace for the Peters surveys makes me think it is not consequential.
+# Staff had some concerns about the 2021 Peters survey but it does not look like an obvious outlier. 
+# That combined with the large variance for the Peters surveys makes me think it is not consequential.
 plotly::plot_ly(x =as[[4]][,2], y = as[[4]][,3], z = as[[4]][,4], 
                 type = "scatter3d", 
                 mode = "markers", 
-                color = c(rep("1979-2020", 42), "2021"))
+                color = c(rep("1979-2020, 2022", 42), "2021", "1979-2020, 2022"),
+                colors = c("1979-2020, 2022" = "blue", "2021" = "red"))
 
 save(as, file=".\\data\\as.rda")
 

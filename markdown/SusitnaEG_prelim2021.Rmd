@@ -18,7 +18,7 @@ lapply(data_names, function(x) load(paste0("..\\data\\", x), .GlobalEnv))
 
 get_ids()
 post_old <- readRDS("..\\posts\\SuChinook_Bparam_2sf0a9c2.rds")
-post_new <- readRDS("..\\posts\\SuChinook_2021.rds") 
+post_new <- readRDS("..\\posts\\SuChinook_2021_MR.rds") 
 table_old <- table_state(post_old, "bystate")
 table_new <- table_state(post_new, "bystate")
 
@@ -33,7 +33,7 @@ This document represents preliminary Susitna River Chinook salmon escapement est
   * 2020 data
       + SWHS estimates fro the Deshka stock group were revised downwards from 200 to 0. 
   * 2021 data: 
-      + Empirical data from the 2021 season has been added to the model. Placeholders have been used to SWHS estimates in the Deshka stock group (500 fish) and the Tyonek subsistence fishery (1000 fish). Mark-recapture abundance estimates have not been added to the model.
+      + Empirical data from the 2021 season has been added to the model. Placeholders have been used to SWHS estimates in the Deshka stock group (500 fish) and the Tyonek subsistence fishery (1000 fish). Preliminary mark-recapture abundance estimates have been added to the model although it was produced without a large number of tags that were eliminated due to an data handling error. We are not sure if these tags can be used.
   
 ## Updated Escapement estimates
 Table 1.- Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2021.

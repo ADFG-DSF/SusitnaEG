@@ -1,3 +1,6 @@
+#Note: update import range annually.
+library(magrittr)
+
 lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 10), "Talkeetna", rep("Yentna", 5)),
                   trib = c("Deshka", 
                            "Caswell", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Birch", "Rabideux", "Sunshine",
@@ -29,8 +32,8 @@ Ha_early_raw <-
   dplyr::ungroup()
 
 Ha_late_raw0 <-
-  readxl::read_excel(".\\data-raw\\Su_ks_se.xlsx",
-                     range = "su_har!A4:H30",
+  readxl::read_excel(".\\data-raw\\SusitnaEG Ha_post95.xlsx",
+                     range = "su_har!A4:H31",
                      col_names = TRUE,
                      na = ".") %>%
   dplyr::select(-Alexander_Cr) %>%
@@ -46,8 +49,8 @@ Ha_late_raw <-
   dplyr::select(year, Deshka, East_Susitna = East_susitna, Talkeetna, Yentna, Deshka_above)
 
 Hase_late_raw <-
-  readxl::read_excel(".\\data-raw\\Su_ks_se.xlsx",
-                     range = "ks_se!A4:G30",
+  readxl::read_excel(".\\data-raw\\SusitnaEG Ha_post95.xlsx",
+                     range = "ks_se!A4:G31",
                      col_names = TRUE, na = ".") %>%
   dplyr::rename(year = Year, Deshka0 = Deshka, Deshka_above0 = Deshka_above) %>%
   dplyr::left_join(pct_up, by = "year") %>%
@@ -101,7 +104,7 @@ Hd <-
 
 Hm <-
   readxl::read_excel(".\\data-raw\\SusitnaEG Hm.xlsx",
-                     range = "Marine!ab4:ah49",
+                     range = "Marine!ab4:ah50",
                      col_names = TRUE) %>%
   dplyr::mutate_at(.funs = as.integer, .vars = c("year", "SusitnaSR")) %>%
   dplyr::mutate_at(.funs = as.double, .vars = c("CV_SusitnaSR")) %>%

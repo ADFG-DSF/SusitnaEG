@@ -11,7 +11,7 @@ NULL
 
 #format tables with numbers of very different magnitude
 digits <- function(p){
-  ps <- ifelse(p == 0 , format(p, TRUE, digits = 0),
+  ps <- ifelse(p == 0 , format(p, TRUE, digits = 1),
                ifelse(abs(p) < 0.01, format(p, TRUE, digits = 2, scientific = TRUE),
                       ifelse(abs(p) < 2, format(round(p, 2), TRUE, nsmall = 2),
                              ifelse(abs(p) < 100, format(round(p, 1), TRUE, nsmall = 1),
@@ -45,6 +45,6 @@ get_array <- function(post_dat, node, statistic = "mean"){
     dplyr::filter(grepl(pattern, rowname)) %>%
     dplyr::mutate(yr = as.numeric(gsub(".*\\[(\\d+),\\d]", "\\1", rowname)),
                   age = as.numeric(gsub(".*\\[\\d+,(\\d)]", "\\1", rowname))) %>%
-    dplyr::select_("yr", "age", statistic)
+    dplyr::select("yr", "age", statistic)
     df
 }

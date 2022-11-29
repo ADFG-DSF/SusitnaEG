@@ -1,10 +1,14 @@
+#Note: update NA range for telemetry, mr and mr2018 data annually.
+library(magrittr)
+
+
 #weighted tag numbers
 tribid <- 
   list(
     Deshka = c("Deshka"),
-    "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other East Susitna"),
-    Talkeetna = c("Clear", "Prairie", "Other Talkeetna"),
-    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna")
+    "East Susitna" = c("Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Other Eastside Susitna"),
+    Talkeetna = c("Clear", "Prairie", "Other Talkeetna River"),
+    Yentna = c("Cache", "Lake", "Peters", "Talachulitna", "Other Yentna River")
   )
 stockid <-names(tribid)
 
@@ -15,7 +19,10 @@ tele_dat <- function(year){
                        range = readxl::cell_limits(ul = c(2, 3), lr = c(NA, 5)),
                        col_names = c("trans", "stock", "trib")) %>%
     dplyr::filter(!is.na(stock) & stock != "Other") %>%
-    dplyr::mutate(year = as.numeric(year))
+    dplyr::mutate(year = as.numeric(year),
+                  trib = ifelse(trib == "Other East Susitna", "Other Eastside Susitna", 
+                                ifelse(trib == "Other Talkeetna", "Other Talkeetna River",
+                                       ifelse(trib == "Other Yentna", "Other Yentna River", trib))))
   
   dat_trib <-
     dat %>%
@@ -45,22 +52,20 @@ tele_matrix <- function(stock){
   tele <- function(dat, stock){
     dat[dat$stock == stock, c("year", "stock", "trib", "count")] %>%
       dplyr::mutate(trib = factor(trib, 
-                                  levels = unlist(lapply(1:4, function(x) c(colnames(as[[x]]), paste0("Other ", names(as[x]))))),
+                                  levels = unlist(tribid, use.names = FALSE),
                                   ordered = TRUE)) %>%
       tidyr::spread(trib, count)
   }
   
-  dat <- 
+  out <- 
     lapply(tele_list, tele, stock = stock) %>%
       do.call(rbind, .) %>%
       dplyr::ungroup() %>%
       dplyr::select(-year, -stock) %>%
       dplyr::mutate_all(list(~ ifelse(is.na(.), 0, .))) %>%
       as.matrix()
-  colnames(dat) <- c(colnames(dat)[-dim(dat)[2]], "Other")
 
-  rbind(matrix(NA, nrow = if(stock == "Yentna") 34 else(33), ncol = dim(dat)[2]),
-        dat)
+  rbind(matrix(NA, nrow = if(stock == "Yentna") 35 else(34), ncol = dim(out)[2]), out) ####increment NA # here
 }
 
 tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 4, ncol = dim(.)[2]))
@@ -112,24 +117,43 @@ temp3 <-
                 stock = lut[group],
                 cv = seN / N)
 
-fill <-
-  data.frame(year = rep(c(1979:2012, 2018, 2021), times = 4), #####Remove 2021 when actual MR estiamte added.#####
+#2021 estimate
+temp4 <-
+  readxl::read_excel(".\\data-raw\\2021 Susita MR Abundance by stock.xlsx",
+                     sheet = "Sheet 1",
+                     range = "A1:G6",
+                     col_names = TRUE) %>%
+  dplyr::mutate(SPGRP = ifelse(SPGRP == "E", "E+B", SPGRP)) %>%
+  dplyr::filter(SPGRP %in% c("C", "E+B", "F")) %>%
+  dplyr::select(group = SPGRP, N = Nsp, seN = SEN) %>%
+  dplyr::mutate(year = 2021,
+                stock = lut[group],
+                cv = seN / N)
+
+fill <- #Increment NAs: Add new year here if no MR
+  data.frame(year = rep(c(1979:2012, 2018, 2022), times = 4), 
              stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 36),
              N = NA, 
              cv = 0.1, group = NA, seN = NA)
 
+mr2018 <- data.frame(year = 1979:2022) #increment year range here
+mr2018$mr_det <- ifelse(mr2018$year == "2018", 30605, NA) #det = Deshka, Eastside, Talkeetna
+mr2018$tau.logmr_det <- ifelse(mr2018$year == "2018", 1 / log((4376 / 30605)^2 + 1), 0.1)
+
 NAreplace <- function(x) ifelse(is.na(x), 0.1, x)
 mr <- 
-  list(mr = rbind(temp, temp2, temp3, fill) %>%
+  list(mr = rbind(temp, temp2, temp3, temp4, fill) %>%
         dplyr::select(stock, year, N) %>%
         tidyr::spread(stock, N) %>%
         dplyr::select(-year) %>%
         as.matrix(),
-      cv_mr = rbind(temp, temp2, temp3, fill) %>%
+      cv_mr = rbind(temp, temp2, temp3, temp4, fill) %>%
         dplyr::select(stock, year, cv) %>%
         tidyr::spread(stock, cv) %>%
         dplyr::select(-year) %>%
         dplyr::mutate_all(list(NAreplace)) %>% 
-        as.matrix())
+        as.matrix(),
+      mr_det = mr2018$mr_det,
+      tau.logmr_det = mr2018$tau.logmr_det)
 
 save(mr, file=".\\data\\mr.rda")

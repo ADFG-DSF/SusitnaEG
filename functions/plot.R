@@ -727,7 +727,7 @@ plot_statepairs <- function(post_dat, plot){
   lb <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "2.5%"]
   ub <- post_dat$summary[grepl("S.msy", rownames(post_dat$summary)), "97.5%"] 
   index <- Reduce(intersect, lapply(1:length(stock_id), function(x) which(post_dat$sims.list$S.msy[, x] > lb[x] & post_dat$sims.list$S.msy[, x] < ub[x])))
-  sample <- sample(index, size = 200)
+  sample <- sample(index, size = 100)
   subset <- post_dat$sims.list[pars] %>% lapply(function(x){x[sample, ]})
   
   if(plot == "bystock") lapply(1:length(stock_id), function(y) pairs(lapply(subset, function(x) x[, y]), main = stock_id[y]))
@@ -773,7 +773,7 @@ plot_stock <- function(input_dat, post_dat, plot_stocks = c("East Susitna", "Tal
       as.data.frame() %>%
       tibble::rownames_to_column() %>%
       tidyr::gather(trib0, p0, -rowname) %>%
-      dplyr::mutate(trib = factor(ifelse(trib0 == "Other", paste0(trib0, " ", stock2), trib0), 
+      dplyr::mutate(trib = factor(trib0, 
                                   levels = id$trib[id$stock == stock]),
                     year = unname(year_id[rowname]),
                     stock = stock) %>%

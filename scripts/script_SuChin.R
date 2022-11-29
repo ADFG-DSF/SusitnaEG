@@ -1,4 +1,4 @@
-packs <- c("jagsUI")
+packs <- c("jagsUI", "tidyverse")
 lapply(packs, require, character.only = TRUE)
 
 rm(list=ls(all=TRUE))
@@ -6,10 +6,11 @@ source(".\\functions\\get.R")
 source(".\\functions\\internal.R")
 source(".\\functions\\plot.R")
 source(".\\functions\\table.R")
-data_names <- list.files(path=".\\SusitnaEG\\data")
-lapply(data_names, function(x) load(paste0(".\\SusitnaEG\\data\\", x), .GlobalEnv))
+data_names <- list.files(path=".\\data")
+lapply(data_names, function(x) load(paste0(".\\data\\", x), .GlobalEnv))
 
-get_ids(year_range = 1979:2021)
+
+get_ids(year_range = 1979:2022)
 
 #recall get_Hhat()
 
@@ -43,7 +44,8 @@ dat = list(
   weir = weir,
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
-  MR_det = c(rep(NA, 39), 30605 * 0.74, NA, NA, NA), tau.logMR_det = c(rep(0.1, 39), 1 / log((4376 / 30605)^2 + 1), 0.1, 0.1, 0.1) #2018 MR for stocks 1:3
+  MR_det = mr[[3]], 
+  tau.logMR_det = mr[[4]] #2018 MR for stocks 1:3
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -63,16 +65,16 @@ parameters=c(
 )
 
 #MCMC settings
-nc <- 3
-nb <- 50000
-nt <- 200
-ns <- 200000
+# nc <- 3
+# nb <- 50000
+# nt <- 200
+# ns <- 200000
 
 #MCMC settings
-# nc <- 3
-# nb <- 10000
-# nt <- 50
-# ns <- 50000
+nc <- 3
+nb <- 1000
+nt <- 50
+ns <- 5000
 
 post <- jags(data = dat,
              parameters.to.save = parameters,
@@ -86,13 +88,13 @@ post <- jags(data = dat,
              store.data = TRUE
 )
 
-saveRDS(post, file = ".\\posts\\SuChinook_2021.rds")
+#saveRDS(post, file = ".\\posts\\SuChinook_2021_MR.rds") #Same model for this post... forgot to commit.
 post <- readRDS(".\\posts\\SuChinook_2021.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
-#lapply(rownames(rhat[[1]][rhat[[1]]$Rhat >= quantile(rhat[[1]]$Rhat, .9), , drop = FALSE]), jagsUI::traceplot, x = post)
-lapply(rownames(rhat[[1]]), jagsUI::traceplot, x = post)
+jagsUI::traceplot(post, Rhat_min = 1.15)
+
 #inspect convergence
 #shinystan::launch_shinystan(shinystan::as.shinystan(post))
 
@@ -123,7 +125,7 @@ post$summary["C_as", ]
 #model fit plots
 lapply(stock_id, plot_fit, post_dat = post)
 
-#state varible plots
+#state variable plots
 lapply(stock_id, function(x) plot_state(post, display = x, rp = c("msy", "msr")))
 table_state(post, "bystock")
 plot_statepairs(post, plot = "bystock")
