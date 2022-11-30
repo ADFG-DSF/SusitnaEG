@@ -906,17 +906,22 @@ plot_theta <- function(post_dat){
   theta_obs1 <- data.frame(year = as.numeric(year_id), 
                            stock = unname(stock_id[1]), 
                            trib = "Deshka", 
-                           theta = as[["Deshka"]][, "Deshka"] / (weir[, "Deshka"] - Hd[["H"]]))
+                           theta = post_dat$data$air.S1 / (post_dat$data$weir[, "Deshka"] - post_dat$data$Hd))
   theta_obs2 <- data.frame(year = as.numeric(year_id), 
                            stock = unname(stock_id[2]), 
                            trib = "Montana", 
-                           theta = as[["East Susitna"]][, "Montana"] / weir[, "Montana"])
+                           theta = post_dat$data$air.S2[, "Montana"] / post_dat$data$weir[, "Montana"])
   theta_obs3 <- data.frame(year = as.numeric(year_id), 
                            stock = unname(stock_id[2]), 
                            trib = "Willow", 
-                           theta = as[["East Susitna"]][, "Willow"] / weir[, "Willow"])
+                           theta = post_dat$data$air.S2[, "Willow"] / post_dat$data$weir[, "Willow"])
+  theta_obs4 <- data.frame(year = as.numeric(year_id), 
+                           stock = unname(stock_id[4]), 
+                           trib = "Lake", 
+                           theta = post_dat$data$air.S4[, "Lake"] / post_dat$data$sonar)
+  
   theta_obs <- 
-    rbind(theta_obs1, theta_obs2, theta_obs3) %>%
+    rbind(theta_obs1, theta_obs2, theta_obs3, theta_obs4) %>%
     dplyr::filter(!is.na(theta))
   
   pal <- RColorBrewer::brewer.pal(6, "Paired")

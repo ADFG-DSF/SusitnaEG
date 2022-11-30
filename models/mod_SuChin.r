@@ -11,7 +11,7 @@ model{
 	sigma.red[s] <- 1 / sqrt(tau.red[s])
 	log.resid.vec[1:(Y - a.min), s] <- log.resid[(A+a.min):(Y+A-1), s]
 	lnalpha.vec[1:(Y - a.min), s] <- lnalpha.y[(A+a.min):(Y+A-1), s]
-	  for (c in (A+a.min):(Y+A-1)) {
+	for (c in (A+a.min):(Y+A-1)) {
 		log.R[c, s] ~ dt(log.R.mean2[c, s],tau.white[s],500)
 		R[c, s] <- exp(log.R[c, s])
 		log.R.mean1[c, s] <- log(S[c-a.max, s]) + lnalpha[s] - beta[s] * S[c-a.max, s]  #Eq. 1
@@ -19,7 +19,7 @@ model{
 		lnalpha.y[c, s] <- lnalpha[s] + log.resid[c, s] 
 		}
 	  log.R.mean2[A+a.min, s] <- log.R.mean1[A+a.min, s] + phi[s] * log.resid.0[s]  #Eq. 2
-	  for (c in (A+a.min+1):(Y+A-1)) {
+	for (c in (A+a.min+1):(Y+A-1)) {
 		log.R.mean2[c, s] <- log.R.mean1[c, s] + phi[s] * log.resid[c-1, s]
 		}
 	  lnalpha[s] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,)  
@@ -94,7 +94,7 @@ for (j in 1:J) {
   x.a[j, 1:A] ~ dmulti(q.star[j, ], n.a[j])  #Eq. 24
     for (a in 1:A) {
       q.star[j,a] <- rho[j,a] / sum(rho[j,1:A])  #Eq. 25
-	  log(rho[j,a]) <- log(N.ta[yr.a[j],a] / N.ta[yr.a[j], 1]) + b[x.stock[j], a]
+	    log(rho[j,a]) <- log(N.ta[yr.a[j],a] / N.ta[yr.a[j], 1]) + b[x.stock[j], a]
       }
   }
 for(a in 1:A){b0[1,a] <- 0} #Deshka baseline
@@ -273,6 +273,15 @@ for(t in 1:4) {
       weir[y, 3] ~ dlnorm(log.1p6S2[y], 400)  #Eq. 23 when s=2, Willow/Deception
     }
 
+### Lake Creek sonar W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1 #new code
+# tau.sonar=400 so cv.sonar=0.05
+for (y in 1:Y) {
+  p.sonar[y] ~ dbeta(1,1)
+  tele.sonar[y, 1] ~ dbinom(p.sonar[y], tele.sonar[y, 2]) #new code
+  log.1p2S4[y] <- log(p.sonar[y] * S[y, 4])
+  sonar[y] ~ dlnorm(log.1p2S4[y], 400)
+}
+
 p.HDeshka.mean ~ dbeta(1, 1)
 Bscale.HDeshka ~ dunif(0.07, 1)
 Bsum.HDeshka <- 1 / Bscale.HDeshka / Bscale.HDeshka
@@ -293,7 +302,7 @@ for (y in 1:Y) {
   MR_det[y] ~ dlnorm(log(sum(IR500[y, 1:3])), tau.logMR_det[y])
   for (s in 1:SG){
     IR[y, s] <- N[y, s] * (1 - mu.Hmarine[y])  #Eq. 9
-	IR500[y, s] <- IR[y, s] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))  #Eq. 18
+	  IR500[y, s] <- IR[y, s] * (1 - (q[y, 1] * p.small3[y] + q[y, 2] * p.small4[y]))  #Eq. 18
     logIR500[y, s] <- log(IR500[y, s])
 	tau.logMR[y, s] <- 1 / log(cv.MR[y, s]*cv.MR[y, s] + 1)  #Eq. 16
     MR[y, s] ~ dlnorm(logIR500[y, s], tau.logMR[y, s])  #Eq. 15    

@@ -45,7 +45,9 @@ dat = list(
   small3 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.1"), 2), as.matrix(lt500[lt500$age == "1.1", c("n_small", "n")])),
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
   MR_det = mr[[3]], 
-  tau.logMR_det = mr[[4]] #2018 MR for stocks 1:3
+  tau.logMR_det = mr[[4]], #2018 MR for stocks 1:3
+  tele.sonar = rbind(matrix(0, length(year_id) - 1, 2), matrix(c(18, 82), 1, 2)), #Lake Creek telemetry and Sonar
+  sonar = c(rep(NA, length(year_id) - 1), 3999)
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -55,7 +57,7 @@ parameters=c(
 'phi', 'log.resid.0', 'log.resid.vec',
 'S.eq', 'S.max', 'S.msy', 'U.msy',
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
-'S','N','R','IR',
+'S','N','R','IR', "N.tas",
 'N.ta','q', 'b', 'q.star', 'N.tas',
 'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4',
 'p.S2', 'p.S3', 'p.S4', 'Bsum.So',
@@ -155,4 +157,5 @@ mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALS
 
 #escapement vrs. proposed goals
 plot_Swgoals(post, goals_df)
+
 
