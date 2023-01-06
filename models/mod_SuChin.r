@@ -22,8 +22,9 @@ model{
 	for (c in (A+a.min+1):(Y+A-1)) {
 		log.R.mean2[c, s] <- log.R.mean1[c, s] + phi[s] * log.resid[c-1, s]
 		}
-	  lnalpha[s] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,)  
-	  beta[s] ~ dnorm(0, 1.0E-2)T(0,)
+	  lnalpha[s] ~ dnorm(mu.lnalpha, tau.lnalpha)T(0,)
+	  #lnalpha[s] ~ dnorm(0,1.0E-6)T(0,)
+	  beta[s] ~ dnorm(0, 1.0E-2)T(9E-6,)
 	  log.resid.0[s] ~ dnorm(0,tau.red[s])T(-3,3) 
 	  alpha[s] <- exp(lnalpha[s])
 	  lnalpha.c[s] <- lnalpha[s] + (sigma.white[s] * sigma.white[s] / 2 / (1-phi[s]*phi[s]))  #Eq. 28
@@ -276,10 +277,10 @@ for(t in 1:4) {
 ### Lake Creek sonar W (SMALL) LOGNORMAL ERRORS, DETECTABILITY = 1 #new code
 # tau.sonar=400 so cv.sonar=0.05
 for (y in 1:Y) {
-  p.sonar[y] ~ dbeta(1,1)
-  tele.sonar[y, 1] ~ dbinom(p.sonar[y], tele.sonar[y, 2]) #new code
-  log.1p2S4[y] <- log(p.sonar[y] * S[y, 4])
-  sonar[y] ~ dlnorm(log.1p2S4[y], 400)
+  p.p2upS4[y] ~ dbeta(1,1) #upstream of the sonar in Lake Creek
+  tele.p2upS4[y, 1] ~ dbinom(p.p2upS4[y], tele.p2upS4[y, 2]) #new code
+  log.1p2upS4[y] <- log(p.p2upS4[y] * p.S4[y, 2] * S[y, 4])
+  sonar[y] ~ dlnorm(log.1p2upS4[y], 400)
 }
 
 p.HDeshka.mean ~ dbeta(1, 1)

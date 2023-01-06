@@ -1,0 +1,278 @@
+---
+title: "Susitna EG 2022 preliminary estimate"
+author: "Adam Reimer"
+date: "12/8/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+library(ggplot2)
+source("..\\functions\\get.R")
+source("..\\functions\\internal.R")
+source("..\\functions\\plot.R")
+source("..\\functions\\table.R")
+data_names <- list.files(path="..\\data")
+lapply(data_names, function(x) load(paste0("..\\data\\", x), .GlobalEnv))
+getwd()
+get_ids(year_range = 1979:2022)
+post_old <- readRDS("..\\posts\\SuChinook_2021_MR.rds")
+post_new <- readRDS("..\\posts\\SuChinook_11302022.rds") 
+table_old <- table_state(post_old, "bystate")
+table_new <- table_state(post_new, "bystate")
+
+fit <- lapply(stock_id, plot_fit, post_dat = post_new)
+horse <- lapply(stock_id, plot_horse, post_dat = post_new)
+
+#current goals
+goals_df <- data.frame(stock = stock_id, 
+                       lb = c(9000, 13000, 9000, 16000), 
+                       ub = c(18000, 25000, 17500, 22000))
+goals_list <- split(goals_df[, -1], 1:nrow(goals_df), ) 
+
+post_BOF2020 <- readRDS("..\\posts\\SuChinook_134cf92.rds")
+profiles_BOF2020 <- lapply(stock_id, get_profile, post_dat = post_BOF2020)
+list_BOF2020 = Map(function(x,y,z){list(x, y, z, "2020 BOF")}, 
+               profiles_BOF2020,
+               goals_list, 
+               post_BOF2020$q50$S.msy)
+profiles_BOF2023 <- lapply(stock_id, get_profile, post_dat = post_new)
+list_BOF2023 = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")}, 
+               profiles_BOF2023,
+               goals_list, 
+               post_new$q50$S.msy) 
+profile <- Map(plot_OYPcompare, list_BOF2020, list_BOF2023, plotmax = list(30000, 30000, 25000, 30000))
+```
+
+## Update history
+  
+This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2022 season and updates the escapement goal  
+
+### Changes
+  * 2020 data
+      + SWHS estimates from the Deshka stock group were revised upwards from 0 to 290.
+  * 2021 data
+      + SWHS estimates from the Deshka stock group were revised upwards from 500 to 566. 
+  * 2022 data: 
+      + Empirical data from the 2022 season has been added to the model. Placeholders have been used for the Tyonek subsistence fishery (1000 fish). Weir and radio telemetry data from the Yentna River have been added.
+  
+## Updated Escapement estimates
+Table 1.- Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2022.
+```{r}
+knitr::kable(table_new[["Escapement (CV)"]][42:44, -2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+Note that these estimates are imprecise. We can look at the posterior distribution for each estimate to get an idea of variability relative the the escapement goal range.
+  
+```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 1.- Posterior distribution of 2021 abundance estimates."}
+goals <- data.frame(name = stock_id, lb = c(9000, 13000, 9000, 16000), ub = c(18000, 25000, 17500, 22000))
+S_dist_plot <- function(post, goal, year_index){
+  new <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name")
+  new  %>%
+    ggplot(aes(x = value)) +
+      geom_histogram() + 
+      geom_rect(aes(xmin = lb, xmax = ub, ymin = 0, ymax = Inf), data = goal, alpha = .25, fill = "green", inherit.aes = FALSE) +
+      facet_grid(. ~ name, scales = "free_x") +
+      ggtitle(paste0("Posterior probability relative to escapement goals, ", year_id[year_index]))
+}
+S_dist_plot(post_new, goals, 44)
+```
+  
+Table 2.- Probability that the 2021 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.
+```{r}
+S_dist_table <- function(post, goal, year_index){
+  p <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name") %>% 
+    dplyr::mutate(range = factor(ifelse(value < lb, "below goal", ifelse(value < ub, "within goal", "above goal")), 
+                                 levels = c("below goal", "within goal", "above goal")))
+  round(table(p$range, p$name)/(dim(p)[1]/4), 2)  
+}
+S_dist_table(post_new, goals, 44)
+```
+  
+## SR Analysis Update
+### Parameter estimates
+In general, each stock is estimated to be less productive, have decreased compensation, and have increased process error after adding the last 5 years of data. In 2 stocks these changes resulted in increased estimates of Smsy.
+
+Table 3.- State-space model parameter estimates for Susitna River Chinook salmon by stock, calendar years 1979–2022.
+```{r}
+table_params(post_new)
+```
+  
+### Deshka
+
+Deshka weir data dominates the run size estimates for the Deshka River stock.
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 2.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+fit[[1]]
+```
+  
+Deshka River SR dynamics are influenced by several factors excluded for the SR relationship.
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Plausible spawner-recruit relationships for the Deshka River Chinook salmon stock as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2019."}
+horse[[1]]
+```
+  
+The estimate of Smsy for the Deshka River increased by ~ 1000 fish (8%) which has caused OYP probabilities to be roughly symmetric for the existing goal range. If we changed the goal range to agree with the OYP probabilities selected at the last board meeting the goals would increase by about 1,400 fish at the lower end and by about 650 fish at the upper end. It is important to note that the process error associated with this analysis is very large and has increased since the last board meeting.  The increase in Smsy is driven by increased process error.
+  
+```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 4.- Optimal yield (OYP) profiles for the Deshka River Chinook salmon stock from the 2020 and 2022 analysis. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[1]]
+
+# goals_df
+# profiles_BOF2020[[1]][(8975 <= profiles_BOF2020[[1]]$s & profiles_BOF2020[[1]]$s <= 9025) |
+#                        (17975 <= profiles_BOF2020[[1]]$s & profiles_BOF2020[[1]]$s <= 18025),]
+# OYP80_BOF2020max <- max(profiles_BOF2020[[1]]$OYP80)
+# OYP80_BOF2020lb <- profiles_BOF2020[[1]]$OYP80[(8970 <= profiles_BOF2020[[1]]$s & profiles_BOF2020[[1]]$s <= 9030)]
+# OYP80_BOF2023lb <- OYP80_BOF2020lb/OYP80_BOF2020max * max(profiles_BOF2023[[1]]$OYP80)
+# profiles_BOF2023[[1]][(OYP80_BOF2023lb - 0.005) <= profiles_BOF2023[[1]]$OYP80 &
+#                    profiles_BOF2023[[1]]$OYP80 <= (OYP80_BOF2023lb + 0.005) &
+#                    profiles_BOF2023[[1]]$s <= 14000, ]
+# 
+# OYP80_BOF2020ub <- profiles_BOF2020[[1]]$OYP80[(17970 <= profiles_BOF2020[[1]]$s & profiles_BOF2020[[1]]$s <= 18030)]
+# OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[1]]$OYP80)
+# profiles_BOF2023[[1]][(OYP80_BOF2023ub - 0.005) <= profiles_BOF2023[[1]]$OYP80 &
+#                    profiles_BOF2023[[1]]$OYP80 <= (OYP80_BOF2023ub + 0.005) &
+#                    profiles_BOF2023[[1]]$s >= 14000, ]
+
+# get_profilemode <- function(post_dat, stock_name){
+#   stopifnot(exists("stock_id", .GlobalEnv))
+#   
+#   stock_n <- which(stock_id == stock_name)
+#   
+#   samples <- post_dat$mcmc.info$n.chains * post_dat$mcmc.info$n.samples
+#   
+#   temp <-
+#     data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], 
+#                lnalpha = post_dat$sims.list[["lnalpha"]][, stock_n],
+#                lnalpha.c = post_dat$sims.list[["lnalpha.c"]][, stock_n]) %>%
+#     as.data.frame() %>%
+#     dplyr::mutate(S.msy = lnalpha/beta * (0.5 - 0.07 * lnalpha), # change
+#                   R.msy = S.msy * exp(lnalpha - beta * S.msy), # change
+#                   R.max = 1/beta * exp(lnalpha - 1), # change
+#                   MSY = R.msy - S.msy) %>%
+#     dplyr::as.tbl() %>%
+#     tibble::rownames_to_column(var = "id_var")
+#   
+#   s <- seq(0, median(temp$S.msy) * 4, by = median(temp$S.msy) * 4 / 1000)
+#   
+#   dplyr::inner_join(temp,
+#                     data.frame(id_var = as.character(rep(1:samples, each = length(s))), 
+#                                s = rep(s, samples), stringsAsFactors = FALSE),
+#                     by = "id_var") %>%
+#     dplyr::mutate(Rs = s  * exp(lnalpha  - beta * s), # change
+#                   #Rsr = s * exp(lnalpha.c.recent - beta * s),
+#                   SY = Rs - s,
+#                   #SYr = Rsr - s,
+#                   OYP70 = (SY - 0.7 * MSY) > 0,
+#                   OYP80 = (SY - 0.8 * MSY) > 0,
+#                   OYP90 = (SY - 0.9 * MSY) > 0,
+#                   ORP70 = (Rs - 0.7 * R.max) > 0,
+#                   ORP80 = (Rs - 0.8 * R.max) > 0,
+#                   ORP90 = (Rs - 0.9 * R.max) > 0,
+#                   OFP70 = (SY - 0.7 * MSY) < 0 & (s < S.msy),
+#                   OFP80 = (SY - 0.8 * MSY) < 0 & (s < S.msy),
+#                   OFP90 = (SY - 0.9 * MSY) < 0 & (s < S.msy),
+#                   name = stock_name) %>%
+#     dplyr::select(name, s, dplyr::starts_with("O")) %>%
+#     dplyr::group_by(name, s) %>%
+#     dplyr::summarise(dplyr::across(starts_with("O"), mean, na.rm = TRUE)) %>%
+#     dplyr::mutate(S.msy = post_dat$q50$S.msy[stock_n]) %>%
+#     dplyr::ungroup()
+# }
+# profiles_BOF2023mode <- lapply(stock_id, get_profilemode, post_dat = post_new)
+# list_BOF2023mode = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")}, 
+#                profiles_BOF2023mode,
+#                goals_list, 
+#                post_new$q50$lnalpha/post_new$q50$beta*(0.5 - 0.07 * post_new$q50$lnalpha))
+# profilemode <- Map(plot_OYPcompare, list_BOF2020, list_BOF2023mode, plotmax = list(30000, 30000, 25000, 30000))
+# profilemode[[1]]
+```
+  
+## Eastside Susitna
+  
+Run size estimates for the Eastside Susitna stock are considerably less precise than the Deshka River estimates.
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 5.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+fit[[2]]
+```
+   
+The Eastside Susitna SR relationship lacks data with information about compensation.
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 6.- Plausible spawner-recruit relationships for the Eastside Susitna Chinook salmon stock as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2022."}
+horse[[2]]
+```
+  
+  
+The estimate of Smsy for the Eastside Susitna increased by ~ 1600 fish (12%). OYP probilities were extremely conservative for this stock and remain very conservative. If we changed the goal range to agree with the OYP probabilities selected at the last board meeting the lower end would not change but the upper end would increase by approximately 4,000 fish. It is important to note that the process error associated with this analysis has increased since the last board meeting and the increase in Smsy is largely driven by increased process error.
+  
+```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 4.- Optimal yield (OYP) profiles for the Eastside Susitna Chinook salmon stock from the 2020 and 2022 analysis. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[2]]
+
+# goals_df
+# profiles_BOF2020[[2]][(12975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 13025) |
+#                        (24975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25025),]
+# 
+# profiles_BOF2023[[2]][profiles_BOF2023[[2]]$OYP80 == max(profiles_BOF2023[[2]]$OYP80), ]
+# 
+# OYP80_BOF2020max <- max(profiles_BOF2020[[2]]$OYP80)
+# OYP80_BOF2020ub <- profiles_BOF2020[[2]]$OYP80[(24970 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25030)]
+# OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[2]]$OYP80)
+# profiles_BOF2023[[2]][(OYP80_BOF2023ub - 0.008) <= profiles_BOF2023[[1]]$OYP80 &
+#                    profiles_BOF2023[[2]]$OYP80 <= (OYP80_BOF2023ub + 0.008) &
+#                    profiles_BOF2023[[2]]$s >= 14000, ]
+``` 
+
+## Talkeetna
+  
+Run size estimates for the Talkeetna River stock are also less precise than the Deshka River estimates.   
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 4.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+fit[[3]]
+```
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 6.- Plausible spawner-recruit relationships for the Talkeetna River Chinook salmon stock as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2022.", warning = FALSE}
+horse[[3]]
+```
+  
+The estimate of Smsy for the Talkeetna River is unchanged although our analysis has less information about yield producing escapements than it did 5 years ago.
+  
+```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 4.- Optimal yield (OYP) profiles for the Talketna River Chinook salmon stock from the 2020 and 2022 analysis. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[3]]
+``` 
+  
+## Yentna
+  
+Estimates for the Yentna River stock are imprecise. If you look closely you can see the 2022 estimate is heavily influenced by the sonar estimate at Lake Creek (blue diamond) compared to the survey data (note the scale of the graph is not doing us any favors here and the point estimate you would get from sonar/telemetry data alone is about 1000 fish higher than our actual escapement estimate)  
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 5.- Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+fit[[4]]
+```
+  
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 6.- Plausible spawner-recruit relationships for the Yentna River Chinook salmon stock as derived from an age-structured state-space model fitted to abundance, harvest, and age data for 1979--2022.", warning = FALSE}
+horse[[4]]
+```
+  
+The estimate of Smsy for the Yentna River is unchanged.
+  
+```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 4.- Optimal yield (OYP) profiles for the Yentna River Chinook salmon stock from the 2020 and 2022 analysis. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
+profile[[4]]
+``` 
+  
+## Outdated Escapement estimates
+For the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. Most changes are small (0-4%). There are larger changes the Yentna river estimates (5% less and and 11% more for 2020 and 2021, respectively) . 
+  
+Table 4.- Previously released annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2021. These estimates have been superseded by the estimates above.
+```{r}
+knitr::kable(table_old[["Escapement (CV)"]][42:43, -2], row.names = FALSE, align = "r", escape = FALSE)
+```

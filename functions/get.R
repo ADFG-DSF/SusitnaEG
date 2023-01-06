@@ -264,7 +264,11 @@ get_profile <- function(post_dat, stock_name){
                   OFP80 = (SY - 0.8 * MSY) < 0 & (s < S.msy),
                   OFP90 = (SY - 0.9 * MSY) < 0 & (s < S.msy),
                   name = stock_name) %>%
-    dplyr::select(name, s, S.msy, dplyr::starts_with("SY"), dplyr::starts_with("O"))
+    dplyr::select(name, s, dplyr::starts_with("O")) %>%
+    dplyr::group_by(name, s) %>%
+    dplyr::summarise(dplyr::across(starts_with("O"), mean, na.rm = TRUE)) %>%
+    dplyr::mutate(S.msy = post_dat$q50$S.msy[stock_n]) %>%
+    dplyr::ungroup()
 }
 
 

@@ -46,7 +46,7 @@ dat = list(
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
   MR_det = mr[[3]], 
   tau.logMR_det = mr[[4]], #2018 MR for stocks 1:3
-  tele.sonar = rbind(matrix(0, length(year_id) - 1, 2), matrix(c(18, 82), 1, 2)), #Lake Creek telemetry and Sonar
+  tele.p2upS4 = rbind(matrix(0, length(year_id) - 1, 2), matrix(c(18, 26), 1, 2)), #Lake Creek telemetry and Sonar
   sonar = c(rep(NA, length(year_id) - 1), 3999)
 )
 
@@ -57,41 +57,42 @@ parameters=c(
 'phi', 'log.resid.0', 'log.resid.vec',
 'S.eq', 'S.max', 'S.msy', 'U.msy',
 'p', 'pi', 'Dsum.age', 'ML1', 'ML2',
-'S','N','R','IR', "N.tas",
+'S','N','R','IR',
 'N.ta','q', 'b', 'q.star', 'N.tas',
 'Dsum.S2', 'ML1.S2', 'ML2.S2', 'Dsum.S3', 'ML1.S3', 'ML2.S3', 'Dsum.S4', 'ML1.S4', 'ML2.S4',
 'p.S2', 'p.S3', 'p.S4', 'Bsum.So',
 'theta',
 'p.small3', 'p.small4', 
-'mu.Hmarine', 'mu.Habove', 'p.HDeshka', 'Bsum.HDeshka', 'HDeshka', 'IR_deshka'
+'mu.Hmarine', 'mu.Habove', 'p.HDeshka', 'Bsum.HDeshka', 'HDeshka', 'IR_deshka',
+"p.p2upS4", "log.1p2upS4"
 )
-
-#MCMC settings
-# nc <- 3
-# nb <- 50000
-# nt <- 200
-# ns <- 200000
 
 #MCMC settings
 nc <- 3
-nb <- 1000
+nb <- 25000
 nt <- 50
-ns <- 5000
+ns <- 100000
 
-post <- jags(data = dat,
-             parameters.to.save = parameters,
-             inits = get_inits,
-             model.file = ".\\models\\mod_SuChin.r",
-             n.chains = nc,
-             n.iter = ns,
-             n.burnin = nb,
-             n.thin = nt,
-             parallel = TRUE,
-             store.data = TRUE
-)
+#MCMC settings
+# nc <- 3
+# nb <- 1000
+# nt <- 50
+# ns <- 5000
 
-#saveRDS(post, file = ".\\posts\\SuChinook_2021_MR.rds") #Same model for this post... forgot to commit.
-post <- readRDS(".\\posts\\SuChinook_2021.rds")
+# post <- jags(data = dat,
+#              parameters.to.save = parameters,
+#              inits = get_inits,
+#              model.file = ".\\models\\mod_SuChin.r",
+#              n.chains = nc,
+#              n.iter = ns,
+#              n.burnin = nb,
+#              n.thin = nt,
+#              parallel = TRUE,
+#              store.data = TRUE
+# )
+
+#saveRDS(post, file = ".\\posts\\SuChinook_11302022.rds") #Same model for this post... forgot to commit.
+post <- readRDS(".\\posts\\SuChinook_11302022.rds")
 
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
@@ -142,15 +143,29 @@ table_params(post)
 #create profile dataset
 profiles <- lapply(stock_id, get_profile, post_dat = post)
 
-#Jan23 UCI meeting proposal
+#current goals
 goals_df <- data.frame(stock = stock_id, 
-                       lb = c(9000, 13000, 9000, 13000), 
+                       lb = c(9000, 13000, 9000, 16000), 
                        ub = c(18000, 25000, 17500, 22000))
-goals_list <- split(goals_df[, -1], 1:nrow(goals_df))
+goals_list <- split(goals_df[, -1], 1:nrow(goals_df), ) 
 
 
 #Profiles
 mapply(plot_profile, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
+
+
+post_BOF2020 <- readRDS(".\\posts\\SuChinook_134cf92.rds")
+profiles_BOF2020 <- lapply(stock_id, get_profile, post_dat = post_BOF2020)
+list_BOF2020 = Map(function(x,y,z){list(x, y, z, "2020 BOF")}, 
+               profiles_BOF2020,
+               goals_list, 
+               post$q50$S.msy)
+
+list_BOF2023 = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")}, 
+               profiles,
+               goals_list, 
+               post$q50$S.msy) 
+Map(plot_OYPcompare, list_BOF2020, list_BOF2023, plotmax = list(30000, 30000, 25000, 30000))
 
 #expected yield
 mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)

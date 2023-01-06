@@ -238,7 +238,7 @@ plot_fit <- function(post_dat, stock_name){
   } 
   
   theta <- 
-    post_dat[["summary"]]%>%
+    post_dat[["summary"]] %>%
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("^theta\\[", rowname)) %>%
@@ -283,6 +283,19 @@ plot_fit <- function(post_dat, stock_name){
                   name_f = "S") %>%
     dplyr::select(year, stock, name, name_f, trib, type, value)
   
+  sonar <- 
+    data.frame(count = post_dat$data$sonar,
+               prop = post_dat$mean$p.p2upS4) %>%
+    tibble::rownames_to_column(var = "year") %>%
+    dplyr::mutate(year = year_id[year],
+                  trib = "Lake") %>%
+    dplyr::mutate(value = count / (1 - prop),
+                  stock = "Yentna",
+                  name = paste0(trib, " sonar"),
+                  type = "sonar",
+                  name_f = "S") %>%
+    dplyr::select(year, name, stock, name_f, trib, type, value)
+  
   markrecap <- 
     mr[[1]] %>%
     as.data.frame() %>%
@@ -294,6 +307,7 @@ plot_fit <- function(post_dat, stock_name){
   
   indicies <- 
     rbind(weirs, surveys) %>%
+    rbind(sonar) %>%
     dplyr::mutate(name_f = factor(name_f,
                                   levels = c("S", "IR"),
                                   labels = c("Escapement", "Inriver Run")),
@@ -318,7 +332,7 @@ plot_fit <- function(post_dat, stock_name){
     dplyr::filter(!is.na(value))
   
   pal <- RColorBrewer::brewer.pal(6, "Set1")
-  shapes <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19)
+  shapes <- c("survey" = 17, "weir" = 15, "Mark-Recapture" = 19, sonar = 18)
   breaks <- 
     indicies[!duplicated(indicies$name), c("stock", "name", "trib", "type")] %>%
     dplyr::left_join(id[, c("trib", "tribn")], by = "trib") %>%
@@ -465,7 +479,7 @@ plot_horse <- function(post_dat, stock_name){
 plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA, profiles = c("OYP", "ORP", "OFP")){
   stopifnot(exists("stock_id", .GlobalEnv),
             exists("stock_print", .GlobalEnv))
-  temp <-unlist(lapply(profiles, function(x){paste0(x, c("70", "80", "90"))}))
+  #temp <-unlist(lapply(profiles, function(x){paste0(x, c("70", "80", "90"))}))
   profile_label <- ggplot2::as_labeller(c('OYP' = "Optimum Yield Profile",
                                           'OFP' = "Overfishing Profile",
                                           'ORP' = "Optimum Recruitment Profile"))
@@ -479,11 +493,9 @@ plot_profile <- function(profile_dat, limit = NULL, rug = TRUE, goal_range = NA,
   else xmax <- limit
   
   plot <- profile_dat %>%
-    dplyr::select_("s", .dots = temp) %>%
     dplyr::group_by(s) %>%
     dplyr::filter(s <= xmax) %>%
-    dplyr::summarise_all(mean, na.rm = TRUE) %>%
-    tidyr::gather("key", "prob", -s, factor_key = TRUE) %>%
+    tidyr::gather("key", "prob", -s, -name, -S.msy, factor_key = TRUE) %>%
     dplyr::mutate(profile = factor(gsub("([A-Z]+)[0-9]+", "\\1", key),
                                    levels = c("OYP", "OFP", "ORP")),
                   max_pct = gsub("[A-Z]+([0-9]+)", "\\1", key)) %>%
@@ -918,7 +930,8 @@ plot_theta <- function(post_dat){
   theta_obs4 <- data.frame(year = as.numeric(year_id), 
                            stock = unname(stock_id[4]), 
                            trib = "Lake", 
-                           theta = post_dat$data$air.S4[, "Lake"] / post_dat$data$sonar)
+                           theta = (post_dat$data$air.S4[, "Lake"] * post_dat$data$tele.p2upS4[,1] / post_dat$data$tele.p2upS4[,2]) / 
+                             post_dat$data$sonar)
   
   theta_obs <- 
     rbind(theta_obs1, theta_obs2, theta_obs3, theta_obs4) %>%
@@ -939,4 +952,65 @@ plot_theta <- function(post_dat){
     ggplot2::scale_color_manual(name ="Trib",
                                 breaks = breaks$trib,
                                 values = col)
+}
+
+#' OYP comparison
+#'
+#' Produces a faceted plot of OYP's for 2 SR analysis.
+#'
+#' @param list_old list(old_profile, old_goal, old_smsy, old_label)
+#' @param list_new list(new_profile, new_goal, new_smsy, new_label)
+#' @param plotmax x-axis maximum
+plot_OYPcompare <- function(list_old, list_new, plotmax, rows = TRUE){
+  dat_rect <-data.frame(sra = c(list_old[[4]], list_new[[4]]),
+                        xmin = unlist(c(list_old[[2]][[1]], list_new[[2]][[1]])),
+                        xmax = unlist(c(list_old[[2]][2], list_new[[2]][2])),
+                        ymin = rep(-Inf, 2),
+                        ymax = rep(Inf, 2), fix.empty.names = FALSE)
+  
+  rug_dat <- get_BEGbounds(list_old[[3]]) %>%
+    dplyr::mutate(sra = list_old[[4]]) %>%
+    dplyr::bind_rows(get_BEGbounds(list_new[[3]]) %>%
+                       dplyr::mutate(sra = list_new[[4]]))
+  
+  temp0 <- list_old[[1]] %>%
+    dplyr::select(s, dplyr::starts_with("OYP")) %>%
+    tidyr::gather("key", "prob", -s, factor_key = TRUE) %>%
+    dplyr::mutate(sra = list_old[[4]],
+                  max_pct = stringr::str_extract(key, "[0-9]+")) %>%
+    dplyr::select(s, prob, max_pct, sra)
+  
+  dat_new <- list_new[[1]] %>%
+    dplyr::select(s, dplyr::starts_with("OYP")) %>%
+    tidyr::gather("key", "prob", -s, factor_key = TRUE) %>%
+    dplyr::mutate(sra = list_new[[4]],
+                  max_pct = stringr::str_extract(key, "[0-9]+")) %>%
+    dplyr::select(s, prob, max_pct, sra)
+  
+  old_circle <- c(list_old[[1]]$s[which.min(abs(list_old[[1]]$s - list_old[[2]][[1]]))], list_old[[1]]$s[which.min(abs(list_old[[1]]$s - list_old[[2]][[2]]))])
+  new_circle <- c(dat_new$s[which.min(abs(dat_new$s - list_new[[2]][[1]]))], dat_new$s[which.min(abs(dat_new$s - list_new[[2]][[2]]))])
+  dat_point <- list_old[[1]] %>%
+    dplyr::filter(s %in% old_circle) %>%
+    dplyr::mutate(sra = list_old[[4]]) %>%
+    dplyr::select(s, sra, prob = OYP80) %>%
+    dplyr::bind_rows(dplyr::filter(dat_new, s %in% new_circle  & max_pct == "80") %>%
+                       dplyr::select(s, prob, sra))
+  
+  temp <- 
+    dplyr::bind_rows(dat_new, temp0) %>%
+    dplyr::filter(s <= plotmax) %>%
+    ggplot2::ggplot(ggplot2::aes(x = s, y = prob, linetype = max_pct)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_rect(ggplot2::aes(xmin = xmin, xmax = xmax, ymin = ymin, ymax = ymax),
+                       dat_rect, inherit.aes = FALSE, fill = "red", alpha = 0.2) +
+    ggplot2::geom_point(ggplot2::aes(x = s, y = prob), dat_point, inherit.aes = FALSE, shape = 1, size = 3, stroke = 2) +
+    ggplot2::geom_rug(ggplot2::aes(x = lb), data = rug_dat, inherit.aes = FALSE, sides = "b", color = "darkgrey") +
+    ggplot2::geom_rug(ggplot2::aes(x = ub), data = rug_dat, inherit.aes = FALSE, sides = "b", color = "black") +
+    ggplot2::scale_x_continuous("Spawners", breaks = seq(0, plotmax, plotmax/5), limits = c(0, plotmax), labels = scales::comma) +
+    ggplot2::scale_y_continuous("Probability", breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
+    ggplot2::scale_linetype_discrete(name = "Percent of Max.", )+
+    ggplot2::facet_grid(. ~ sra) +
+    ggplot2::theme_bw() +
+    ggplot2::theme(legend.position = "bottom")
+  if(rows == TRUE){temp + ggplot2::facet_grid(. ~ sra)} else {temp + ggplot2::facet_grid(sra ~ .)}
 }
