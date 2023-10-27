@@ -9,8 +9,7 @@ source(".\\functions\\table.R")
 data_names <- list.files(path=".\\data")
 lapply(data_names, function(x) load(paste0(".\\data\\", x), .GlobalEnv))
 
-
-get_ids(year_range = 1979:2022)
+get_ids()
 
 #recall get_Hhat()
 
@@ -46,8 +45,8 @@ dat = list(
   small4 = rbind(matrix(0, length(year_id) - sum(lt500$age == "1.2"), 2), as.matrix(lt500[lt500$age == "1.2", c("n_small", "n")])),
   MR_det = mr[[3]], 
   tau.logMR_det = mr[[4]], #2018 MR for stocks 1:3
-  tele.p2upS4 = rbind(matrix(0, length(year_id) - 1, 2), matrix(c(18, 26), 1, 2)), #Lake Creek telemetry and Sonar
-  sonar = c(rep(NA, length(year_id) - 1), 3999)
+  tele.p2upS4 = sonar[[2]], #Lake Creek telemetry and Sonar
+  sonar = sonar[[1]]
 )
 
 ####  Define the parameters (nodes) of interest  ##### 
@@ -69,31 +68,33 @@ parameters=c(
 
 #MCMC settings
 nc <- 3
-nb <- 25000
-nt <- 50
-ns <- 100000
+nb <- 250000
+nt <- 500
+ns <- 1000000
 
 #MCMC settings
 # nc <- 3
-# nb <- 1000
+# nb <- 10000
 # nt <- 50
-# ns <- 5000
+# ns <- 50000
 
-# post <- jags(data = dat,
-#              parameters.to.save = parameters,
-#              inits = get_inits,
-#              model.file = ".\\models\\mod_SuChin.r",
-#              n.chains = nc,
-#              n.iter = ns,
-#              n.burnin = nb,
-#              n.thin = nt,
-#              parallel = TRUE,
-#              store.data = TRUE
-# )
 
-#saveRDS(post, file = ".\\posts\\SuChinook_11302022.rds") #Same model for this post... forgot to commit.
-post <- readRDS(".\\posts\\SuChinook_11302022.rds")
+post <- jags(data = dat,
+             parameters.to.save = parameters,
+             inits = get_inits,
+             model.file = ".\\models\\mod_SuChin.r",
+             n.chains = nc,
+             n.iter = ns,
+             n.burnin = nb,
+             n.thin = nt,
+             parallel = TRUE,
+             store.data = TRUE
+)
 
+#saveRDS(post, file = ".\\posts\\SuChinook_10242023.rds") #Associate this date w the appropriate commit.
+post <- readRDS(".\\posts\\SuChinook_10242023.rds")
+
+#note: convergence is poor for age 3 fish.
 rhat <- get_Rhat(post, cutoff = 1.15)
 rhat
 jagsUI::traceplot(post, Rhat_min = 1.15)
@@ -161,11 +162,11 @@ list_BOF2020 = Map(function(x,y,z){list(x, y, z, "2020 BOF")},
                goals_list, 
                post$q50$S.msy)
 
-list_BOF2023 = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")}, 
+list_update2023 = Map(function(x,y,z){list(x, unname(y), z, "2023 update")}, 
                profiles,
                goals_list, 
                post$q50$S.msy) 
-Map(plot_OYPcompare, list_BOF2020, list_BOF2023, plotmax = list(30000, 30000, 25000, 30000))
+Map(plot_OYPcompare, list_BOF2020, list_update2023, plotmax = list(30000, 30000, 25000, 30000))
 
 #expected yield
 mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALSE)
@@ -174,3 +175,62 @@ mapply(plot_ey, profile_dat = profiles, goal_range = goals_list, SIMPLIFY = FALS
 plot_Swgoals(post, goals_df)
 
 
+# Note the 2022 Lake Creek Sonar estimate was revised upwards (4,231 vrs 3,999) while the 2022 Yentna escapement estimate fell after 2023 Lake Creek was added 
+# (and 2022 Lake Creek sonar was revised) from 16,583 to 15,407. In general, sonar data has put upwards pressure on the escapement estimate relative to the survey data.
+post_2022 <- readRDS(".\\posts\\SuChinook_11302022.rds")
+post_2023 <- readRDS(".\\posts\\SuChinook_10242023.rds")
+
+#sonar point estimates
+dat$sonar[44:45] / post_2023$q50$p.p2upS4[44:45] / post_2023$q50$p.S4[44:45, 2]
+#survey point estimates
+dat$air.S4[44:45, ] / t(post_2023$q50$theta[10:13, 44:45]) / post_2023$q50$p.S4[44:45, 1:4]
+
+#The model response to this pressure has been to decrease the estimate of Lake Creek's contribution to the Yentna Stock
+# Both as a mean response
+#### Note: seeing the model in this form makes me wonder about including variability in the estimate of the non-surveyed proportion. 
+#### One model simplification would be to make this a constant scalar
+plot_meanstockcomp <- function( ML1, ML2, p_out, pop_names, years){
+  logistic <- p_mean1 <- p_mean2 <- matrix(NA, nrow = length(years), ncol = length(pop_names))
+  
+  for(y in years){
+    for(p in 1:length(pop_names)){
+      logistic[y, p] <- exp(ML1[p] + ML2[p] * y)
+    }
+  }
+  for(y in years){
+    for(p in 1:length(pop_names)){
+      p_mean1[y, p] <- logistic[y, p] / sum(logistic[y, ])
+      p_mean2[y, p] <- p_mean1[y, p] * (1 - p_out[y])
+    }
+  }
+  colnames(p_mean2) <- pop_names
+  p_mean2 %>% as.data.frame() %>% rownames_to_column() %>% pivot_longer(-rowname)
+}
+post_2021 <- readRDS(".\\posts\\SuChinook_2021_MR.rds")
+post_2020 <- readRDS(".\\posts\\SuChinook_Bparam_2sf0a9c2.rds")
+plot_meanstockcomp(post_2022$q50$ML1.S4, post_2022$q50$ML2.S4, post_2022$q50$p.S4[, 5], trib_id$Yentna[1:4], 1:44) %>%
+  mutate(post = "2022") %>%
+  rbind(plot_meanstockcomp(post_2023$q50$ML1.S4, post_2023$q50$ML2.S4, post_2023$q50$p.S4[, 5], trib_id$Yentna[1:4], 1:45) %>% mutate(post = "2023")) %>%
+  rbind(plot_meanstockcomp(post_2021$q50$ML1.S4, post_2021$q50$ML2.S4, post_2021$q50$p.S4[, 5], trib_id$Yentna[1:4], 1:43) %>% mutate(post = "2021")) %>%
+  rbind(plot_meanstockcomp(post_2020$q50$ML1.S4, post_2020$q50$ML2.S4, post_2020$q50$p.S4[, 5], trib_id$Yentna[1:4], 1:42) %>% mutate(post = "2020")) %>%
+  ggplot(aes(x = as.numeric(rowname), y = value, color = post)) +
+  geom_line() +
+  facet_grid(name ~ .)
+
+#and as a final estimate
+get_comp <- function(post, pop_names, years){
+  colnames(post) <- pop_names
+  post %>% as.data.frame() %>% mutate(rowname = years) %>% pivot_longer(-rowname)
+}
+get_comp(post_2022$q50$p.S4[, 1:4], trib_id$Yentna[1:4], 1979:2022) %>%
+  mutate(post = "2022") %>%
+  rbind(get_comp(post_2023$q50$p.S4[, 1:4], trib_id$Yentna[1:4], 1979:2023) %>% mutate(post = "2023")) %>%
+  rbind(get_comp(post_2021$q50$p.S4[, 1:4], trib_id$Yentna[1:4], 1979:2021) %>% mutate(post = "2021")) %>%
+  rbind(get_comp(post_2020$q50$p.S4[, 1:4], trib_id$Yentna[1:4], 1979:2020) %>% mutate(post = "2020")) %>%
+  ggplot(aes(x = as.numeric(rowname), y = value, color = post)) +
+  geom_line() +
+  facet_grid(name ~ .)
+
+# General comment: since the model was published we have ran into several instances where the estimate of stock composition has moved to adjust to new data. In this case 
+# I'd say the movement was in a desirable direction but there was an instance where it wasn't (see SusitnaEG_prelim2020.html). The stock composition part of this 
+# model should be refined/simplified.

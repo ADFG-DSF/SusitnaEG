@@ -53,7 +53,7 @@ dplyr::bind_rows(P.mn, Q.mn, N.mn) %>%
     ggplot2::scale_y_continuous(minor_breaks = NULL, labels = digits) +
     ggplot2::geom_point(data = Q.obs, size = 3, ggplot2::aes(shape = sample)) +
     ggplot2::geom_line(data = pi.mn, ggplot2::aes(alpha = NULL, color = age), size = 0.75, linetype = "dashed") +
-    ggplot2::scale_color_manual(values = rep("black", 4), guide = FALSE) +
+    ggplot2::scale_color_manual(values = rep("black", 4), guide = "none") +
     ggplot2::scale_alpha_discrete(name = "Age", labels = names(age_id), guide = ggplot2::guide_legend(reverse = TRUE)) +
     ggplot2::scale_shape_discrete(name = "Sample") +
     ggplot2::labs(y = NULL, x = "Year") +
@@ -289,7 +289,8 @@ plot_fit <- function(post_dat, stock_name){
     tibble::rownames_to_column(var = "year") %>%
     dplyr::mutate(year = year_id[year],
                   trib = "Lake") %>%
-    dplyr::mutate(value = count / (1 - prop),
+    dplyr::left_join(expand, by = c("year", "trib")) %>% 
+    dplyr::mutate(value = count / prop / ex_weir,
                   stock = "Yentna",
                   name = paste0(trib, " sonar"),
                   type = "sonar",
@@ -863,7 +864,7 @@ plot_Swgoals <- function(post_dat, goal_range){
     as.data.frame() %>%
     tibble::rownames_to_column() %>%
     dplyr::filter(grepl("^S\\[\\d+,[1234]\\]", rowname)) %>%
-    dplyr::select_("rowname", Escapement = as.name("50%"), lb = as.name("2.5%"), ub = as.name("97.5%")) %>%
+    dplyr::select(rowname, Escapement = as.name("50%"), lb = as.name("2.5%"), ub = as.name("97.5%")) %>%
     dplyr::mutate(year = as.numeric(gsub("^S\\[(\\d+),\\d\\]", "\\1", rowname)) + min(as.numeric(year_id)) - 1,
                   stock = factor(stock_id[gsub("^.*\\[\\d+,(\\d)\\]", "\\1", rowname)], levels = stock_id)) %>%
     dplyr::left_join(regs, by = c("stock", "year")) %>%

@@ -27,7 +27,7 @@ horse <- lapply(stock_id, plot_horse, post_dat = post_new)
 
 #current goals
 goals_df <- data.frame(stock = stock_id, 
-                       lb = c(9000, 13000, 9000, 16000), 
+                       lb = c(9000, 13000, 9000, 13000), 
                        ub = c(18000, 25000, 17500, 22000))
 goals_list <- split(goals_df[, -1], 1:nrow(goals_df), ) 
 
@@ -65,7 +65,7 @@ knitr::kable(table_new[["Escapement (CV)"]][42:44, -2], row.names = FALSE, align
   
 Note that these estimates are imprecise. We can look at the posterior distribution for each estimate to get an idea of variability relative the the escapement goal range.
   
-```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 1.- Posterior distribution of 2021 abundance estimates."}
+```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 1.- Posterior distribution of 2022 abundance estimates."}
 goals <- data.frame(name = stock_id, lb = c(9000, 13000, 9000, 16000), ub = c(18000, 25000, 17500, 22000))
 S_dist_plot <- function(post, goal, year_index){
   new <- 
@@ -84,7 +84,7 @@ S_dist_plot <- function(post, goal, year_index){
 S_dist_plot(post_new, goals, 44)
 ```
   
-Table 2.- Probability that the 2021 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.
+Table 2.- Probability that the 2022 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.
 ```{r}
 S_dist_table <- function(post, goal, year_index){
   p <- 
@@ -137,7 +137,7 @@ profile[[1]]
 # profiles_BOF2023[[1]][(OYP80_BOF2023lb - 0.005) <= profiles_BOF2023[[1]]$OYP80 &
 #                    profiles_BOF2023[[1]]$OYP80 <= (OYP80_BOF2023lb + 0.005) &
 #                    profiles_BOF2023[[1]]$s <= 14000, ]
-# 
+#
 # OYP80_BOF2020ub <- profiles_BOF2020[[1]]$OYP80[(17970 <= profiles_BOF2020[[1]]$s & profiles_BOF2020[[1]]$s <= 18030)]
 # OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[1]]$OYP80)
 # profiles_BOF2023[[1]][(OYP80_BOF2023ub - 0.005) <= profiles_BOF2023[[1]]$OYP80 &
@@ -146,13 +146,13 @@ profile[[1]]
 
 # get_profilemode <- function(post_dat, stock_name){
 #   stopifnot(exists("stock_id", .GlobalEnv))
-#   
+#
 #   stock_n <- which(stock_id == stock_name)
-#   
+#
 #   samples <- post_dat$mcmc.info$n.chains * post_dat$mcmc.info$n.samples
-#   
+#
 #   temp <-
-#     data.frame(beta = post_dat$sims.list[["beta"]][, stock_n], 
+#     data.frame(beta = post_dat$sims.list[["beta"]][, stock_n],
 #                lnalpha = post_dat$sims.list[["lnalpha"]][, stock_n],
 #                lnalpha.c = post_dat$sims.list[["lnalpha.c"]][, stock_n]) %>%
 #     as.data.frame() %>%
@@ -162,11 +162,11 @@ profile[[1]]
 #                   MSY = R.msy - S.msy) %>%
 #     dplyr::as.tbl() %>%
 #     tibble::rownames_to_column(var = "id_var")
-#   
+#
 #   s <- seq(0, median(temp$S.msy) * 4, by = median(temp$S.msy) * 4 / 1000)
-#   
+#
 #   dplyr::inner_join(temp,
-#                     data.frame(id_var = as.character(rep(1:samples, each = length(s))), 
+#                     data.frame(id_var = as.character(rep(1:samples, each = length(s))),
 #                                s = rep(s, samples), stringsAsFactors = FALSE),
 #                     by = "id_var") %>%
 #     dplyr::mutate(Rs = s  * exp(lnalpha  - beta * s), # change
@@ -190,9 +190,9 @@ profile[[1]]
 #     dplyr::ungroup()
 # }
 # profiles_BOF2023mode <- lapply(stock_id, get_profilemode, post_dat = post_new)
-# list_BOF2023mode = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")}, 
+# list_BOF2023mode = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")},
 #                profiles_BOF2023mode,
-#                goals_list, 
+#                goals_list,
 #                post_new$q50$lnalpha/post_new$q50$beta*(0.5 - 0.07 * post_new$q50$lnalpha))
 # profilemode <- Map(plot_OYPcompare, list_BOF2020, list_BOF2023mode, plotmax = list(30000, 30000, 25000, 30000))
 # profilemode[[1]]
@@ -218,18 +218,19 @@ The estimate of Smsy for the Eastside Susitna increased by ~ 1600 fish (12%). OY
 ```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 4.- Optimal yield (OYP) profiles for the Eastside Susitna Chinook salmon stock from the 2020 and 2022 analysis. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
 profile[[2]]
 
-# goals_df
-# profiles_BOF2020[[2]][(12975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 13025) |
-#                        (24975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25025),]
-# 
-# profiles_BOF2023[[2]][profiles_BOF2023[[2]]$OYP80 == max(profiles_BOF2023[[2]]$OYP80), ]
-# 
-# OYP80_BOF2020max <- max(profiles_BOF2020[[2]]$OYP80)
-# OYP80_BOF2020ub <- profiles_BOF2020[[2]]$OYP80[(24970 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25030)]
-# OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[2]]$OYP80)
-# profiles_BOF2023[[2]][(OYP80_BOF2023ub - 0.008) <= profiles_BOF2023[[1]]$OYP80 &
-#                    profiles_BOF2023[[2]]$OYP80 <= (OYP80_BOF2023ub + 0.008) &
-#                    profiles_BOF2023[[2]]$s >= 14000, ]
+goals_df
+profiles_BOF2020[[2]][(12975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 13025) |
+                       (24975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25025),]
+profiles_BOF2023[[2]][(12975 <= profiles_BOF2023[[2]]$s & profiles_BOF2023[[2]]$s <= 13025) |
+                       (24975 <= profiles_BOF2023[[2]]$s & profiles_BOF2023[[2]]$s <= 25025),]
+profiles_BOF2023[[2]][profiles_BOF2023[[2]]$OYP80 == max(profiles_BOF2023[[2]]$OYP80), ]
+
+OYP80_BOF2020max <- max(profiles_BOF2020[[2]]$OYP80)
+OYP80_BOF2020ub <- profiles_BOF2020[[2]]$OYP80[(24970 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25030)]
+OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[2]]$OYP80)
+profiles_BOF2023[[2]][(OYP80_BOF2023ub - 0.008) <= profiles_BOF2023[[1]]$OYP80 &
+                   profiles_BOF2023[[2]]$OYP80 <= (OYP80_BOF2023ub + 0.008) &
+                   profiles_BOF2023[[2]]$s >= 14000, ]
 ``` 
 
 ## Talkeetna

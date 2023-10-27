@@ -45,6 +45,6 @@ get_array <- function(post_dat, node, statistic = "mean"){
     dplyr::filter(grepl(pattern, rowname)) %>%
     dplyr::mutate(yr = as.numeric(gsub(".*\\[(\\d+),\\d]", "\\1", rowname)),
                   age = as.numeric(gsub(".*\\[\\d+,(\\d)]", "\\1", rowname))) %>%
-    dplyr::select("yr", "age", statistic)
+    dplyr::select(all_of(c("yr", "age")), statistic)
     df
 }
