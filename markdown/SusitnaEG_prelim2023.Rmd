@@ -27,7 +27,7 @@ plot <- lapply(stock_id, plot_fit, post_dat = post_new)
 
 ## Update history
   
-This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2022 season and updates the escapement goal  
+This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.  
 
 ### Changes
   * 2019 data
