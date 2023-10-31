@@ -1,0 +1,118 @@
+---
+title: "Susitna EG 2023 preliminary estimate"
+author: "Adam Reimer"
+date: "10/25/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+library(ggplot2)
+source("..\\functions\\get.R")
+source("..\\functions\\internal.R")
+source("..\\functions\\plot.R")
+source("..\\functions\\table.R")
+data_names <- list.files(path="..\\data")
+lapply(data_names, function(x) load(paste0("..\\data\\", x), .GlobalEnv))
+getwd()
+get_ids(year_range = 1979:2023)
+post_old <- readRDS("..\\posts\\SuChinook_11302022.rds")
+post_new <- readRDS("..\\posts\\SuChinook_10242023.rds") 
+table_old <- table_state(post_old, "bystate")
+table_new <- table_state(post_new, "bystate")
+
+plot <- lapply(stock_id, plot_fit, post_dat = post_new)
+```
+
+## Update history
+  
+This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.  
+
+### Changes
+  * 2019 data
+      + The Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,062.
+  * 2020 data
+      + The Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,180.
+  * 2021 data
+      + The Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,022. 
+  * 2022 data: 
+      + The Tyonek subsistence harvest estimate was revised downwards from 1,000 to 954. The 2022 Lake Creek sonar estimate was revised upwards from 3,999 to 4,231.
+  * 2023 data: 
+      + Empirical data from the 2023 season has been added to the model. Placeholder has been used for the Tyonek subsistence fishery (900 fish).
+  
+## Updated Escapement estimates
+Table 1.- Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2023.
+```{r}
+knitr::kable(table_new[["Escapement (CV)"]][41:45, -2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+Note that these estimates are low enough that we are certain to have missed the goal for all stocks.
+  
+```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 1.- Posterior distribution of 2023 abundance estimates."}
+goals <- data.frame(name = stock_id, lb = c(9000, 13000, 9000, 16000), ub = c(18000, 25000, 17500, 22000))
+S_dist_plot <- function(post, goal, year_index){
+  new <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name")
+  new  %>%
+    ggplot(aes(x = value)) +
+      geom_histogram() + 
+      geom_rect(aes(xmin = lb, xmax = ub, ymin = 0, ymax = Inf), data = goal, alpha = .25, fill = "green", inherit.aes = FALSE) +
+      facet_grid(. ~ name, scales = "free_x") +
+      ggtitle(paste0("Posterior probability relative to escapement goals, ", year_id[year_index]))
+}
+S_dist_plot(post_new, goals, 45)
+```
+  
+Table 2.- Probability that the 2023 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.
+```{r}
+S_dist_table <- function(post, goal, year_index){
+  p <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name") %>% 
+    dplyr::mutate(range = factor(ifelse(value < lb, "below goal", ifelse(value < ub, "within goal", "above goal")), 
+                                 levels = c("below goal", "within goal", "above goal")))
+  round(table(p$range, p$name)/(dim(p)[1]/4), 2)  
+}
+S_dist_table(post_new, goals, 45)
+```
+  
+## Model Fit plots
+### Deshka
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 2.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[1]]
+```
+  
+## Eastside Susitna
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[2]]
+```
+  
+## Talkeetna
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 4.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[3]]
+```
+  
+## Yentna
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 5.- Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[4]]
+```
+  
+## Outdated Escapement estimates
+For the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. The changes for most stocks are small although there are substantial changes to the 2021 and 2022 Yentna estimates. The 2021 change actually moves back towards the original 2021 estimate (18,962). The 2022 change is troubling because the empirical data we have (Lake creek sonar) was revised upwards. Both changes are driven by instability in our estimates of stock composition in the Yentna drainage. So far both sonar counts we have collected have put upwards pressure on the Yentna escapement estimate when compared to the aerial survey data we have for the same years. Because the sonar estimate is considerably more precise the model has adjusted the Lake Creek stock composition estimate upwards to reduce the tension between the sonar and survey data. I think these changes will stabilize once we add more sonar data but I also think we should look at the stock composition parameterization next time the model is revised. That said the 2022 Yentna estimate is particularly unstable because Talachulitna was not flown. Recall Yentna has 2 surveys which track abundance well (Lake and Talachulitna) and 2 surveys that track abundance poorly (Cache and Peters). You can see that in the graph above and the model also estimates lower survey error for Lake and Talachulitna. 
+  
+Table 3.- Previously released annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2022. These estimates have been superseded by the estimates above.
+```{r}
+knitr::kable(table_old[["Escapement (CV)"]][41:44, -2], row.names = FALSE, align = "r", escape = FALSE)
+```

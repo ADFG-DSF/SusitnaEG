@@ -1,0 +1,182 @@
+---
+title: "Susitna EG 2018-2019 estimate updates, 2020 preliminary"
+author: "Adam Reimer"
+date: "10/12/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(SusitnaEG)
+library(magrittr)
+library(ggplot2)
+get_ids()
+post_old <- readRDS("..\\posts\\SuChinook_adddata_c211807.rds")
+post_new <- readRDS("..\\posts\\SuChinook_Bparam_2sf0a9c2.rds") 
+post_ws <- readRDS("..\\posts\\SuChinook_develop_5e68ea.rds") # Posterior used in work session release 
+table_old <- table_state(post_old, "bystate")
+table_new <- table_state(post_new, "bystate")
+
+plot <- lapply(stock_id, plot_fit, post_dat = post_new)
+```
+
+## Update history
+  
+This Susitna River Chinook salmon escapement estimate represents an update to the file "SusitnaEG_prelim2020_WorkSessionOct2020.html" which was released for the 2020 BOF work session on a tight schedule. I updated the model after this release because the original model produced very wide posterior estimates of Yentna abundance associated with situations where the the proportion of the stock not encountered by our surveys (p.S#o[y]) was ~80% (when it typically runs about 45%). Variability p.S#o[y] is controlled by the Bsum.So[#] parameters, i.e. the effective sample size for the distribution of p.S#o[y]. In general, the Bsum.So parameters are poorly estimated and vary widely although I'm not aware of it causing a problem similar to what was observed in 2020. I modified the model to constrain the Bsum.So parameter. This revision was not released to the public because Nick feels single releases are appropriate unless the released estimates are obviously flawed or the inference changes due to the revision. Revised point estimates do not change wrt where they fall in the goal range. 
+
+The problem is demonstrated below.  
+```{r}
+par(mfrow = c(2,2))
+plot(post_ws$sims.list$p.S2[ , 42, 7], post_ws$sims.list$S[ , 42, 2], main = "Eastside", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_ws$sims.list$p.S3[ , 42, 3], post_ws$sims.list$S[ , 42, 3], main = "Talkeetna", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_ws$sims.list$p.S4[ , 42, 5], post_ws$sims.list$S[ , 42, 4], main = "Yentna", xlab = "Prop not surveyed", ylab = "Escapement")
+par(mfrow = c(1,1))
+```
+### Changes
+  * Run Reconstruction model
+      + The parameters Bsum.SO[x] were set equal to Dsum.S(x + 1). Both parameters represent effective sample sizes for stock composition parameters, the former for the percent of the stock not monitored by our stock assessment and the later for the composition of surveyed streams within the stock. The D parameters estimates are larger and thus constrain the model with respect to the percent age of the stock which was not surveyed. While ad hoc I believe this makes intuitive sense because the estimates are generated from the same data set (which was separated in the analysis because we wished to include a trend in the surveyed stock comp, which caused the un-surveyed stock cont to trend to 0 or 1)
+  * 2018 data
+      + Included actual Tyonek subsistence harvest (1,308 fish) which replaced an placeholder of 500 fish used last year. 
+  * 2019 data
+      + Included revised mark-recapture abundance estimates. The new estimates used were 9,425 fish (SE = 3,473) for the Deshka stock group (revised from 8,071 SE = 3,173) and 14,121 fish (SE = 3,996) for the Eastside Susitna stock group (revised from 15,475 SE = 4209). 
+      + The Tyonek subsistence harvest placeholder was revised upwards (from 500 to 1,000 fish). 
+  * 2020 data: 
+      + Aerial Survey, weir, preliminary harvest and preliminary age data added.
+  
+## Updated Escapement estimates
+The model change did restrain estimates of the proportion of the stock not surveyed.  
+```{r}
+par(mfrow = c(2,2))
+plot(post_new$sims.list$p.S2[ , 42, 7], post_new$sims.list$S[ , 42, 2], main = "Eastside", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_new$sims.list$p.S3[ , 42, 3], post_new$sims.list$S[ , 42, 3], main = "Talkeetna", xlab = "Prop not surveyed", ylab = "Escapement")
+plot(post_new$sims.list$p.S4[ , 42, 5], post_new$sims.list$S[ , 42, 4], main = "Yentna", xlab = "Prop not surveyed", ylab = "Escapement")
+par(mfrow = c(1,1))
+```
+  
+The rest of the document is unchanged except that the "new" estimates used the posterior from the revised model.
+  
+Table 1.- Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2020.
+```{r}
+knitr::kable(table_new[["Escapement (CV)"]][40:42, -2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+Note that these estimates are imprecise. We can look at the posterior distribution for each estimate to get an idea of variability relative the the escapement goal range.
+  
+```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 1.- Posterior distribution of 2020 abundance estimates."}
+goals <- data.frame(name = stock_id, lb = c(9000, 13000, 9000, 16000), ub = c(18000, 25000, 17500, 22000))
+S_dist_plot <- function(post, goal, year_index){
+  new <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name")
+  new  %>%
+    ggplot(aes(x = value)) +
+      geom_histogram() + 
+      geom_rect(aes(xmin = lb, xmax = ub, ymin = 0, ymax = Inf), data = goal, alpha = .25, fill = "green", inherit.aes = FALSE) +
+      facet_grid(. ~ name, scales = "free_x") +
+      ggtitle(paste0("Posterior probability relative to escapement goals, ", year_id[year_index]))
+}
+S_dist_plot(post_new, goals, 42)
+```
+  
+Table 2.- Probability that the 2020 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.
+```{r}
+S_dist_table <- function(post, goal, year_index){
+  p <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name") %>% 
+    dplyr::mutate(range = factor(ifelse(value < lb, "below goal", ifelse(value < ub, "within goal", "above goal")), 
+                                 levels = c("below goal", "within goal", "above goal")))
+  round(table(p$range, p$name)/(dim(p)[1]/4), 2)  
+}
+S_dist_table(post_new, goals, 42)
+```
+  
+## Model Fit plots
+### Deshka
+
+Deshka weir data dominates the estimates for the Deshka River stock.
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 2.- Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[1]]
+```
+  
+## Eastside Susitna
+  
+Estimates for the Eastside Susitna stock are considerably less precise than the Deshka River estimates and less precise than prior years Eastside Susitna estimates for which we had MR data (due to imprecision of the MR estimates themselves)  
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[2]]
+```
+  
+## Talkeetna
+  
+Estimates for the Talkeetna River stock are also less precise than the Deshka River estimates and less precise than prior years Talkeetna estimates for which we had MR data (due to imprecision of the MR estimates themselves)   
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 4.- Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[3]]
+```
+  
+## Yentna
+  
+Estimates for the Yentna River stock are imprecise. The Yentna stock group has the fewest mark-recapture abundance estimates and no new MR abundance estimates.  
+  
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 5.- Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+plot[[4]]
+```
+  
+## Outdated Escapement estimates
+For the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates.
+  
+Table 3.- Previously released annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2019. These estimates have been superseded by the estimates above.
+```{r}
+knitr::kable(table_old[["Escapement (CV)"]][40:41, -2], row.names = FALSE, align = "r", escape = FALSE)
+```
+  
+For 2018, these changes were modest for the main stem stocks and fairly large for the Yentna stock. Both the new and revised point estimates for Yentna in 2018 are below the goal range, although the new estimate is lower. If we look at a histogram of the posterior probability we see that both estimates are imprecise relative to the goal range. In both cases there is some chance we were below, within or exceeded the goal. Our confidence does change however, under the old estimate there was ~ 64% chance we were below the goal range while the updated estimate that changes to 80%. 
+```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 6.- Posterior distribution of 2018 abundance estimates."}
+S_comp_plot <- function(post_o, post_n, goal, year_index){
+  new <- 
+    sapply(1:4, function(x) post_n$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name") %>% 
+    dplyr::mutate(estimate = "Updated Estimate")
+  old <- 
+    sapply(1:4, function(x) post_o$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name") %>% 
+    dplyr::mutate(estimate = "Prior Estimate")
+  rbind(new, old)  %>%
+    ggplot(aes(x = value)) +
+      geom_histogram() + 
+      geom_rect(aes(xmin = lb, xmax = ub, ymin = 0, ymax = Inf), data = goal, alpha = .25, fill = "green", inherit.aes = FALSE) +
+      facet_grid(estimate ~ name, scales = "free") +
+      ggtitle(paste0("Posterior probability relative to escapement goals, ", year_id[year_index]))
+}
+S_comp_plot(post_old, post_new, goals, 40)
+```
+  
+Table 4.- Probability that the 2018 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal (The first table is for the prior estimates, the second set is for the current estimates).
+```{r}
+S_dist_table(post_old, goals, 40)
+S_dist_table(post_new, goals, 40)
+```
+  
+The situation is worse in 2019 because the point estimate changed from above to within the goal when the model was run in 2020. In that case the probability of being within the goal was ~33% under the old estimate changing to ~42% under the new estimate.
+```{r, message=FALSE, fig.height = 6, fig.width = 10, fig.cap = "Figure 7.- Posterior distribution of 2019 abundance estimates."}
+S_comp_plot(post_old, post_new, goals, 41)
+```
+Table 5.- Probability that the 2019 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal (The first table is for the prior estimates, the second set is for the current estimates).
+```{r}
+S_dist_table(post_old, goals, 41)
+S_dist_table(post_new, goals, 41)
+```
