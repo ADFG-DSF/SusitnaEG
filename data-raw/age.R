@@ -3,7 +3,7 @@ library(magrittr)
 
 age_deshka <-
   readxl::read_excel(".\\data-raw\\SusitnaEG age.xlsx",
-                     range = "Deshka!A11:I54",
+                     range = "Deshka!A11:I55",
                      col_names = c("year", "p3", "p4", "p5", "p6", "p78", "pall", "n", "source"),
                      col_types = c("text", rep("numeric", 7), "text")) %>%
   dplyr::filter(!is.na(n)) %>%  # 1990 no sampling

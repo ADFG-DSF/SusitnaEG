@@ -2,13 +2,10 @@
 .Rhistory
 .RData
 .Ruserdata
-SusitnaEG/data-raw/*.xlsx
-SusitnaEG/data-raw/*.xlsm
-SusitnaEG/data-raw/*.xls
-SusitnaEG/data-raw/comm fish data/
-SusitnaEG/.Rbuildignore
+/data-raw/comm fish data
+/data-raw/Old raw data
+/.Rbuildignore
 April26_2018 meeting/
-data_requests/*.xlsx
 posts/
 markdown/Report 2019/drafts/
 *.xlsx
@@ -18,3 +15,12 @@ markdown/Report 2019/drafts/
 *.pdf
 *.png
 Thumbs.db
+/.quarto/
+
+!SusitnaEG age.xlsx
+!SusitnaEG Ha_post95.xlsx
+!SusitnaEG Hm.xlsx
+!SusitnaEG regs.xlsx
+!SusitnaEG sonar.xlsx
+!SusitnaEG survey.xlsx
+!SusitnaEG weirs.xlsx

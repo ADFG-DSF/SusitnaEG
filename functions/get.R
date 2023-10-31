@@ -144,7 +144,7 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
 #' get_ids(1979:2017)
 #'
 #' @export
-get_ids <- function(year_range = 1979:2021,
+get_ids <- function(year_range = 1979:2023,
                     age_id = c("Age 3" = 1, "Age 4" = 2, "Age 5" = 3, "Age 6+" = 4)){
   age_min <- as.numeric(gsub("^Age.*(\\d$)", "\\1", names(age_id)[1]))
   age_max <- as.numeric(gsub("^Age.*(\\d).*", "\\1", names(age_id)[length(age_id)]))
@@ -241,7 +241,7 @@ get_profile <- function(post_dat, stock_name){
     dplyr::mutate(R.msy = S.msy * exp(lnalpha.c - beta * S.msy),
                   R.max = 1/beta * exp(lnalpha.c - 1),
                   MSY = R.msy - S.msy) %>%
-    dplyr::as.tbl() %>%
+    tibble::as.tibble() %>%
     tibble::rownames_to_column(var = "id_var")
   
   s <- seq(0, median(temp$S.msy) * 4, by = median(temp$S.msy) * 4 / 1000)
@@ -264,7 +264,11 @@ get_profile <- function(post_dat, stock_name){
                   OFP80 = (SY - 0.8 * MSY) < 0 & (s < S.msy),
                   OFP90 = (SY - 0.9 * MSY) < 0 & (s < S.msy),
                   name = stock_name) %>%
-    dplyr::select(name, s, S.msy, dplyr::starts_with("SY"), dplyr::starts_with("O"))
+    dplyr::select(name, s, dplyr::starts_with("O")) %>%
+    dplyr::group_by(name, s) %>%
+    dplyr::summarise(dplyr::across(starts_with("O"), mean, na.rm = TRUE)) %>%
+    dplyr::mutate(S.msy = post_dat$q50$S.msy[stock_n]) %>%
+    dplyr::ungroup()
 }
 
 

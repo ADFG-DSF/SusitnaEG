@@ -65,17 +65,16 @@ tele_matrix <- function(stock){
       dplyr::mutate_all(list(~ ifelse(is.na(.), 0, .))) %>%
       as.matrix()
 
-  rbind(matrix(NA, nrow = if(stock == "Yentna") 35 else(34), ncol = dim(out)[2]), out) ####increment NA # here
+  rbind(matrix(NA, nrow = if(stock == "Yentna") 35 else(34), ncol = dim(out)[2]), out) 
 }
 
-tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 4, ncol = dim(.)[2]))
-tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 4, ncol = dim(.)[2]))
-tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 4, ncol = dim(.)[2]))
+tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 5, ncol = dim(.)[2])) ####increment NA # here
+tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 5, ncol = dim(.)[2])) ####increment NA # here
+tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 5, ncol = dim(.)[2])) ####increment NA # here
 
 telemetry <- list('East Susitna' = tele_east, 'N_East Susitna' = rowSums(tele_east, na.rm = TRUE),
                   'Talkeetna' = tele_tal, 'N_Talkeetna' = rowSums(tele_tal, na.rm = TRUE),
                   'Yentna' = tele_yent, 'N_Yentna' = rowSums(tele_yent, na.rm = TRUE))
-
 
 
 save(telemetry, file=".\\data\\telemetry.rda")
@@ -131,12 +130,12 @@ temp4 <-
                 cv = seN / N)
 
 fill <- #Increment NAs: Add new year here if no MR
-  data.frame(year = rep(c(1979:2012, 2018, 2022), times = 4), 
-             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 36),
+  data.frame(year = rep(c(1979:2012, 2018, 2022, 2023), times = 4), 
+             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 37),
              N = NA, 
              cv = 0.1, group = NA, seN = NA)
 
-mr2018 <- data.frame(year = 1979:2022) #increment year range here
+mr2018 <- data.frame(year = 1979:2023) #increment year range here
 mr2018$mr_det <- ifelse(mr2018$year == "2018", 30605, NA) #det = Deshka, Eastside, Talkeetna
 mr2018$tau.logmr_det <- ifelse(mr2018$year == "2018", 1 / log((4376 / 30605)^2 + 1), 0.1)
 

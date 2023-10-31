@@ -8,7 +8,7 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2
 
 survey_raw <-
   readxl::read_excel(".\\data-raw\\SusitnaEG survey.xlsx",
-                     range = "Single aerial survey counts!A5:X48",
+                     range = "Single aerial survey counts!A5:X49",
                      col_names = c("year", "Alexander", "skip", 
                                    "Deshka", "skip",
                                    "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "skip",
@@ -39,13 +39,39 @@ as <- list(Deshka = make_list("Deshka"),
            Talkeetna = make_list("Talkeetna"),
            Yentna = make_list("Yentna"))
 
-# Staff had some concerns about the 2021 Peters survey but it does not look like an obvious outlier. 
-# That combined with the large variance for the Peters surveys makes me think it is not consequential.
-plotly::plot_ly(x =as[[4]][,2], y = as[[4]][,3], z = as[[4]][,4], 
-                type = "scatter3d", 
-                mode = "markers", 
-                color = c(rep("1979-2020, 2022", 42), "2021", "1979-2020, 2022"),
-                colors = c("1979-2020, 2022" = "blue", "2021" = "red"))
+#time series of survey counts
+as[[2]] %>%
+  as.data.frame() %>%
+  mutate(year = 1979:(1978 + dim(as[[2]])[1])) %>%
+  pivot_longer(cols = -year, names_to = "population", values_to = "Count") %>%
+  ggplot(aes(x = year, y = Count, color = population)) +
+  geom_line()
+as[[2]][dim(as[[2]])[1], ]/apply(as[[2]], MARGIN = 2, FUN = median, na.rm = TRUE)
+as[[2]][dim(as[[2]])[1], ]/apply(as[[2]][1:(dim(as[[2]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
+
+as[[3]] %>%
+  as.data.frame() %>%
+  mutate(year = 1979:(1978 + dim(as[[3]])[1])) %>%
+  pivot_longer(cols = -year, names_to = "population", values_to = "Count") %>%
+  ggplot(aes(x = year, y = Count, color = population)) +
+  geom_line()
+
+as[[4]] %>%
+  as.data.frame() %>%
+  mutate(year = 1979:(1978 + dim(as[[4]])[1])) %>%
+  pivot_longer(cols = -year, names_to = "population", values_to = "Count") %>%
+  ggplot(aes(x = year, y = Count, color = population)) +
+  geom_line()
+
+# 2023 count as a percentage of the historical median
+as[[2]][dim(as[[2]])[1], ]/apply(as[[2]], MARGIN = 2, FUN = median, na.rm = TRUE)
+as[[3]][dim(as[[3]])[1], ]/apply(as[[3]], MARGIN = 2, FUN = median, na.rm = TRUE)
+as[[4]][dim(as[[4]])[1], ]/apply(as[[4]], MARGIN = 2, FUN = median, na.rm = TRUE)
+
+#2023 count as a percentage of the previous minimum
+as[[2]][dim(as[[2]])[1], ]/apply(as[[2]][1:(dim(as[[2]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
+as[[3]][dim(as[[4]])[1], ]/apply(as[[3]][1:(dim(as[[3]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
+as[[4]][dim(as[[4]])[1], ]/apply(as[[4]][1:(dim(as[[4]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
 
 save(as, file=".\\data\\as.rda")
 

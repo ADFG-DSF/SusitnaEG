@@ -1,3 +1,5 @@
+library(tidyverse)
+
 d13 <-
 readxl::read_xlsx("H:\\My Documents\\DeshkaWeir\\2013-2015\\2013 Results\\2013 Deshka Chinook Age Analysis_DL_AA(2).xlsx",
                   sheet = 3,
@@ -96,15 +98,24 @@ lapply(d22, table)
 d22$age <- ifelse(grepl("1.1", d22$age), 1.1, d22$age)
 d22$year <- 2022
 
-rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22) %>%
+url_23 <- "https://raw.githubusercontent.com/ADFG-DSF/DeshkaWeir/main/2023/data/2023%20Deshka%20asl.csv?token=GHSAT0AAAAAACG5LAFULCNLEMAGHGYXVLQMZJW4L3Q"
+d23 <-
+  readr::read_csv(url_23, 
+                  col_names = c("length", "sex", "age"),
+                  col_types = "_icc_",
+                  skip = 1)
+lapply(d23, table)
+d23$year <- 2023
+
+rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   ggplot2::ggplot(ggplot2::aes(x = length)) + 
     ggplot2::geom_histogram() + 
     ggplot2::geom_vline(ggplot2::aes(xintercept = 500)) +
-    ggplot2::facet_grid(age ~ year)
+    ggplot2::facet_grid(year ~ age)
 
 lt500 <- 
-  rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22) %>%
+  rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   dplyr::mutate(small = (length <= 500)) %>%
   dplyr::group_by(year, age) %>%
