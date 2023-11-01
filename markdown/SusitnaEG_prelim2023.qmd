@@ -1,7 +1,9 @@
 ---
 title: "Susitna EG 2023 preliminary estimate"
 author: "Adam Reimer"
-format: html
+format: 
+  html:
+    self-contained: true
 editor: visual
 ---
 
