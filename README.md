@@ -20,6 +20,6 @@ The file/folder structure for this analysis is as follows:
 
 -   models/: Jags code associated with this analysis. The file model_SuChin.R is the main jags code.
 
--    posts/: Posterior samples from the model. These files are large and not available on GItHUb however the code and data ro replicate each posterior should be available. The posterior sample are stored in the network location indicated above.
+-   posts/: Posterior samples from the model. These files are large and not available on GItHUb however the code and data ro replicate each posterior should be available. The posterior sample are stored in the network location indicated above.
 
 -   scripts/: R code to run analysis. The file script_SuChin.R is the main jags code.
