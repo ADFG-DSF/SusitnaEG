@@ -33,12 +33,12 @@ goals_list <- split(goals_df[, -1], 1:nrow(goals_df), )
 
 post_BOF2020 <- readRDS("..\\posts\\SuChinook_134cf92.rds")
 profiles_BOF2020 <- lapply(stock_id, get_profile, post_dat = post_BOF2020)
-list_BOF2020 = Map(function(x,y,z){list(x, y, z, "2020 BOF")}, 
+list_BOF2020 = Map(function(x,y,z){list(x, y, z, "1979-2017 data")}, 
                profiles_BOF2020,
                goals_list, 
                post_BOF2020$q50$S.msy)
 profiles_BOF2023 <- lapply(stock_id, get_profile, post_dat = post_new)
-list_BOF2023 = Map(function(x,y,z){list(x, unname(y), z, "2023 BOF")}, 
+list_BOF2023 = Map(function(x,y,z){list(x, unname(y), z, "1979-2022 data")}, 
                profiles_BOF2023,
                goals_list, 
                post_new$q50$S.msy) 
@@ -218,19 +218,19 @@ The estimate of Smsy for the Eastside Susitna increased by ~ 1600 fish (12%). OY
 ```{r, fig.height = 8, fig.width = 10, fig.cap = "Figure 4.- Optimal yield (OYP) profiles for the Eastside Susitna Chinook salmon stock from the 2020 and 2022 analysis. Profiles show the probability that a specified spawning abundance will result in specified fractions (70%, 80%, and 90% line) of maximum sustained yield."}
 profile[[2]]
 
-goals_df
-profiles_BOF2020[[2]][(12975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 13025) |
-                       (24975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25025),]
-profiles_BOF2023[[2]][(12975 <= profiles_BOF2023[[2]]$s & profiles_BOF2023[[2]]$s <= 13025) |
-                       (24975 <= profiles_BOF2023[[2]]$s & profiles_BOF2023[[2]]$s <= 25025),]
-profiles_BOF2023[[2]][profiles_BOF2023[[2]]$OYP80 == max(profiles_BOF2023[[2]]$OYP80), ]
-
-OYP80_BOF2020max <- max(profiles_BOF2020[[2]]$OYP80)
-OYP80_BOF2020ub <- profiles_BOF2020[[2]]$OYP80[(24970 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25030)]
-OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[2]]$OYP80)
-profiles_BOF2023[[2]][(OYP80_BOF2023ub - 0.008) <= profiles_BOF2023[[1]]$OYP80 &
-                   profiles_BOF2023[[2]]$OYP80 <= (OYP80_BOF2023ub + 0.008) &
-                   profiles_BOF2023[[2]]$s >= 14000, ]
+# goals_df
+# profiles_BOF2020[[2]][(12975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 13025) |
+#                        (24975 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25025),]
+# profiles_BOF2023[[2]][(12975 <= profiles_BOF2023[[2]]$s & profiles_BOF2023[[2]]$s <= 13025) |
+#                        (24975 <= profiles_BOF2023[[2]]$s & profiles_BOF2023[[2]]$s <= 25025),]
+# profiles_BOF2023[[2]][profiles_BOF2023[[2]]$OYP80 == max(profiles_BOF2023[[2]]$OYP80), ]
+# 
+# OYP80_BOF2020max <- max(profiles_BOF2020[[2]]$OYP80)
+# OYP80_BOF2020ub <- profiles_BOF2020[[2]]$OYP80[(24970 <= profiles_BOF2020[[2]]$s & profiles_BOF2020[[2]]$s <= 25030)]
+# OYP80_BOF2023ub <- OYP80_BOF2020ub/OYP80_BOF2020max * max(profiles_BOF2023[[2]]$OYP80)
+# profiles_BOF2023[[2]][(OYP80_BOF2023ub - 0.008) <= profiles_BOF2023[[1]]$OYP80 &
+#                    profiles_BOF2023[[2]]$OYP80 <= (OYP80_BOF2023ub + 0.008) &
+#                    profiles_BOF2023[[2]]$s >= 14000, ]
 ``` 
 
 ## Talkeetna

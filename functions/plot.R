@@ -272,8 +272,8 @@ plot_fit <- function(post_dat, stock_name){
   
   surveys <- lapply(1:length(stock_id), function(x) data.frame(stock = factor(unname(stock_id[x]), levels = stock_id),
                                                 year = rep(unname(year_id), times = dim(as[[stock_id[x]]])[2]),
-                                                trib = rep(colnames(as[[stock_id[x]]]), each = dim(as[[stock_id[x]]])[1]), 
-                                                count = as[[stock_id[x]]] %>% as.list() %>% do.call(rbind, .),
+                                                trib = rep(colnames(as[[stock_id[x]]]), each = length(year_id)), 
+                                                count = as[[stock_id[x]]][1:length(year_id), ] %>% as.list() %>% do.call(rbind, .),
                                                 stringsAsFactors = FALSE)) %>%
     do.call(rbind, .) %>%
     dplyr::left_join(expand, by = c("year", "stock", "trib")) %>%
@@ -298,7 +298,7 @@ plot_fit <- function(post_dat, stock_name){
     dplyr::select(year, name, stock, name_f, trib, type, value)
   
   markrecap <- 
-    mr[[1]] %>%
+    mr[[1]][1:length(year_id), ] %>%
     as.data.frame() %>%
     dplyr::mutate(year = year_id) %>%
     tidyr::gather(stock, value, -year) %>%
