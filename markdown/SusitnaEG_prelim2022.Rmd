@@ -6,7 +6,7 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
 library(magrittr)
 library(ggplot2)
 source("..\\functions\\get.R")
@@ -42,7 +42,9 @@ list_BOF2023 = Map(function(x,y,z){list(x, unname(y), z, "1979-2022 data")},
                profiles_BOF2023,
                goals_list, 
                post_new$q50$S.msy) 
-profile <- Map(plot_OYPcompare, list_BOF2020, list_BOF2023, plotmax = list(30000, 30000, 25000, 30000))
+profile <- 
+  Map(plot_OYPcompare, list_BOF2020, list_BOF2023, plotmax = list(30000, 30000, 25000, 30000)) %>%
+    lapply(function(x) {x + ggplot2::scale_linetype_discrete(name = "Percent of MSY", )})
 ```
 
 ## Update history

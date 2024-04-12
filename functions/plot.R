@@ -1011,7 +1011,7 @@ plot_OYPcompare <- function(list_old, list_new, plotmax, rows = TRUE){
     ggplot2::scale_y_continuous("Probability", breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
     ggplot2::scale_linetype_discrete(name = "Percent of Max.", )+
     ggplot2::facet_grid(. ~ sra) +
-    ggplot2::theme_bw() +
+    ggplot2::theme_bw(base_size = 20) +
     ggplot2::theme(legend.position = "bottom")
   if(rows == TRUE){temp + ggplot2::facet_grid(. ~ sra)} else {temp + ggplot2::facet_grid(sra ~ .)}
 }
