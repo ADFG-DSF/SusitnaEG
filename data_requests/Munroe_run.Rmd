@@ -1,0 +1,36 @@
+---
+title: "Andrew Munroe Total Run Size"
+author: "Adam Reimer"
+date: "2024-02-02"
+output: html_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+```
+
+```{r, include=FALSE}
+library(magrittr)
+library(ggplot2)
+source("..\\functions\\get.R")
+source("..\\functions\\internal.R")
+source("..\\functions\\table.R")
+data_names <- list.files(path="..\\data")
+lapply(data_names, function(x) load(paste0("..\\data\\", x), .GlobalEnv))
+get_ids(year_range = 1979:2023)
+post_new <- readRDS("..\\posts\\SuChinook_10242023.rds") 
+```
+
+```{r}
+tab_state <- table_state(post_new, "bystate")
+knitr::kable(tab_state[[1]])
+```
+
+```{r}
+tabN <- post_new$q50$N
+colnames(tabN) <- stock_id
+tabN_df <- as.data.frame(tabN) %>%
+  dplyr::mutate(year = year_id)
+
+writexl::write_xlsx(tabN_df, ".\\Munroe_TotalRun.xlsx")
+```
