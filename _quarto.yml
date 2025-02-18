@@ -3,4 +3,4 @@ project:
   output-dir: docs
   
   render: 
-    - "./markdown/SusitnaEG_prelim2023.qmd"
+    - "./markdown/SusitnaEG_prelim2024.qmd"

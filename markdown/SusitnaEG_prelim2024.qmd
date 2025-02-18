@@ -1,0 +1,189 @@
+---
+title: "Susitna EG 2024 preliminary estimate"
+author: "Adam Reimer"
+format: 
+  html:
+    self-contained: true
+editor: visual
+---
+
+```{r}
+#| echo: false 
+#| output: false
+#| message: false 
+#| warning: false
+knitr::opts_chunk$set(echo = FALSE)
+library(magrittr)
+library(ggplot2)
+source("..\\functions\\get.R")
+source("..\\functions\\internal.R")
+source("..\\functions\\plot.R")
+source("..\\functions\\table.R")
+data_names <- list.files(path="..\\data")
+lapply(data_names, function(x) load(paste0("..\\data\\", x), .GlobalEnv))
+getwd()
+get_ids(year_range = 1979:2023)
+post_old <- readRDS("..\\posts\\SuChinook_10242023.rds")
+post_new <- readRDS("..\\posts\\SuChinook_02172025.rds") 
+table_old <- table_state(post_old, "bystate")
+table_new <- table_state(post_new, "bystate")
+
+plot <- lapply(stock_id, plot_fit, post_dat = post_new)
+```
+
+## Update history
+
+This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.
+
+### Changes
+
+-   2019 data
+    -   The Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,062.
+-   2020 data
+    -   The Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,180.
+-   2021 data
+    -   The Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,022.
+-   2022 data:
+    -   The Tyonek subsistence harvest estimate was revised downwards from 1,000 to 954. The 2022 Lake Creek sonar estimate was revised upwards from 3,999 to 4,231.
+-   2023 data:
+    -   Empirical data from the 2023 season has been added to the model. Placeholder has been used for the Tyonek subsistence fishery (900 fish).
+-   2024 data:
+    -   Empirical data from the 2024 season has been added to the model. Tyonek subsistence harvest estimates from 2022-2023 have been revised upwards (1022 and 1498 fish, respectively).
+
+## Updated Escapement estimates
+
+```{r}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: tbl-est2024
+#| tbl-cap: "Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2024." 
+
+knitr::kable(table_new[["Escapement (CV)"]][42:46, -2], row.names = FALSE, align = "r", escape = FALSE)
+```
+
+Note that these estimates are low enough that we are certain to have missed the goal for all stocks.
+
+```{r}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: fig-goals
+#| fig-cap: Posterior distribution of 2024 abundance estimates.
+#| fig-height: 5
+#| fig-width: 10
+
+goals <- data.frame(name = stock_id, lb = c(9000, 13000, 9000, 16000), ub = c(18000, 25000, 17500, 22000))
+S_dist_plot <- function(post, goal, year_index){
+  new <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name")
+  new  %>%
+    ggplot(aes(x = value)) +
+      geom_histogram() + 
+      geom_rect(aes(xmin = lb, xmax = ub, ymin = 0, ymax = Inf), data = goal, alpha = .25, fill = "green", inherit.aes = FALSE) +
+      facet_grid(. ~ name, scales = "free_x") +
+      ggtitle(paste0("Posterior probability relative to escapement goals, ", year_id[year_index]))
+}
+S_dist_plot(post_new, goals, 46)
+```
+
+```{r}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: tbl-goalpct
+#| tbl-cap: Probability that the 2024 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.
+ 
+S_dist_table <- function(post, goal, year_index){
+  p <- 
+    sapply(1:4, function(x) post$sims.list$S[, year_index, x]) %>% 
+    as.data.frame() %>% 
+    setNames(stock_id) %>%
+    tidyr::pivot_longer(cols = 1:4) %>%
+    dplyr::left_join(goal, by = "name") %>% 
+    dplyr::mutate(range = factor(ifelse(value < lb, "below goal", ifelse(value < ub, "within goal", "above goal")), 
+                                 levels = c("below goal", "within goal", "above goal")))
+  round(table(p$range, p$name)/(dim(p)[1]/4), 2)  
+}
+knitr::kable(S_dist_table(post_new, goals, 46))
+```
+
+## Model fit plots
+
+### Deshka
+
+```{r}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: fig-deshka
+#| fig-cap: "Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+#| fig-height: 10
+#| fig-width: 10
+
+plot[[1]]
+```
+
+## Eastside Susitna
+
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 3.- Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: fig-eastsusitna
+#| fig-cap: "Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+#| fig-height: 10
+#| fig-width: 10
+
+plot[[2]]
+```
+
+## Talkeetna
+
+```{r}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: fig-talkeetna
+#| fig-cap: "Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River  Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+#| fig-height: 10
+#| fig-width: 10
+
+plot[[3]]
+```
+
+## Yentna
+
+```{r, fig.height = 10, fig.width = 10, fig.cap = "Figure 5.- Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: fig-yentna
+#| fig-cap: "Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+#| fig-height: 10
+#| fig-width: 10
+
+plot[[4]]
+```
+
+## Outdated Escapement estimates
+
+For the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. Relative to the 2023 estimates the changes for most stocks and years are modest (Generally less than 5% and always less than 9%).
+
+```{r}
+#| echo: false 
+#| message: false 
+#| warning: false
+#| label: tbl-oldestimates
+#| tbl-cap: "Previously released annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2022. These estimates have been superseded by the estimates above."
+
+knitr::kable(table_old[["Escapement (CV)"]][42:45, -2], row.names = FALSE, align = "r", escape = FALSE)
+
+# post_old$q50$S[42:45, ]
+# post_new$q50$S[42:45, ]
+# post_new$q50$S[42:45, ] / post_old$q50$S[42:45, ]
+```

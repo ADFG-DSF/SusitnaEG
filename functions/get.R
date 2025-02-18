@@ -144,7 +144,7 @@ get_countprofile <- function(post_dat, stock_name, trib_name){
 #' get_ids(1979:2017)
 #'
 #' @export
-get_ids <- function(year_range = 1979:2023,
+get_ids <- function(year_range = 1979:2024,
                     age_id = c("Age 3" = 1, "Age 4" = 2, "Age 5" = 3, "Age 6+" = 4)){
   age_min <- as.numeric(gsub("^Age.*(\\d$)", "\\1", names(age_id)[1]))
   age_max <- as.numeric(gsub("^Age.*(\\d).*", "\\1", names(age_id)[length(age_id)]))
@@ -203,8 +203,8 @@ get_inits <- function(){
     z.air = runif(sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})), 0, 0.5),
     g.air = runif(sum(sapply(trib_id, function(x) {length(x[!grepl("Other", x)])})), 0, 0.5),
     tau.weir = runif(1, 1, 25),
-    ML1 = c(runif(length(age_id) - 1, -1, 1), NA),
-    ML2 = c(runif(length(age_id) - 1, -0.1, 0.1), NA)
+    ML1 = c(runif(length(age_id) - 1, .1, 1), NA),
+    ML2 = c(runif(length(age_id) - 1, 0.1, 0.1), NA)
   )
 }
 

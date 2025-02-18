@@ -1,58 +1,58 @@
 [
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html",
-    "href": "markdown/SusitnaEG_prelim2023.html",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html",
+    "href": "markdown/SusitnaEG_prelim2024.html",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "",
-    "text": "This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.\n\n\n\n2019 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,062.\n\n2020 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,180.\n\n2021 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,022.\n\n2022 data:\n\nThe Tyonek subsistence harvest estimate was revised downwards from 1,000 to 954. The 2022 Lake Creek sonar estimate was revised upwards from 3,999 to 4,231.\n\n2023 data:\n\nEmpirical data from the 2023 season has been added to the model. Placeholder has been used for the Tyonek subsistence fishery (900 fish)."
+    "text": "This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.\n\n\n\n2019 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,062.\n\n2020 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,180.\n\n2021 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,022.\n\n2022 data:\n\nThe Tyonek subsistence harvest estimate was revised downwards from 1,000 to 954. The 2022 Lake Creek sonar estimate was revised upwards from 3,999 to 4,231.\n\n2023 data:\n\nEmpirical data from the 2023 season has been added to the model. Placeholder has been used for the Tyonek subsistence fishery (900 fish).\n\n2024 data:\n\nEmpirical data from the 2024 season has been added to the model. Tyonek subsistence harvest estimates from 2022-2023 have been revised upwards (1022 and 1498 fish, respectively)."
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#update-history",
-    "href": "markdown/SusitnaEG_prelim2023.html#update-history",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#update-history",
+    "href": "markdown/SusitnaEG_prelim2024.html#update-history",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "",
-    "text": "This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.\n\n\n\n2019 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,062.\n\n2020 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,180.\n\n2021 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,022.\n\n2022 data:\n\nThe Tyonek subsistence harvest estimate was revised downwards from 1,000 to 954. The 2022 Lake Creek sonar estimate was revised upwards from 3,999 to 4,231.\n\n2023 data:\n\nEmpirical data from the 2023 season has been added to the model. Placeholder has been used for the Tyonek subsistence fishery (900 fish)."
+    "text": "This document represents preliminary Susitna River Chinook salmon escapement estimates for the 2023 season.\n\n\n\n2019 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,062.\n\n2020 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,180.\n\n2021 data\n\nThe Tyonek subsistence harvest estimate was revised upwards from 1,000 to 1,022.\n\n2022 data:\n\nThe Tyonek subsistence harvest estimate was revised downwards from 1,000 to 954. The 2022 Lake Creek sonar estimate was revised upwards from 3,999 to 4,231.\n\n2023 data:\n\nEmpirical data from the 2023 season has been added to the model. Placeholder has been used for the Tyonek subsistence fishery (900 fish).\n\n2024 data:\n\nEmpirical data from the 2024 season has been added to the model. Tyonek subsistence harvest estimates from 2022-2023 have been revised upwards (1022 and 1498 fish, respectively)."
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#updated-escapement-estimates",
-    "href": "markdown/SusitnaEG_prelim2023.html#updated-escapement-estimates",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#updated-escapement-estimates",
+    "href": "markdown/SusitnaEG_prelim2024.html#updated-escapement-estimates",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "Updated Escapement estimates",
-    "text": "Updated Escapement estimates\n\n\n\n\nTable 1: Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2023.\n\n\nYear\nDeshka (CV)\nEast Susitna (CV)\nTalkeetna (CV)\nYentna (CV)\n\n\n\n\n2019\n9,733 (0.05)\n11,872 (0.14)\n10,655 (0.19)\n22,038 (0.21)\n\n\n2020\n11,170 (0.05)\n11,579 (0.11)\n6,673 (0.14)\n13,451 (0.19)\n\n\n2021\n17,966 (0.05)\n14,927 (0.12)\n8,485 (0.16)\n20,186 (0.20)\n\n\n2022\n5,479 (0.05)\n7,518 (0.20)\n4,086 (0.19)\n15,407 (0.18)\n\n\n2023\n3,750 (0.05)\n4,003 (0.21)\n2,216 (0.21)\n8,294 (0.20)\n\n\n\n\n\n\nNote that these estimates are low enough that we are certain to have missed the goal for all stocks.\n\n\n\n\n\nFigure 1: Posterior distribution of 2023 abundance estimates.\n\n\n\n\n\n\n\n\nTable 2: Probability that the 2023 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.\n\n\n\nDeshka\nEast Susitna\nTalkeetna\nYentna\n\n\n\n\nbelow goal\n1\n1\n1\n1\n\n\nwithin goal\n0\n0\n0\n0\n\n\nabove goal\n0\n0\n0\n0"
+    "text": "Updated Escapement estimates\n\n\n\n\nTable 1: Annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2024.\n\n\n\n\n\n\nYear\nDeshka (CV)\nEast Susitna (CV)\nTalkeetna (CV)\nYentna (CV)\n\n\n\n\n2020\n10,987 (0.05)\n12,589 (0.12)\n7,102 (0.15)\n14,246 (0.19)\n\n\n2021\n18,289 (0.05)\n15,419 (0.12)\n8,821 (0.15)\n19,538 (0.18)\n\n\n2022\n5,467 (0.05)\n7,953 (0.20)\n4,376 (0.19)\n14,305 (0.17)\n\n\n2023\n3,729 (0.05)\n3,732 (0.21)\n2,240 (0.20)\n7,853 (0.19)\n\n\n2024\n3,445 (0.05)\n4,550 (0.28)\n3,132 (0.23)\n9,621 (0.20)\n\n\n\n\n\n\n\n\nNote that these estimates are low enough that we are certain to have missed the goal for all stocks.\n\n\n\n\n\n\n\n\nFigure 1: Posterior distribution of 2024 abundance estimates.\n\n\n\n\n\n\n\n\n\nTable 2: Probability that the 2024 escapement for the Susitna River Chinook salmon stock groups was below, within, or above the escapement goal.\n\n\n\n\n\n\n\nDeshka\nEast Susitna\nTalkeetna\nYentna\n\n\n\n\nbelow goal\n1\n1\n1\n0.99\n\n\nwithin goal\n0\n0\n0\n0.01\n\n\nabove goal\n0\n0\n0\n0.00"
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#model-fit-plots",
-    "href": "markdown/SusitnaEG_prelim2023.html#model-fit-plots",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#model-fit-plots",
+    "href": "markdown/SusitnaEG_prelim2024.html#model-fit-plots",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "Model fit plots",
-    "text": "Model fit plots\n\nDeshka\n\n\n\n\n\nFigure 2: Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+    "text": "Model fit plots\n\nDeshka\n\n\n\n\n\n\n\n\nFigure 2: Model estimated escapement (top) and inriver run abundance (bottom) of the Deshka River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#eastside-susitna",
-    "href": "markdown/SusitnaEG_prelim2023.html#eastside-susitna",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#eastside-susitna",
+    "href": "markdown/SusitnaEG_prelim2024.html#eastside-susitna",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "Eastside Susitna",
-    "text": "Eastside Susitna\n\n\n\n\n\nFigure 3: Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+    "text": "Eastside Susitna\n\n\n\n\n\n\n\n\nFigure 3: Model estimated escapement (top) and inriver run abundance (bottom) of the Eastside Susitna Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#talkeetna",
-    "href": "markdown/SusitnaEG_prelim2023.html#talkeetna",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#talkeetna",
+    "href": "markdown/SusitnaEG_prelim2024.html#talkeetna",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "Talkeetna",
-    "text": "Talkeetna\n\n\n\n\n\nFigure 4: Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+    "text": "Talkeetna\n\n\n\n\n\n\n\n\nFigure 4: Model estimated escapement (top) and inriver run abundance (bottom) of the Talkeetna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#yentna",
-    "href": "markdown/SusitnaEG_prelim2023.html#yentna",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#yentna",
+    "href": "markdown/SusitnaEG_prelim2024.html#yentna",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "Yentna",
-    "text": "Yentna\n\n\n\n\n\nFigure 5: Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
+    "text": "Yentna\n\n\n\n\n\n\n\n\nFigure 5: Model estimated escapement (top) and inriver run abundance (bottom) of the Yentna River Chinook salmon stock (black lines show the median and shaded areas show 95% credibility intervals) as reconstructed from aerial survey counts, weir counts, and mark-recapture estimates."
   },
   {
-    "objectID": "markdown/SusitnaEG_prelim2023.html#outdated-escapement-estimates",
-    "href": "markdown/SusitnaEG_prelim2023.html#outdated-escapement-estimates",
-    "title": "Susitna EG 2023 preliminary estimate",
+    "objectID": "markdown/SusitnaEG_prelim2024.html#outdated-escapement-estimates",
+    "href": "markdown/SusitnaEG_prelim2024.html#outdated-escapement-estimates",
+    "title": "Susitna EG 2024 preliminary estimate",
     "section": "Outdated Escapement estimates",
-    "text": "Outdated Escapement estimates\nFor the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. The changes for most stocks are small although there are substantial changes to the 2021 and 2022 Yentna estimates. The 2021 change actually moves back towards the original 2021 estimate (18,962). The 2022 change is troubling because the empirical data we have (Lake creek sonar) was revised upwards. Both changes are driven by instability in our estimates of stock composition in the Yentna drainage. So far both sonar counts we have collected have put upwards pressure on the Yentna escapement estimate when compared to the aerial survey data we have for the same years. Because the sonar estimate is considerably more precise the model has adjusted the Lake Creek stock composition estimate upwards to reduce the tension between the sonar and survey data. I think these changes will stabilize once we add more sonar data but I also think we should look at the stock composition parameterization next time the model is revised. That said the 2022 Yentna estimate is particularly unstable because Talachulitna was not flown. Recall Yentna has 2 surveys which track abundance well (Lake and Talachulitna) and 2 surveys that track abundance poorly (Cache and Peters). You can see that in the graph above and the model also estimates lower survey error for Lake and Talachulitna.\n\n\n\n\nTable 3: Previously released annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2022. These estimates have been superseded by the estimates above.\n\n\nYear\nDeshka (CV)\nEast Susitna (CV)\nTalkeetna (CV)\nYentna (CV)\n\n\n\n\n2019\n9,723 (0.05)\n12,000 (0.14)\n10,819 (0.19)\n21,622 (0.21)\n\n\n2020\n11,293 (0.05)\n11,619 (0.11)\n6,617 (0.14)\n13,469 (0.19)\n\n\n2021\n17,921 (0.05)\n15,300 (0.13)\n8,743 (0.16)\n21,090 (0.20)\n\n\n2022\n5,485 (0.05)\n7,654 (0.20)\n4,288 (0.20)\n16,583 (0.19)"
+    "text": "Outdated Escapement estimates\nFor the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. Relative to the 2023 estimates the changes for most stocks and years are modest (Generally less than 5% and always less than 9%).\n\n\n\n\nTable 3: Previously released annual escapement estimates for the Susitna River Chinook salmon stock groups obtained by fitting a state-space model to data from 1979 to 2022. These estimates have been superseded by the estimates above.\n\n\n\n\n\n\nYear\nDeshka (CV)\nEast Susitna (CV)\nTalkeetna (CV)\nYentna (CV)\n\n\n\n\n2020\n11,170 (0.05)\n11,579 (0.11)\n6,673 (0.14)\n13,451 (0.19)\n\n\n2021\n17,966 (0.05)\n14,927 (0.12)\n8,485 (0.16)\n20,186 (0.20)\n\n\n2022\n5,479 (0.05)\n7,518 (0.20)\n4,086 (0.19)\n15,407 (0.18)\n\n\n2023\n3,750 (0.05)\n4,003 (0.21)\n2,216 (0.21)\n8,294 (0.20)"
   }
 ]

@@ -1,7 +1,7 @@
 #Note: update import range annually.
 weir <-
   readxl::read_excel(".\\data-raw\\SusitnaEG weirs.xlsx",
-                     range = "Annual counts!A1:D46") %>%
+                     range = "Annual counts!A1:D47") %>%
   dplyr::select(-year) %>%
   as.matrix()
 

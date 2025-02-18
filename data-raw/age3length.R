@@ -98,16 +98,24 @@ lapply(d22, table)
 d22$age <- ifelse(grepl("1.1", d22$age), 1.1, d22$age)
 d22$year <- 2022
 
-url_23 <- "https://raw.githubusercontent.com/ADFG-DSF/DeshkaWeir/main/2023/data/2023%20Deshka%20asl.csv?token=GHSAT0AAAAAACG5LAFULCNLEMAGHGYXVLQMZJW4L3Q"
 d23 <-
-  readr::read_csv(url_23, 
+  readr::read_csv(".\\data-raw\\2023 Deshka asl.csv", 
                   col_names = c("length", "sex", "age"),
                   col_types = "_icc_",
                   skip = 1)
 lapply(d23, table)
 d23$year <- 2023
 
-rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23) %>%
+d24 <-
+  readr::read_csv(".\\data-raw\\asl_dat_24.csv", 
+                  col_names = c("length", "sex", "age"),
+                  col_types = "_icc_",
+                  skip = 1) %>%
+  dplyr::filter(!(age %in% c("3", "4", "5", "6")))
+lapply(d24, table)
+d24$year <- 2024
+
+rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   ggplot2::ggplot(ggplot2::aes(x = length)) + 
     ggplot2::geom_histogram() + 
@@ -115,7 +123,7 @@ rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23) %>%
     ggplot2::facet_grid(year ~ age)
 
 lt500 <- 
-  rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23) %>%
+  rbind(d13, d14, d15, d16, d17, d18, d19, d20, d21, d22, d23, d24) %>%
   dplyr::filter(age %in% c("1.1", "1.2")) %>%
   dplyr::mutate(small = (length <= 500)) %>%
   dplyr::group_by(year, age) %>%

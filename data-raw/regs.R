@@ -3,7 +3,7 @@ library(magrittr)
 
 regs <-
   readxl::read_excel(".\\data-raw\\SusitnaEG regs.xlsx",
-                     range = "reg bins!A1:E46",
+                     range = "reg bins!A1:E47",
                      col_names = TRUE,
                      col_types = c("numeric", rep("text", 4))) %>%
   tidyr::gather(stock, reg, -year) %>%

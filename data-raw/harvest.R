@@ -33,7 +33,7 @@ Ha_early_raw <-
 
 Ha_late_raw0 <-
   readxl::read_excel(".\\data-raw\\SusitnaEG Ha_post95.xlsx",
-                     range = "su_har!A4:H32",
+                     range = "su_har!A4:H33",
                      col_names = TRUE,
                      na = ".") %>%
   dplyr::select(-Alexander_Cr) %>%
@@ -50,7 +50,7 @@ Ha_late_raw <-
 
 Hase_late_raw <-
   readxl::read_excel(".\\data-raw\\SusitnaEG Ha_post95.xlsx",
-                     range = "ks_se!A4:G32",
+                     range = "ks_se!A4:G33",
                      col_names = TRUE, na = ".") %>%
   dplyr::rename(year = Year, Deshka0 = Deshka, Deshka_above0 = Deshka_above) %>%
   dplyr::left_join(pct_up, by = "year") %>%
@@ -104,7 +104,7 @@ Hd <-
 
 Hm <-
   readxl::read_excel(".\\data-raw\\SusitnaEG Hm.xlsx",
-                     range = "Marine!ab4:ah51",
+                     range = "Marine!ab4:ah52",
                      col_names = TRUE) %>%
   dplyr::mutate_at(.funs = as.integer, .vars = c("year", "SusitnaSR")) %>%
   dplyr::mutate_at(.funs = as.double, .vars = c("CV_SusitnaSR")) %>%

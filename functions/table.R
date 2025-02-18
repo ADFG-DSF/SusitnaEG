@@ -104,23 +104,24 @@ table_brood <- function(post_dat, stock){
   stopifnot(exists("year_id", .GlobalEnv))
     
   N_ta <- #q50 because when written N.tas was calculated from p and R posterior sims and then ammended JagsUI object   
-    data.frame(mean = post_dat$mean$N.tas[, , stock],
-               cyr = as.numeric(year_id[1]) - 1 + as.vector(slice.index(post_dat$mean$N.tas[, 1, stock], 1))) %>%
-    tidyr::gather(key, mean, -cyr) %>%
+    data.frame(median = post_dat$q50$N.tas[, , stock],
+               cyr = as.numeric(year_id[1]) - 1 + as.vector(slice.index(post_dat$q50$N.tas[, 1, stock], 1))) %>%
+    tidyr::gather(key, median, -cyr) %>%
     dplyr::mutate(age_n = as.numeric(gsub(".*\\.(\\d)", "\\1", key)) + post_dat$data$a.min - 1,
                   year = cyr - age_n,
                   age_c = paste0("age", age_n)) %>%
-    dplyr::select(year, age_c, mean) %>%
-    tidyr::spread(age_c, mean)
+    dplyr::select(year, age_c, median) %>%
+    tidyr::spread(age_c, median)
     
   post_dat[["summary"]][grepl(paste0("^S\\[\\d+,", stock, "|^R\\[\\d+,", stock), rownames(post_dat$summary)), c("mean", "50%")] %>%
     as.data.frame() %>%
+    rename("median" = "50%") %>%
     tibble::rownames_to_column() %>%
     dplyr::mutate(name = stringr::str_sub(rowname, 1, stringr::str_locate(rowname, "\\[")[, 1] - 1),
                   index = as.numeric(gsub(".\\[(\\d+),\\d]", "\\1", rowname)),
                   year = (name == "S") * (as.numeric(year_id[1]) - 1 + index) + (name == "R") * (as.numeric(year_id[1]) - 1 - post_dat$data$a.max + index)) %>%
-    dplyr::select(year, mean, name) %>%
-    tidyr::spread(name, mean) %>%
+    dplyr::select(year, median, name) %>%
+    tidyr::spread(name, median) %>%
     dplyr::select(year, S, R) %>%
     dplyr::full_join(N_ta, by = "year") %>%
     dplyr::mutate_all(as.integer)

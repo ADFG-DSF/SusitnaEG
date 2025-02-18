@@ -1,5 +1,5 @@
 #Note: update import range annually.
-library(magrittr)
+library(tidyverse)
 
 lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2), rep("Yentna", 4), rep("Other", 3)),
                   trib = c("Deshka", "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "Clear", "Prairie", 
@@ -8,7 +8,7 @@ lut <- data.frame(stock = c("Deshka", rep("East_Susitna", 7), rep("Talkeetna", 2
 
 survey_raw <-
   readxl::read_excel(".\\data-raw\\SusitnaEG survey.xlsx",
-                     range = "Single aerial survey counts!A5:X49",
+                     range = "Single aerial survey counts!A5:X50",
                      col_names = c("year", "Alexander", "skip", 
                                    "Deshka", "skip",
                                    "Deception", "Goose", "Kashwitna", "Little Willow", "Montana", "Sheep", "Willow", "skip",
@@ -46,8 +46,6 @@ as[[2]] %>%
   pivot_longer(cols = -year, names_to = "population", values_to = "Count") %>%
   ggplot(aes(x = year, y = Count, color = population)) +
   geom_line()
-as[[2]][dim(as[[2]])[1], ]/apply(as[[2]], MARGIN = 2, FUN = median, na.rm = TRUE)
-as[[2]][dim(as[[2]])[1], ]/apply(as[[2]][1:(dim(as[[2]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
 
 as[[3]] %>%
   as.data.frame() %>%
@@ -63,12 +61,12 @@ as[[4]] %>%
   ggplot(aes(x = year, y = Count, color = population)) +
   geom_line()
 
-# 2023 count as a percentage of the historical median
+# 2024 count as a percentage of the historical median
 as[[2]][dim(as[[2]])[1], ]/apply(as[[2]], MARGIN = 2, FUN = median, na.rm = TRUE)
 as[[3]][dim(as[[3]])[1], ]/apply(as[[3]], MARGIN = 2, FUN = median, na.rm = TRUE)
 as[[4]][dim(as[[4]])[1], ]/apply(as[[4]], MARGIN = 2, FUN = median, na.rm = TRUE)
 
-#2023 count as a percentage of the previous minimum
+#2024 count as a percentage of the previous minimum
 as[[2]][dim(as[[2]])[1], ]/apply(as[[2]][1:(dim(as[[2]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
 as[[3]][dim(as[[4]])[1], ]/apply(as[[3]][1:(dim(as[[3]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)
 as[[4]][dim(as[[4]])[1], ]/apply(as[[4]][1:(dim(as[[4]])[1] - 1), ], MARGIN = 2, FUN = min, na.rm = TRUE)

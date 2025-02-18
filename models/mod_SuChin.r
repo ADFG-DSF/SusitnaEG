@@ -57,8 +57,8 @@ model{
   ML1[A] <- 0  
   ML2[A] <- 0
 for (a in 1:(A-1)) { 
-  ML1[a] ~ dnorm(0,0.0001) 
-  ML2[a] ~ dnorm(0,0.0001) 
+  ML1[a] ~ dnorm(0,0.1)T(0.01, 10) #slicer problems. Set to be much wider than the last posterior estimates
+  ML2[a] ~ dnorm(0,0.1)T(0.01, 1)
   }
 
 for (c in 1:(Y+A-1)) {
@@ -182,7 +182,7 @@ for (y in 1:Y) {
 for (y in 1:Y) { 
     tele.S2[y, 1:6] ~  dmulti(p.S2s[y, ], Ntele.S2[y] - tele.S2[y, 7])  #Eq. 21
     tele.S3[y, 1:2] ~  dmulti(p.S3s[y, ], Ntele.S3[y] - tele.S3[y, 3])
-	tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
+	  tele.S4[y, 1:4] ~  dmulti(p.S4s[y, ], Ntele.S4[y] - tele.S4[y, 5])
 }
 
 #for(s in 1:(SG - 1)){

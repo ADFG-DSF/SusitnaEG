@@ -68,7 +68,7 @@ parameters=c(
 
 #MCMC settings
 nc <- 3
-nb <- 250000
+nb <- 500000
 nt <- 500
 ns <- 1000000
 
@@ -92,12 +92,12 @@ post <- jags(data = dat,
 )
 
 #saveRDS(post, file = ".\\posts\\SuChinook_10242023.rds") #Associate this date w the appropriate commit.
-post <- readRDS(".\\posts\\SuChinook_10242023.rds")
+post <- readRDS(".\\posts\\SuChinook_02162025.rds")
 
 #note: convergence is poor for age 3 fish.
-rhat <- get_Rhat(post, cutoff = 1.15)
+rhat <- get_Rhat(post, cutoff = 1.01)
 rhat
-jagsUI::traceplot(post, Rhat_min = 1.15)
+jagsUI::traceplot(post, Rhat_min = 1.01)
 
 #inspect convergence
 #shinystan::launch_shinystan(shinystan::as.shinystan(post))

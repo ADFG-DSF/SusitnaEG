@@ -68,9 +68,9 @@ tele_matrix <- function(stock){
   rbind(matrix(NA, nrow = if(stock == "Yentna") 35 else(34), ncol = dim(out)[2]), out) 
 }
 
-tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 5, ncol = dim(.)[2])) ####increment NA # here
-tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 5, ncol = dim(.)[2])) ####increment NA # here
-tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 5, ncol = dim(.)[2])) ####increment NA # here
+tele_east <- tele_matrix("East Susitna") %>% rbind(matrix(NA, nrow = 6, ncol = dim(.)[2])) ####increment NA # here
+tele_tal <- tele_matrix("Talkeetna")%>% rbind(matrix(NA, nrow = 6, ncol = dim(.)[2])) ####increment NA # here
+tele_yent <- tele_matrix("Yentna") %>% rbind(matrix(NA, nrow = 6, ncol = dim(.)[2])) ####increment NA # here
 
 telemetry <- list('East Susitna' = tele_east, 'N_East Susitna' = rowSums(tele_east, na.rm = TRUE),
                   'Talkeetna' = tele_tal, 'N_Talkeetna' = rowSums(tele_tal, na.rm = TRUE),
@@ -130,12 +130,12 @@ temp4 <-
                 cv = seN / N)
 
 fill <- #Increment NAs: Add new year here if no MR
-  data.frame(year = rep(c(1979:2012, 2018, 2022, 2023), times = 4), 
-             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 37),
+  data.frame(year = rep(c(1979:2012, 2018, 2022, 2023, 2024), times = 4), 
+             stock = rep(c("Deshka", "East Susitna", "Talkeetna", "Yentna"), each = 38),
              N = NA, 
              cv = 0.1, group = NA, seN = NA)
 
-mr2018 <- data.frame(year = 1979:2023) #increment year range here
+mr2018 <- data.frame(year = 1979:2024) #increment year range here
 mr2018$mr_det <- ifelse(mr2018$year == "2018", 30605, NA) #det = Deshka, Eastside, Talkeetna
 mr2018$tau.logmr_det <- ifelse(mr2018$year == "2018", 1 / log((4376 / 30605)^2 + 1), 0.1)
 
