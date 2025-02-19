@@ -22,7 +22,7 @@ source("..\\functions\\table.R")
 data_names <- list.files(path="..\\data")
 lapply(data_names, function(x) load(paste0("..\\data\\", x), .GlobalEnv))
 getwd()
-get_ids(year_range = 1979:2023)
+get_ids(year_range = 1979:2024)
 post_old <- readRDS("..\\posts\\SuChinook_10242023.rds")
 post_new <- readRDS("..\\posts\\SuChinook_02172025.rds") 
 table_old <- table_state(post_old, "bystate")
@@ -172,7 +172,7 @@ plot[[4]]
 
 ## Outdated Escapement estimates
 
-For the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. Relative to the 2023 estimates the changes for most stocks and years are modest (Generally less than 5% and always less than 9%).
+For the moment we have decided to only distribute the latest year each time the model is run, but monitor changes in prior years estimates. Relative to the 2023 estimates the changes for most stocks and years are modest (Generally less than 5% and always less than 9%). Addition of the Lake Creek sonar data continues to put upward pressure on the Yentna escapement when compared to the aerial survey data resulting in increased estimates of Lake Creek's contribution to the Yentna escapement.
 
 ```{r}
 #| echo: false 
@@ -183,7 +183,26 @@ For the moment we have decided to only distribute the latest year each time the 
 
 knitr::kable(table_old[["Escapement (CV)"]][42:45, -2], row.names = FALSE, align = "r", escape = FALSE)
 
+# # Compare S
+# # 2023 estmates
 # post_old$q50$S[42:45, ]
+# # 2024 estimates
 # post_new$q50$S[42:45, ]
+# #new S / old S
 # post_new$q50$S[42:45, ] / post_old$q50$S[42:45, ]
+# 
+# # % lake creek upstream of sonar - old 
+# post_old$q50$p.p2upS4[43:45]
+# # % lake creek upstream of sonar - new
+# post_new$q50$p.p2upS4[43:46]
+# # lake creek pct of Yentna - old
+# post_old$q50$p.S4[43:45, 2]
+# # lake creek pct of Yentna - new
+# post_new$q50$p.S4[43:46, 2]
+# 
+# # sonar % of Yentna - old 
+# post_old$q50$p.p2upS4[43:45] * post_old$q50$p.S4[43:45, 2]
+# # sonar % of Yentna - new
+# post_new$q50$p.p2upS4[43:46] * post_new$q50$p.S4[43:46, 2]
+
 ```
